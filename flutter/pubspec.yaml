@@ -1,0 +1,27 @@
+name: veritrace
+description: VeriTrace — scannez un vêtement en magasin et découvrez son impact environnemental et social.
+publish_to: "none"
+version: 0.1.0+1
+
+environment:
+  # Flutter 3.27 ou plus récent (Dart 3.6)
+  sdk: ">=3.6.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Scan caméra des codes-barres (EAN-13, EAN-8, UPC-A)
+  mobile_scanner: ^7.0.0
+  # Base de données Supabase (même projet que la web app)
+  supabase_flutter: ^2.9.0
+  # Historique local et accès Premium simulé
+  shared_preferences: ^2.3.0
+  uuid: ^4.5.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

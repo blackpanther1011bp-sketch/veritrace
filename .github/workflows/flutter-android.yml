@@ -1,0 +1,67 @@
+name: Flutter Android
+
+# Vérifie le code Flutter, lance les tests et fabrique l'APK Android à chaque modification.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "flutter/**"
+      - ".github/workflows/flutter-android.yml"
+  workflow_dispatch:
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: flutter
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Version de Flutter
+        run: flutter --version
+
+      - name: Générer le projet Android
+        run: |
+          flutter create . --project-name veritrace --org com.veritrace --platforms=android
+          # test d'exemple généré par Flutter, remplacé par nos propres tests
+          rm -f test/widget_test.dart
+          MANIFEST=android/app/src/main/AndroidManifest.xml
+          # l'APK de production a besoin d'Internet pour joindre la base Supabase
+          if ! grep -q "android.permission.INTERNET" "$MANIFEST"; then
+            sed -i 's#<manifest xmlns:android="http://schemas.android.com/apk/res/android">#&\n    <uses-permission android:name="android.permission.INTERNET"/>#' "$MANIFEST"
+          fi
+          sed -i 's#android:label="veritrace"#android:label="VeriTrace"#' "$MANIFEST"
+          grep -q "android.permission.INTERNET" "$MANIFEST"
+          cat "$MANIFEST"
+
+      - name: Installer les dépendances
+        run: flutter pub get
+
+      - name: Analyser le code
+        run: flutter analyze --no-fatal-infos
+
+      - name: Lancer les tests
+        run: flutter test
+
+      - name: Construire l'APK
+        run: flutter build apk --release
+
+      - name: Publier l'APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: veritrace-android-apk
+          path: flutter/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 30
