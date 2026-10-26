@@ -2,7 +2,9 @@ import { supabase } from "./supabase";
 import type { Product } from "./types";
 
 const PRODUCT_FIELDS =
-  "ean,name,category,origin_country,composition,transport,carbon_grade,social_grade,global_grade,carbon_breakdown,is_sample,brand:brands(id,name,kind,country,social_checks)";
+  "ean,name,category,origin_country,composition,transport,carbon_grade,social_grade,global_grade,carbon_breakdown,is_sample," +
+  "data_source,confidence,source_ref,source_date,env_grade,eco_cost,climate_kg,eco_web_url,assumptions,methodology,scored_at," +
+  "brand:brands(id,name,kind,country,social_checks)";
 
 // Petit cache en mémoire : fiche → détails → alternatives sans nouvel appel réseau.
 const productCache = new Map<string, Product | null>();

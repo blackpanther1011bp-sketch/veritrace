@@ -476,3 +476,11 @@ button {
   align-items: center;
   justify-content: center;
 }
+
+/* ---------- Sources et fiabilité ---------- */
+.sources-grade { display: inline-flex; align-items: center; gap: 8px; }
+.sources-links { display: flex; flex-direction: column; gap: 10px; }
+.note-title { margin: 0 0 4px; font-size: 13px; font-weight: 700; color: var(--ink); }
+.note-list { margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.45; }
+.info-row-btn { width: 100%; background: none; border: none; border-bottom: 1px solid var(--line); text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.info-row-btn:last-child { border-bottom: none; }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../api.dart';
 import '../barcode.dart';
 import '../models.dart';
+import '../sources_card.dart';
 import '../storage.dart';
 import '../theme.dart';
 import '../widgets.dart';
@@ -180,6 +181,20 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
               _info('Composition', p.composition),
               const Divider(height: 1, color: VT.line),
               _info('Transport', p.transport),
+              const Divider(height: 1, color: VT.line),
+              InkWell(
+                onTap: () => _openDetails(p),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 13),
+                  child: Row(
+                    children: [
+                      const Text('Fiabilité des données', style: TextStyle(color: VT.muted, fontSize: 14)),
+                      const Spacer(),
+                      ConfidencePill(product: p),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),

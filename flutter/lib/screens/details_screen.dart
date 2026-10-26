@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api.dart';
 import '../models.dart';
+import '../sources_card.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'alternatives_screen.dart';
@@ -61,7 +62,8 @@ class _DetailsScreenState extends State<DetailsScreen> {
   }
 
   List<Widget> _carbon(Product p) => [
-        const Text("D'où vient l'impact climat de ce vêtement :", style: TextStyle(fontSize: 15, color: VT.muted)),
+        Text("D'où vient l'impact climat de ce vêtement${p.isDemo ? '' : ' (calcul Ecobalyse)'} :",
+            style: const TextStyle(fontSize: 15, color: VT.muted)),
         const SizedBox(height: 14),
         CardBox(
           padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
@@ -100,10 +102,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        const MethodNote(
-          text: "Notes d'exemple calculées pour la démo à partir de la matière, du pays de fabrication, de la teinture "
-              'et du transport. Méthode sourcée à intégrer avant lancement (par exemple Ecobalyse).',
-        ),
+        SourcesCard(product: p),
       ];
 
   List<Widget> _social(Product p) => [
@@ -135,9 +134,12 @@ class _DetailsScreenState extends State<DetailsScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        const MethodNote(
-          text: "Données d'exemple. Sources à intégrer avant lancement : rapports d'audit, déclarations des marques, "
-              'bases de données publiques.',
+        MethodNote(
+          text: p.isDemo
+              ? "Données d'exemple. Sources à intégrer avant lancement : rapports d'audit, déclarations des marques, "
+                  'bases de données publiques.'
+              : 'Note sociale attribuée par VeriTrace à partir des engagements publics de la marque '
+                  '(audits, salaires, liste des usines).',
         ),
       ];
 }

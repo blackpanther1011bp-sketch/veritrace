@@ -23,6 +23,10 @@ export interface Brand {
   social_checks: SocialCheck[];
 }
 
+/** demo : fictif ; marque : données transmises par la marque ; etiquette : relevé sur l'étiquette ; estimation : valeurs par défaut */
+export type DataSource = "demo" | "marque" | "etiquette" | "estimation";
+export type Confidence = "haute" | "moyenne" | "faible";
+
 export interface Product {
   ean: string;
   name: string;
@@ -36,4 +40,16 @@ export interface Product {
   carbon_breakdown: BreakdownItem[];
   is_sample: boolean;
   brand: Brand;
+  // Provenance et calcul Ecobalyse (absents des produits de démonstration)
+  data_source: DataSource;
+  confidence: Confidence | null;
+  source_ref: string | null;
+  source_date: string | null;
+  env_grade: Grade | null;
+  eco_cost: number | null;
+  climate_kg: number | null;
+  eco_web_url: string | null;
+  assumptions: string[];
+  methodology: string | null;
+  scored_at: string | null;
 }

@@ -5,7 +5,9 @@ import 'package:uuid/uuid.dart';
 import 'models.dart';
 
 const _productFields =
-    'ean,name,category,origin_country,composition,transport,carbon_grade,social_grade,global_grade,carbon_breakdown,is_sample,brand:brands(id,name,kind,country,social_checks)';
+    'ean,name,category,origin_country,composition,transport,carbon_grade,social_grade,global_grade,carbon_breakdown,is_sample,'
+    'data_source,confidence,source_ref,source_date,env_grade,eco_cost,climate_kg,eco_web_url,assumptions,methodology,scored_at,'
+    'brand:brands(id,name,kind,country,social_checks)';
 
 /// Accès au catalogue, aux alternatives, aux signalements et aux événements d'usage.
 class Api {

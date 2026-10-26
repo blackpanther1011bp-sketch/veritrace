@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Header } from "../components/Header";
 import { IconArrow, IconInfo } from "../components/Icons";
+import { SourcesCard } from "../components/Sources";
 import { LEVEL_COLOR, LEVEL_LABEL, LEVEL_TEXT, STATUS_LABEL, STATUS_STYLE } from "../lib/grades";
 import { navigate } from "../lib/router";
 import { track } from "../lib/track";
@@ -53,7 +54,7 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
 
         {tab === "carbone" ? (
           <>
-            <p className="lead">D'où vient l'impact climat de ce vêtement :</p>
+            <p className="lead">D'où vient l'impact climat de ce vêtement{product.data_source === "demo" ? "" : " (calcul Ecobalyse)"} :</p>
             <section className="card breakdown">
               {product.carbon_breakdown.map((item) => (
                 <div key={item.label} className="stack-8">
@@ -70,13 +71,7 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
                 </div>
               ))}
             </section>
-            <aside className="note">
-              <IconInfo size={20} />
-              <p>
-                Notes d'exemple calculées pour la démo à partir de la matière, du pays de fabrication, de la teinture et du transport. Méthode sourcée à intégrer avant
-                lancement (par exemple Ecobalyse).
-              </p>
-            </aside>
+            <SourcesCard product={product} />
           </>
         ) : (
           <>
@@ -93,7 +88,11 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
             </section>
             <aside className="note">
               <IconInfo size={20} />
-              <p>Données d'exemple. Sources à intégrer avant lancement : rapports d'audit, déclarations des marques, bases de données publiques.</p>
+              <p>
+                {product.data_source === "demo"
+                  ? "Données d'exemple. Sources à intégrer avant lancement : rapports d'audit, déclarations des marques, bases de données publiques."
+                  : "Note sociale attribuée par VeriTrace à partir des engagements publics de la marque (audits, salaires, liste des usines)."}
+              </p>
             </aside>
           </>
         )}

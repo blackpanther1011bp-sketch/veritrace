@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { GradeBadge, GradeScale } from "../components/Grade";
 import { Header, SampleTag } from "../components/Header";
 import { CategoryIcon, IconArrow } from "../components/Icons";
+import { ConfidencePill } from "../components/Sources";
 import { fetchAlternatives, fetchProduct, getCachedProduct } from "../lib/api";
 import { formatEan } from "../lib/barcode";
 import { carbonSummary, GRADE_TINT, isBadGrade, STATUS_LABEL, VERDICT } from "../lib/grades";
@@ -168,6 +169,10 @@ export function ProductScreen({ ean }: { ean: string }) {
             <span className="muted">Transport</span>
             <span className="info-value">{product.transport}</span>
           </div>
+          <button type="button" className="info-row info-row-btn" onClick={() => navigate(`/p/${product.ean}/details?onglet=carbone`)}>
+            <span className="muted">Fiabilité des données</span>
+            <ConfidencePill product={product} />
+          </button>
         </section>
       </main>
 

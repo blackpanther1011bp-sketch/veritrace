@@ -62,6 +62,18 @@ class Product {
   final bool isSample;
   final Brand brand;
 
+  // Provenance et calcul Ecobalyse (absents des produits de démonstration)
+  final String dataSource; // demo | marque | etiquette | estimation
+  final String? confidence; // haute | moyenne | faible
+  final String? sourceRef;
+  final String? sourceDate;
+  final Grade? envGrade;
+  final double? ecoCost;
+  final double? climateKg;
+  final String? ecoWebUrl;
+  final List<String> assumptions;
+  final String? scoredAt;
+
   Product({
     required this.ean,
     required this.name,
@@ -75,6 +87,16 @@ class Product {
     required this.carbonBreakdown,
     required this.isSample,
     required this.brand,
+    this.dataSource = 'demo',
+    this.confidence,
+    this.sourceRef,
+    this.sourceDate,
+    this.envGrade,
+    this.ecoCost,
+    this.climateKg,
+    this.ecoWebUrl,
+    this.assumptions = const [],
+    this.scoredAt,
   });
 
   factory Product.fromJson(Map<String, dynamic> j) => Product(
@@ -91,7 +113,19 @@ class Product {
             (j['carbon_breakdown'] as List).map((e) => BreakdownItem.fromJson(e as Map<String, dynamic>)).toList(),
         isSample: j['is_sample'] as bool? ?? true,
         brand: Brand.fromJson(j['brand'] as Map<String, dynamic>),
+        dataSource: j['data_source'] as String? ?? 'demo',
+        confidence: j['confidence'] as String?,
+        sourceRef: j['source_ref'] as String?,
+        sourceDate: j['source_date'] as String?,
+        envGrade: j['env_grade'] == null ? null : gradeFrom(j['env_grade'] as String),
+        ecoCost: (j['eco_cost'] as num?)?.toDouble(),
+        climateKg: (j['climate_kg'] as num?)?.toDouble(),
+        ecoWebUrl: j['eco_web_url'] as String?,
+        assumptions: ((j['assumptions'] as List?) ?? const []).map((e) => e.toString()).toList(),
+        scoredAt: j['scored_at'] as String?,
       );
+
+  bool get isDemo => dataSource == 'demo';
 
   bool get isBadGrade => globalGrade == Grade.D || globalGrade == Grade.E;
 }
