@@ -17,6 +17,10 @@ https://github.com/blackpanther1011bp-sketch/veritrace/releases/latest/download/
 
 Android demandera d'autoriser l'installation depuis le navigateur (« sources inconnues ») : c'est normal pour une app de test hors Play Store.
 
+## Installer l'app iPhone (TestFlight)
+
+La compilation iPhone se lance à la main : onglet **Actions** > **Flutter iOS (TestFlight)** > **Run workflow**. Elle nécessite un compte Apple Developer et quatre secrets (`ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8`, `IOS_CERTIFICATE_PRIVATE_KEY`), décrits en tête de `.github/workflows/flutter-ios-testflight.yml`. Identifiant de l'app : `ma.studiokante.veritrace`. Une fois traitée par Apple, la version apparaît dans l'app TestFlight des testeurs internes.
+
 ## Lancer la web app en local
 
 ```bash

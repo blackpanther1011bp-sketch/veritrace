@@ -1,0 +1,121 @@
+name: Flutter iOS (TestFlight)
+
+# Compile l'app iPhone sur un Mac de GitHub, la signe et l'envoie sur TestFlight.
+# Lancement manuel (onglet Actions > Flutter iOS (TestFlight) > Run workflow) :
+# les minutes Mac comptent davantage dans le quota gratuit de GitHub.
+#
+# Secrets à créer dans Settings > Secrets and variables > Actions :
+#   ASC_KEY_ID                   identifiant de la clé API App Store Connect (Key ID)
+#   ASC_ISSUER_ID                « Issuer ID » affiché au-dessus de la liste des clés
+#   ASC_KEY_P8                   contenu complet du fichier AuthKey_XXXX.p8
+#   IOS_CERTIFICATE_PRIVATE_KEY  clé RSA créée avec :
+#                                ssh-keygen -t rsa -b 2048 -m PEM -f veritrace_ios -q -N ""
+#                                (contenu complet du fichier veritrace_ios, sans le .pub)
+#
+# Signature : outils Codemagic CLI. Le certificat de distribution est créé une seule fois
+# à partir de IOS_CERTIFICATE_PRIVATE_KEY, puis réutilisé à chaque compilation.
+on:
+  workflow_dispatch:
+
+env:
+  IOS_BUNDLE_ID: ma.studiokante.veritrace
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: flutter
+    env:
+      APP_STORE_CONNECT_KEY_IDENTIFIER: ${{ secrets.ASC_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.ASC_KEY_P8 }}
+      CERTIFICATE_PRIVATE_KEY: ${{ secrets.IOS_CERTIFICATE_PRIVATE_KEY }}
+    steps:
+      - name: Vérifier la configuration Apple
+        working-directory: .
+        run: |
+          missing=""
+          [ -z "$APP_STORE_CONNECT_KEY_IDENTIFIER" ] && missing="$missing ASC_KEY_ID"
+          [ -z "$APP_STORE_CONNECT_ISSUER_ID" ] && missing="$missing ASC_ISSUER_ID"
+          [ -z "$APP_STORE_CONNECT_PRIVATE_KEY" ] && missing="$missing ASC_KEY_P8"
+          [ -z "$CERTIFICATE_PRIVATE_KEY" ] && missing="$missing IOS_CERTIFICATE_PRIVATE_KEY"
+          if [ -n "$missing" ]; then
+            echo "::error title=Secrets Apple manquants::Ajoutez dans Settings > Secrets and variables > Actions :$missing"
+            exit 1
+          fi
+          echo "Configuration Apple présente."
+
+      - uses: actions/checkout@v5
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Installer les outils de signature
+        run: |
+          python -m pip install --upgrade codemagic-cli-tools
+          flutter --version
+          xcodebuild -version
+
+      - name: Générer le projet iOS
+        run: |
+          flutter create . --project-name veritrace --org ma.studiokante --platforms=ios
+          rm -f test/widget_test.dart
+          PBX=ios/Runner.xcodeproj/project.pbxproj
+          grep -q "PRODUCT_BUNDLE_IDENTIFIER = ${IOS_BUNDLE_ID};" "$PBX"
+          # version minimale d'iOS
+          perl -pi -e 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]+;/IPHONEOS_DEPLOYMENT_TARGET = 15.5;/g' "$PBX"
+          if [ -f ios/Podfile ]; then
+            perl -pi -e "s/^#?\s*platform :ios, '[0-9.]+'/platform :ios, '15.5'/" ios/Podfile
+          fi
+          # nom affiché, autorisation caméra, déclaration de chiffrement (aucun chiffrement propre)
+          PLIST=ios/Runner/Info.plist
+          plutil -replace CFBundleDisplayName -string "VeriTrace" "$PLIST"
+          plutil -replace NSCameraUsageDescription -string "VeriTrace utilise la caméra pour lire le code-barres des étiquettes de vêtements." "$PLIST"
+          plutil -replace ITSAppUsesNonExemptEncryption -bool NO "$PLIST"
+          plutil -lint "$PLIST"
+
+      - name: Installer les dépendances et tester
+        run: |
+          flutter pub get
+          flutter test
+
+      - name: Préparer la signature
+        run: |
+          keychain initialize
+          ../.github/scripts/run-logged.sh app-store-connect fetch-signing-files "$IOS_BUNDLE_ID" \
+            --type IOS_APP_STORE \
+            --create
+          keychain add-certificates
+          ../.github/scripts/run-logged.sh xcode-project use-profiles --project ios/Runner.xcodeproj
+
+      - name: Construire l'IPA
+        run: |
+          BUILD_NUMBER=$(( ${{ github.run_number }} * 10 + ${{ github.run_attempt }} ))
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
+          ../.github/scripts/run-logged.sh flutter build ipa --release \
+            --build-name=0.1.0 \
+            --build-number="$BUILD_NUMBER" \
+            --export-options-plist="$HOME/export_options.plist"
+
+      - name: Envoyer sur TestFlight
+        run: |
+          IPA=$(find build/ios/ipa -name "*.ipa" | head -n 1)
+          test -n "$IPA"
+          ../.github/scripts/run-logged.sh app-store-connect publish --path "$IPA"
+          echo "::notice title=Envoyé sur TestFlight::Build 0.1.0 ($BUILD_NUMBER) envoyé. Apple le traite en 10 à 30 minutes avant qu'il apparaisse dans TestFlight."
+
+      - name: Nettoyer le trousseau
+        if: always()
+        run: keychain use-login || true

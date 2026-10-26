@@ -59,14 +59,7 @@ jobs:
         run: flutter test
 
       - name: Construire l'APK
-        run: |
-          set -o pipefail
-          if ! flutter build apk --release 2>&1 | tee build.log; then
-            # rend la fin du journal lisible dans les annotations du run
-            MSG=$(tail -n 60 build.log | sed -e 's/%/%25/g' -e 's/\r//g' | awk 'BEGIN{ORS="%0A"} {print}')
-            echo "::error title=Echec de la compilation APK::${MSG}"
-            exit 1
-          fi
+        run: ../.github/scripts/run-logged.sh flutter build apk --release
 
       - name: Publier l'APK
         uses: actions/upload-artifact@v4
