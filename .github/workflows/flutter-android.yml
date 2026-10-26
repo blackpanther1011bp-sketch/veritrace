@@ -13,13 +13,16 @@ jobs:
   android:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    permissions:
+      # nécessaire pour publier l'APK dans les « Releases » du dépôt
+      contents: write
     defaults:
       run:
         working-directory: flutter
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
@@ -65,3 +68,19 @@ jobs:
           path: flutter/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 30
+
+      # Lien fixe vers la dernière version, à ouvrir depuis le téléphone :
+      # https://github.com/<compte>/<dépôt>/releases/latest/download/VeriTrace.apk
+      - name: Publier la version téléchargeable
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          TAG="android-build-${{ github.run_number }}"
+          cp build/app/outputs/flutter-apk/app-release.apk VeriTrace.apk
+          gh release create "$TAG" VeriTrace.apk \
+            --target "${{ github.sha }}" \
+            --title "VeriTrace Android – build ${{ github.run_number }}" \
+            --notes "APK de test (données fictives). Commit ${{ github.sha }}." \
+            --latest
