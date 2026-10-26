@@ -58,6 +58,40 @@ void main() {
     );
   });
 
+  group('expandThinBox', () {
+    test('agrandit un cadre trop fin autour de son centre', () {
+      final r = expandThinBox(const Rect.fromLTWH(0, 100, 200, 20));
+      expect(r.height, closeTo(90, 0.001)); // 0,45 × 200
+      expect(r.center, const Offset(100, 110));
+    });
+
+    test('laisse un cadre déjà assez haut', () {
+      const box = Rect.fromLTWH(0, 0, 200, 120);
+      expect(expandThinBox(box), box);
+    });
+  });
+
+  group('pickCentral', () {
+    Rect boxAt(double cx, double cy) => Rect.fromCenter(center: Offset(cx, cy), width: 100, height: 50);
+    final boxes = {'a': boxAt(50, 300), 'b': boxAt(200, 380), 'c': boxAt(340, 300)};
+    final keys = boxes.keys.toList();
+
+    test('choisit le code le plus proche du centre', () {
+      expect(pickCentral(keys, boxOf: (k) => boxes[k]!, center: const Offset(195, 370)), 'b');
+    });
+
+    test('garde le code actuel tant qu\'il reste presque aussi proche', () {
+      // « a » est à ~150 px du centre, « b » à ~11 px : écart trop grand, on change
+      expect(pickCentral(keys, boxOf: (k) => boxes[k]!, center: const Offset(195, 370), current: 'a'), 'b');
+      // centre entre « b » et « c » : « c » reste choisi malgré une légère avance de « b »
+      expect(pickCentral(keys, boxOf: (k) => boxes[k]!, center: const Offset(260, 345), current: 'c'), 'c');
+    });
+
+    test('liste vide : aucun code', () {
+      expect(pickCentral(<String>[], boxOf: (k) => Rect.zero, center: Offset.zero), isNull);
+    });
+  });
+
   group('badgeOrigin', () {
     const view = Size(390, 844);
     const badge = Size(240, 68);

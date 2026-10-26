@@ -26,6 +26,9 @@ const _fit = BoxFit.cover;
 const _lostAfter = Duration(milliseconds: 900);
 const _badgeWidth = 240.0;
 const _badgeHeight = 68.0;
+const _pillSize = 48.0;
+const _topReserved = 72.0;
+const _bottomReserved = 180.0;
 
 enum _Lookup { loading, found, missing, error }
 
@@ -51,7 +54,8 @@ class _ArScanScreenState extends State<ArScanScreen> {
     detectionTimeoutMs: 100,
   );
   final Map<String, _Tracked> _tracked = {};
-  String? _focus;
+  // code visé : grand badge, cadre vert et panneau du bas
+  String? _primary;
   Size? _viewSize;
   Timer? _ticker;
   bool _wasVisible = false;
@@ -104,7 +108,6 @@ class _ArScanScreenState extends State<ArScanScreen> {
           fit: _fit,
         );
       }
-      _focus = ean;
       changed = true;
     }
     if (changed && mounted) setState(() {});
@@ -146,7 +149,6 @@ class _ArScanScreenState extends State<ArScanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final focus = _focus == null ? null : _tracked[_focus];
     return Scaffold(
       backgroundColor: Colors.black,
       body: LayoutBuilder(
@@ -154,6 +156,17 @@ class _ArScanScreenState extends State<ArScanScreen> {
           _viewSize = constraints.biggest;
           final view = constraints.biggest;
           final visible = _tracked.values.where((t) => t.visible).toList();
+          // plusieurs étiquettes à l'image : le code le plus proche du centre a le grand badge,
+          // les autres une pastille avec leur note
+          final top = MediaQuery.paddingOf(context).top + _topReserved;
+          final primary = pickCentral<_Tracked>(
+            visible,
+            boxOf: (t) => expandThinBox(t.box),
+            center: Offset(view.width / 2, (top + view.height - _bottomReserved) / 2),
+            current: _primary == null ? null : _tracked[_primary],
+          );
+          if (primary != null) _primary = primary.ean;
+          final focus = _primary == null ? null : _tracked[_primary];
           return Stack(
             fit: StackFit.expand,
             children: [
@@ -164,9 +177,11 @@ class _ArScanScreenState extends State<ArScanScreen> {
                 errorBuilder: (context, error) => _CameraError(error: error),
               ),
               IgnorePointer(
-                child: CustomPaint(painter: _OutlinePainter([for (final t in visible) t.corners])),
+                child: CustomPaint(painter: _OutlinePainter(primary == null ? null : expandThinBox(primary.box))),
               ),
-              for (final t in visible) _badgeFor(t, view),
+              for (final t in visible)
+                if (t != primary) _pillFor(t, view, top),
+              if (primary != null) _badgeFor(primary, view, top),
               Positioned(left: 0, right: 0, top: 0, child: _topBar(context)),
               Positioned(left: 0, right: 0, bottom: 0, child: _bottomPanel(focus)),
             ],
@@ -177,16 +192,16 @@ class _ArScanScreenState extends State<ArScanScreen> {
   }
 
   /// Badge accroché au-dessus du code-barres (ou en dessous s'il manque de place).
-  Widget _badgeFor(_Tracked t, Size view) {
+  Widget _badgeFor(_Tracked t, Size view, double topLimit) {
     final origin = badgeOrigin(
-      barcode: t.box,
+      barcode: expandThinBox(t.box),
       viewSize: view,
       badgeSize: const Size(_badgeWidth, _badgeHeight),
-      topLimit: MediaQuery.paddingOf(context).top + 72,
-      bottomReserved: 180,
+      topLimit: topLimit,
+      bottomReserved: _bottomReserved,
     );
     return AnimatedPositioned(
-      key: ValueKey(t.ean),
+      key: ValueKey('badge-${t.ean}'),
       duration: const Duration(milliseconds: 110),
       curve: Curves.easeOut,
       left: origin.dx,
@@ -194,6 +209,28 @@ class _ArScanScreenState extends State<ArScanScreen> {
       width: _badgeWidth,
       height: _badgeHeight,
       child: _ArBadge(tracked: t, onTap: () => _open(t)),
+    );
+  }
+
+  /// Pastille compacte (note seule) pour les autres codes-barres visibles.
+  Widget _pillFor(_Tracked t, Size view, double topLimit) {
+    final origin = badgeOrigin(
+      barcode: expandThinBox(t.box),
+      viewSize: view,
+      badgeSize: const Size(_pillSize, _pillSize),
+      topLimit: topLimit,
+      bottomReserved: _bottomReserved,
+      margin: 6,
+    );
+    return AnimatedPositioned(
+      key: ValueKey('pill-${t.ean}'),
+      duration: const Duration(milliseconds: 110),
+      curve: Curves.easeOut,
+      left: origin.dx,
+      top: origin.dy,
+      width: _pillSize,
+      height: _pillSize,
+      child: _ArPill(tracked: t, onTap: () => _open(t)),
     );
   }
 
@@ -376,26 +413,72 @@ class _ArBadge extends StatelessWidget {
   }
 }
 
-/// Contour vert autour de chaque code-barres suivi.
+/// Cadre vert autour du code-barres visé.
 class _OutlinePainter extends CustomPainter {
-  final List<List<Offset>> polygons;
-  _OutlinePainter(this.polygons);
+  final Rect? box;
+  _OutlinePainter(this.box);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = VT.mint
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeJoin = StrokeJoin.round;
-    for (final poly in polygons) {
-      if (poly.length < 4) continue;
-      canvas.drawPath(Path()..addPolygon(poly, true), paint);
-    }
+    final b = box;
+    if (b == null) return;
+    final rrect = RRect.fromRectAndRadius(b, const Radius.circular(10));
+    canvas.drawRRect(rrect, Paint()..color = VT.mint.withValues(alpha: 0.12));
+    canvas.drawRRect(
+      rrect,
+      Paint()
+        ..color = VT.mint
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _OutlinePainter oldDelegate) => true;
+  bool shouldRepaint(covariant _OutlinePainter oldDelegate) => oldDelegate.box != box;
+}
+
+class _ArPill extends StatelessWidget {
+  final _Tracked tracked;
+  final VoidCallback onTap;
+
+  const _ArPill({required this.tracked, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = tracked.product;
+    final Widget child;
+    final String label;
+    switch (tracked.lookup) {
+      case _Lookup.loading:
+        child = const SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 3, color: VT.green));
+        label = 'Analyse en cours';
+      case _Lookup.found:
+        child = GradeBadge(grade: p!.globalGrade, size: 40, round: true);
+        label = '${p.name}, note ${p.globalGrade.name}. Touchez pour voir la fiche';
+      case _Lookup.missing:
+        child = const GradeBadge(grade: null, size: 40, round: true);
+        label = 'Article non référencé. Touchez pour le signaler';
+      case _Lookup.error:
+        child = const Icon(Icons.wifi_off, color: VT.danger, size: 24);
+        label = 'Hors connexion. Touchez pour réessayer';
+    }
+    return Semantics(
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      child: Material(
+        color: Colors.white,
+        elevation: 4,
+        shadowColor: Colors.black54,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: Center(child: child),
+        ),
+      ),
+    );
+  }
 }
 
 class _RoundButton extends StatelessWidget {

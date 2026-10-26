@@ -2,7 +2,7 @@ import { useEffect, useReducer, useRef, useState } from "react";
 import { GradeBadge } from "../components/Grade";
 import { IconBack, IconChevron } from "../components/Icons";
 import { fetchProduct } from "../lib/api";
-import { badgeOrigin, boundsOf, mapToView, type Pt, type Size } from "../lib/arGeometry";
+import { badgeOrigin, boundsOf, expandThinBox, mapToView, pickCentral, type Box, type Pt, type Size } from "../lib/arGeometry";
 import { formatEan, isValidGtin, normalizeGtin } from "../lib/barcode";
 import { cameraErrorMessage, createDetector, openBackCamera, setTorch, torchAvailable } from "../lib/camera";
 import { goBack, navigate } from "../lib/router";
@@ -17,6 +17,7 @@ import type { Product } from "../lib/types";
 
 const LOST_AFTER_MS = 900;
 const BADGE: Size = { width: 240, height: 68 };
+const PILL: Size = { width: 48, height: 48 };
 const BOTTOM_RESERVED = 180;
 const TOP_RESERVED = 72;
 
@@ -39,7 +40,8 @@ export default function ArScanScreen() {
   const trackedRef = useRef(new Map<string, Tracked>());
   const viewRef = useRef<Size>({ width: 0, height: 0 });
   const [, rerender] = useReducer((n: number) => n + 1, 0);
-  const [focus, setFocus] = useState<string | null>(null);
+  // code visé : grand badge, cadre vert et panneau du bas
+  const primaryRef = useRef<string | null>(null);
   const [status, setStatus] = useState<"starting" | "running" | "error">("starting");
   const [errorMessage, setErrorMessage] = useState("");
   const [torch, setTorchState] = useState({ available: false, on: false });
@@ -105,7 +107,6 @@ export default function ArScanScreen() {
             const codes = await detector.detect(video);
             const now = Date.now();
             const source = { width: video.videoWidth, height: video.videoHeight };
-            let latest: string | null = null;
             for (const code of codes) {
               const ean = normalizeGtin(code.rawValue);
               if (!isValidGtin(ean)) continue;
@@ -121,9 +122,7 @@ export default function ArScanScreen() {
               if (code.cornerPoints.length >= 4) {
                 t.points = mapToView(code.cornerPoints, source, viewRef.current);
               }
-              latest = ean;
             }
-            if (latest) setFocus(latest);
             rerender();
           } catch {
             // image illisible : on passe à la suivante
@@ -177,29 +176,41 @@ export default function ArScanScreen() {
   }
 
   const view = viewRef.current;
-  const visible = [...trackedRef.current.values()].filter(isVisible);
-  const focused = focus ? trackedRef.current.get(focus) ?? null : null;
+  const visible = [...trackedRef.current.values()]
+    .filter(isVisible)
+    .map((t) => ({ key: t.ean, tracked: t, box: expandThinBox(boundsOf(t.points)) }));
+  // plusieurs étiquettes à l'image : le code le plus proche du centre a le grand badge, les autres une pastille
+  const center = { x: view.width / 2, y: (TOP_RESERVED + view.height - BOTTOM_RESERVED) / 2 };
+  const primary = pickCentral(visible, center, primaryRef.current);
+  if (primary) primaryRef.current = primary.key;
+  const focused = primaryRef.current ? trackedRef.current.get(primaryRef.current) ?? null : null;
+  const place = (box: Box, size: Size, margin?: number) =>
+    badgeOrigin({ box, view, badge: size, topLimit: TOP_RESERVED, bottomReserved: BOTTOM_RESERVED, margin });
 
   return (
     <div className="ar" ref={rootRef}>
       <video ref={videoRef} className="ar-video" playsInline muted autoPlay aria-label="Image de la caméra" />
 
       <svg className="ar-overlay" width={view.width} height={view.height} aria-hidden="true">
-        {visible.map((t) => (
-          <polygon key={t.ean} points={t.points.map((p) => `${p.x},${p.y}`).join(" ")} />
-        ))}
+        {primary && (
+          <rect
+            x={primary.box.left}
+            y={primary.box.top}
+            width={primary.box.right - primary.box.left}
+            height={primary.box.bottom - primary.box.top}
+            rx="10"
+          />
+        )}
       </svg>
 
-      {visible.map((t) => {
-        const o = badgeOrigin({
-          box: boundsOf(t.points),
-          view,
-          badge: BADGE,
-          topLimit: TOP_RESERVED,
-          bottomReserved: BOTTOM_RESERVED,
-        });
-        return <ArBadge key={t.ean} tracked={t} origin={o} onOpen={() => open(t)} />;
-      })}
+      {visible
+        .filter((v) => v !== primary)
+        .map((v) => (
+          <ArPill key={`pill-${v.key}`} tracked={v.tracked} origin={place(v.box, PILL, 6)} onOpen={() => open(v.tracked)} />
+        ))}
+      {primary && (
+        <ArBadge key={`badge-${primary.key}`} tracked={primary.tracked} origin={place(primary.box, BADGE)} onOpen={() => open(primary.tracked)} />
+      )}
 
       <div className="ar-top">
         <button type="button" className="ar-round" aria-label="Retour" onClick={() => goBack("/")}>
@@ -286,6 +297,28 @@ function ArBadge({ tracked, origin, onOpen }: { tracked: Tracked; origin: Pt; on
         <span className="ar-badge-sub">{subtitle}</span>
       </span>
       {tracked.lookup === "found" && <IconChevron size={20} className="row-chevron" />}
+    </button>
+  );
+}
+
+/** Pastille compacte (note seule) pour les autres codes-barres visibles. */
+function ArPill({ tracked, origin, onOpen }: { tracked: Tracked; origin: Pt; onOpen: () => void }) {
+  const { title, subtitle } = describe(tracked);
+  return (
+    <button
+      type="button"
+      className="ar-pill"
+      style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)` }}
+      onClick={onOpen}
+      aria-label={`${title}. ${subtitle}`}
+    >
+      {tracked.lookup === "loading" ? (
+        <span className="ar-spinner" aria-hidden="true" />
+      ) : tracked.lookup === "error" ? (
+        <span className="ar-offline" aria-hidden="true">!</span>
+      ) : (
+        <GradeBadge grade={tracked.product?.global_grade ?? null} size={40} round />
+      )}
     </button>
   );
 }

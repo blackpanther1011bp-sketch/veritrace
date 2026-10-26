@@ -26,6 +26,36 @@ List<Offset> mapCornersToView({
   return [for (final c in corners) Offset(c.dx * ratio.widthRatio - dx, c.dy * ratio.heightRatio - dy)];
 }
 
+/// Agrandit verticalement un cadre trop fin, autour de son centre : pour un
+/// code-barres classique, le décodeur ne repère souvent qu'une bande horizontale.
+Rect expandThinBox(Rect box, {double minRatio = 0.45}) {
+  final minHeight = box.width * minRatio;
+  if (box.height >= minHeight) return box;
+  return Rect.fromCenter(center: box.center, width: box.width, height: minHeight);
+}
+
+/// Choisit le code-barres visé : le plus proche de [center]. L'élément [current]
+/// est gardé tant qu'il n'est pas nettement plus loin ([stickiness] px), pour
+/// que le grand badge ne saute pas d'un code à l'autre.
+T? pickCentral<T>(
+  List<T> items, {
+  required Rect Function(T item) boxOf,
+  required Offset center,
+  T? current,
+  double stickiness = 60,
+}) {
+  if (items.isEmpty) return null;
+  double dist(T item) => (boxOf(item).center - center).distance;
+  var best = items.first;
+  for (final item in items) {
+    if (dist(item) < dist(best)) best = item;
+  }
+  if (current != null && items.contains(current) && dist(current) <= dist(best) + stickiness) {
+    return current;
+  }
+  return best;
+}
+
 /// Rectangle englobant une liste de points.
 Rect boundsOf(List<Offset> points) {
   var left = points.first.dx, right = left, top = points.first.dy, bottom = top;
