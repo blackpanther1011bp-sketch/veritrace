@@ -42,6 +42,7 @@ export function goBack(fallback: string): void {
 
 export type Route =
   | { name: "scan" }
+  | { name: "ar" }
   | { name: "product"; ean: string }
   | { name: "details"; ean: string; tab: "carbone" | "social" }
   | { name: "alternatives"; ean: string }
@@ -58,5 +59,6 @@ export function parseRoute(fullPath: string): Route {
     return { name: "product", ean };
   }
   if (parts[0] === "inconnu" && /^\d{8,14}$/.test(ean)) return { name: "notFound", ean };
+  if (parts[0] === "ar") return { name: "ar" };
   return { name: "scan" };
 }

@@ -1,17 +1,12 @@
-import { lazy, Suspense, useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { GradeBadge } from "../components/Grade";
 import { IconChevron, IconKeyboard, IconScan, Logo } from "../components/Icons";
 import { TagIllustration } from "../components/TagIllustration";
-
 import { digitsOnly, formatEan, isValidGtin, normalizeGtin } from "../lib/barcode";
 import { navigate } from "../lib/router";
 import { getHistory, resetDemo, timeAgo, type HistoryEntry } from "../lib/storage";
 import { track } from "../lib/track";
 import type { Grade } from "../lib/types";
-
-// Le module de scan (décodeur inclus) est chargé à part : l'écran d'accueil s'affiche plus vite.
-const loadScanner = () => import("../components/Scanner");
-const CameraScanner = lazy(() => loadScanner().then((m) => ({ default: m.CameraScanner })));
 
 // Produits fictifs présents en base, pour tester sans étiquette sous la main.
 const EXAMPLES: { ean: string; name: string; brand: string; grade: Grade }[] = [
@@ -21,17 +16,17 @@ const EXAMPLES: { ean: string; name: string; brand: string; grade: Grade }[] = [
 ];
 
 export function ScanScreen() {
-  const [scanning, setScanning] = useState(false);
-  const [cameraError, setCameraError] = useState<string | null>(null);
-  const [manualOpen, setManualOpen] = useState(false);
+  // « ?saisie=1 » : retour depuis la caméra indisponible, on ouvre directement la saisie
+  const [manualOpen, setManualOpen] = useState(() => window.location.hash.includes("saisie=1"));
   const [manualCode, setManualCode] = useState("");
   const [manualError, setManualError] = useState<string | null>(null);
   const [history, setHistory] = useState<HistoryEntry[]>(getHistory);
 
   useEffect(() => {
-    // préchargement en arrière-plan pour un premier scan rapide
+    // préchargement en arrière-plan de l'écran caméra et du décodeur, pour un premier scan rapide
     const id = window.setTimeout(() => {
-      loadScanner()
+      import("./ArScanScreen").catch(() => undefined);
+      import("../lib/camera")
         .then((m) => m.warmUpDecoder())
         .catch(() => undefined);
     }, 300);
@@ -44,8 +39,7 @@ export function ScanScreen() {
   }
 
   function startScan() {
-    setCameraError(null);
-    setScanning(true);
+    navigate("/ar");
   }
 
   function submitManual(e: FormEvent) {
@@ -63,8 +57,6 @@ export function ScanScreen() {
     setHistory([]);
   }
 
-  const hint = cameraError ?? (scanning ? "Visez le code-barres de l'étiquette" : "Scannez le code-barres sur l'étiquette d'un vêtement");
-
   return (
     <div className="screen screen-dark">
       <header className="brandbar">
@@ -76,37 +68,25 @@ export function ScanScreen() {
       </header>
 
       <div className="viewfinder">
-        {scanning ? (
-          <Suspense fallback={<p className="camera-status">Ouverture de la caméra…</p>}>
-            <CameraScanner
-              onDetected={openProduct}
-              onError={(message) => {
-                setScanning(false);
-                setCameraError(message);
-                setManualOpen(true);
-              }}
-            />
-          </Suspense>
-        ) : (
+        <div className="ar-preview" aria-hidden="true">
           <TagIllustration />
-        )}
+          <span className="ar-preview-badge">
+            <GradeBadge grade="D" size={34} round />
+            <span className="ar-badge-text">
+              <span className="ar-badge-title">Impact élevé</span>
+              <span className="ar-badge-sub">Carbone D · Social E</span>
+            </span>
+          </span>
+        </div>
       </div>
 
-      <p className={cameraError ? "hint hint-error" : "hint"} role={cameraError ? "alert" : undefined}>
-        {hint}
-      </p>
+      <p className="hint">Visez l'étiquette d'un vêtement : sa note s'affiche directement sur l'image de la caméra.</p>
 
       <section className="sheet">
-        {scanning ? (
-          <button type="button" className="btn btn-outline" onClick={() => setScanning(false)}>
-            Arrêter le scan
-          </button>
-        ) : (
-          <button type="button" className="btn btn-primary" onClick={startScan}>
-            <IconScan />
-            Scanner l'article
-          </button>
-        )}
+        <button type="button" className="btn btn-primary" onClick={startScan}>
+          <IconScan />
+          Scanner l'article
+        </button>
 
         {manualOpen ? (
           <form className="manual" onSubmit={submitManual} noValidate>
