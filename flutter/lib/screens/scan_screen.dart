@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../barcode.dart';
 import '../models.dart';
@@ -8,6 +7,7 @@ import '../navigation.dart';
 import '../storage.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'ar_scan_screen.dart';
 import 'not_found_screen.dart';
 
 // Produits fictifs présents en base, pour tester sans étiquette sous la main.
@@ -25,8 +25,6 @@ class ScanScreen extends StatefulWidget {
 }
 
 class _ScanScreenState extends State<ScanScreen> {
-  MobileScannerController? _controller;
-  bool _handled = false;
   bool _manualOpen = false;
   String? _manualError;
   final _codeField = TextEditingController();
@@ -40,7 +38,6 @@ class _ScanScreenState extends State<ScanScreen> {
 
   @override
   void dispose() {
-    _controller?.dispose();
     _codeField.dispose();
     super.dispose();
   }
@@ -50,42 +47,15 @@ class _ScanScreenState extends State<ScanScreen> {
     if (mounted) setState(() => _history = h);
   }
 
-  void _startScan() {
-    setState(() {
-      _handled = false;
-      _controller = MobileScannerController(
-        formats: const [BarcodeFormat.ean13, BarcodeFormat.ean8, BarcodeFormat.upcA],
-        detectionSpeed: DetectionSpeed.noDuplicates,
-      );
-    });
-  }
-
-  void _stopScan() {
-    final c = _controller;
-    setState(() => _controller = null);
-    // libéré après le retrait de l'aperçu caméra de l'écran
-    WidgetsBinding.instance.addPostFrameCallback((_) => c?.dispose());
+  /// Ouvre le scan en réalité augmentée (caméra plein écran).
+  Future<void> _startScan() async {
+    await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ArScanScreen()));
+    _loadHistory();
   }
 
   Future<void> _open(String ean) async {
     await openProduct(context, ean);
     _loadHistory();
-  }
-
-  void _onDetect(BarcodeCapture capture) {
-    if (_handled) return;
-    for (final barcode in capture.barcodes) {
-      final raw = barcode.rawValue;
-      if (raw == null) continue;
-      final code = normalizeGtin(raw);
-      if (isValidGtin(code)) {
-        _handled = true;
-        HapticFeedback.mediumImpact();
-        _stopScan();
-        _open(code);
-        return;
-      }
-    }
   }
 
   void _submitManual() {
@@ -99,7 +69,6 @@ class _ScanScreenState extends State<ScanScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scanning = _controller != null;
     return Scaffold(
       backgroundColor: VT.ink,
       body: SafeArea(
@@ -132,24 +101,16 @@ class _ScanScreenState extends State<ScanScreen> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(28),
                 child: Container(
-                  height: 380,
+                  height: 300,
                   color: VT.ink2,
-                  child: scanning
-                      ? Stack(
-                          fit: StackFit.expand,
-                          children: [
-                            MobileScanner(controller: _controller, onDetect: _onDetect),
-                            const _ScanFrame(),
-                          ],
-                        )
-                      : const Center(child: Icon(Icons.qr_code_scanner, size: 120, color: Color(0xFF6E7F74))),
+                  child: const _ArPreview(),
                 ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 20),
               child: Text(
-                scanning ? "Visez le code-barres de l'étiquette" : "Scannez le code-barres sur l'étiquette d'un vêtement",
+                "Visez l'étiquette d'un vêtement : sa note s'affiche directement sur l'image de la caméra.",
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Color(0xFFA9B8AE), fontSize: 15),
               ),
@@ -163,14 +124,11 @@ class _ScanScreenState extends State<ScanScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (scanning)
-                    OutlinedButton(onPressed: _stopScan, child: const Text('Arrêter le scan'))
-                  else
-                    FilledButton.icon(
-                      onPressed: _startScan,
-                      icon: const Icon(Icons.qr_code_scanner),
-                      label: const Text("Scanner l'article"),
-                    ),
+                  FilledButton.icon(
+                    onPressed: _startScan,
+                    icon: const Icon(Icons.qr_code_scanner),
+                    label: const Text("Scanner l'article"),
+                  ),
                   const SizedBox(height: 8),
                   if (_manualOpen) _manualForm() else TextButton.icon(
                     onPressed: () => setState(() => _manualOpen = true),
@@ -298,40 +256,55 @@ class _Row extends StatelessWidget {
   }
 }
 
-/// Coins du viseur, dessinés au-dessus de l'image caméra.
-class _ScanFrame extends StatelessWidget {
-  const _ScanFrame();
+/// Aperçu de l'expérience : une note flottant au-dessus d'un code-barres.
+class _ArPreview extends StatelessWidget {
+  const _ArPreview();
 
   @override
   Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: Center(
-        child: FractionallySizedBox(
-          widthFactor: 0.76,
-          heightFactor: 0.4,
-          child: CustomPaint(painter: _CornerPainter()),
-        ),
+    return Semantics(
+      label: "Aperçu : la note du vêtement s'affiche au-dessus de son code-barres",
+      excludeSemantics: true,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Container(
+            width: 190,
+            height: 120,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEDEAE2),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: VT.mint, width: 3),
+            ),
+            child: const Icon(Icons.view_week, size: 84, color: VT.ink),
+          ),
+          Positioned(
+            top: 48,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(8, 8, 14, 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: const [BoxShadow(color: Color(0x66000000), blurRadius: 12, offset: Offset(0, 4))],
+              ),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  GradeBadge(grade: Grade.D, size: 36, round: true),
+                  SizedBox(width: 10),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Impact élevé', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: VT.ink)),
+                      Text('Carbone D · Social E', style: TextStyle(fontSize: 12, color: VT.muted)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
-}
-
-class _CornerPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Paint()
-      ..color = VT.mint
-      ..strokeWidth = 4
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
-    const l = 28.0;
-    final w = size.width, h = size.height;
-    canvas.drawPath(Path()..moveTo(0, l)..lineTo(0, 0)..lineTo(l, 0), p);
-    canvas.drawPath(Path()..moveTo(w - l, 0)..lineTo(w, 0)..lineTo(w, l), p);
-    canvas.drawPath(Path()..moveTo(w, h - l)..lineTo(w, h)..lineTo(w - l, h), p);
-    canvas.drawPath(Path()..moveTo(l, h)..lineTo(0, h)..lineTo(0, h - l), p);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

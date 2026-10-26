@@ -4,7 +4,7 @@ Version native du MVP VeriTrace. Elle reprend exactement les écrans et la base 
 
 ## Ce qui est fait
 
-- **Scan caméra** des codes-barres EAN-13, EAN-8 et UPC-A (`mobile_scanner`), avec vérification de la clé de contrôle.
+- **Scan en réalité augmentée légère** (`lib/screens/ar_scan_screen.dart`) : caméra plein écran, la note A–E s'affiche dans un badge accroché au code-barres et le suit quand on bouge le téléphone ; contour du code-barres, lampe, panneau du bas qui rappelle le dernier article détecté. Codes EAN-13, EAN-8 et UPC-A (`mobile_scanner`), avec vérification de la clé de contrôle. Les calculs de position sont isolés et testés dans `lib/ar_geometry.dart`.
 - **Saisie manuelle** du code quand la caméra n'est pas disponible.
 - **Fiche produit** : note globale A–E, notes Carbone et Social, pays, composition, transport.
 - **Comprendre la note** : détail carbone par poste, engagements sociaux de la marque.
@@ -13,7 +13,7 @@ Version native du MVP VeriTrace. Elle reprend exactement les écrans et la base 
 - **Mesure d'usage** dans la table `events`, dont `exit_after_bad_grade` (l'utilisateur quitte l'app sur un vêtement noté D ou E).
 - Historique des derniers scans sur l'appareil.
 
-La réalité augmentée n'est **pas** incluse : elle est prévue en V2, une fois le scan validé auprès des utilisateurs.
+La réalité augmentée **complète** (badges fixés dans l'espace avec ARKit/ARCore) n'est pas incluse : la version légère ci-dessus suit le code-barres dans l'image de la caméra, sur tous les téléphones.
 
 ## Démarrer
 
@@ -64,8 +64,9 @@ lib/
   api.dart                requêtes, cache mémoire, événements
   storage.dart            historique et Premium simulé (appareil)
   barcode.dart            validation et format des codes GTIN
+  ar_geometry.dart        position des badges de réalité augmentée
   models.dart             Product, Brand, notes
   theme.dart, widgets.dart
   screens/                scan, fiche, détails, alternatives, introuvable
-test/barcode_test.dart
+test/barcode_test.dart, test/ar_geometry_test.dart
 ```

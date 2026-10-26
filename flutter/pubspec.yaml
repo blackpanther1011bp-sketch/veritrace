@@ -11,7 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
   # Scan caméra des codes-barres (EAN-13, EAN-8, UPC-A)
-  mobile_scanner: ^7.0.0
+  # 7.4 : coins des codes-barres + ScanWindowUtils pour la réalité augmentée légère
+  mobile_scanner: ^7.4.0
   # Base de données Supabase (même projet que la web app)
   supabase_flutter: ^2.9.0
   # Historique local et accès Premium simulé
