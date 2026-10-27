@@ -369,6 +369,7 @@ export function buildQuery(d: DraftInput, brand: BrandEco = {}): BuiltQuery {
     if (!c) allNotes.push(`pays de ${label} inconnu : valeur par défaut Ecobalyse (pénalisante)`);
     else if (c.region) allNotes.push(`pays de ${label} remplacé par la région ${CODE_LABELS[c.code]}`);
   }
+  if (air == null) allNotes.push("part de transport en avion inconnue : valeur par défaut Ecobalyse");
 
   return { product, query, notes: allNotes, making, confidence: confidenceFor(d.data_source, mass != null, [fabric, dyeing, making], notes.length > 0) };
 }

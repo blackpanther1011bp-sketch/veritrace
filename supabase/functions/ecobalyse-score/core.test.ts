@@ -117,6 +117,8 @@ test("requête : valeurs fournies et valeurs par défaut", () => {
   assert.equal(minimal.query.mass, DEFAULT_MASS_KG.tshirt);
   assert.equal(minimal.confidence, "faible");
   assert.ok(minimal.notes.some((n) => n.includes("poids type")));
+  assert.ok(minimal.notes.some((n) => n.includes("transport en avion inconnue")));
+  assert.ok(!buildQuery(draft({ air_transport_ratio: 0 })).notes.some((n) => n.includes("avion")));
 });
 
 test("fiabilité haute : marque, poids et trois pays", () => {
