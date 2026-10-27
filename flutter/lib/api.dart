@@ -51,6 +51,39 @@ class Api {
     });
   }
 
+  /// Dépose la photo d'étiquette (lecture réservée à l'équipe) et renvoie son nom.
+  Future<String> uploadLabelPhoto(Uint8List jpeg) async {
+    final name = '${const Uuid().v4()}.jpg';
+    await _db.storage
+        .from('etiquettes')
+        .uploadBinary(name, jpeg, fileOptions: const FileOptions(contentType: 'image/jpeg', upsert: false));
+    return name;
+  }
+
+  /// Enregistre un vêtement ajouté depuis l'app, « à vérifier » : rien n'est publié avant validation.
+  Future<void> submitContribution({
+    required String ean,
+    required String brandName,
+    required String name,
+    required String category,
+    required String composition,
+    String? countryMaking,
+    String? photoPath,
+  }) async {
+    String cut(String s, int max) => s.length > max ? s.substring(0, max) : s;
+    final country = countryMaking?.trim() ?? '';
+    await _db.from('product_submissions').insert({
+      'ean': ean,
+      'brand_name': cut(brandName.trim(), 80),
+      'name': cut(name.trim(), 120),
+      'category': category,
+      'composition': cut(composition.trim(), 300),
+      'country_making': country.isEmpty ? null : cut(country, 40),
+      'photo_path': photoPath,
+      'session_id': _sessionId,
+    });
+  }
+
   /// Enregistre un événement d'usage sans bloquer l'interface.
   void track(String event, {String? ean, Grade? grade}) {
     _db

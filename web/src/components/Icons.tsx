@@ -41,6 +41,12 @@ export const IconInfo = (p: IconProps) => (
 export const IconKeyboard = (p: IconProps) => (
   <svg {...base(p)}><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M7 10h.01M11 10h.01M15 10h.01M7 14h10" /></svg>
 );
+export const IconCamera = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M4 8h3l2-3h6l2 3h3v11H4z" />
+    <circle cx="12" cy="13" r="3.5" />
+  </svg>
+);
 export const IconUnknownTag = (p: IconProps) => (
   <svg {...base(p)}>
     <path d="M3 6a2 2 0 0 1 2-2h7.2a2 2 0 0 1 1.4.6l6.8 6.8a2 2 0 0 1 0 2.8l-6.2 6.2a2 2 0 0 1-2.8 0L4.6 13.6A2 2 0 0 1 4 12.2z" />

@@ -16,7 +16,7 @@ d'affichage environnemental des vêtements. Vous saisissez ce que vous savez du 
 Dans **SQL Editor** :
 
 ```sql
-insert into public.brands (id, name, kind, country, social_checks, is_sample, eco_business, eco_references)
+insert into public.brands (id, name, kind, country, social_checks, is_sample, social_grade, eco_business, eco_references)
 values (
   'nom-de-la-marque',        -- identifiant : minuscules, chiffres et tirets
   'Nom de la marque',
@@ -27,12 +27,27 @@ values (
     {"label":"Liste des usines publiée","status":"non_communique"},
     {"label":"Politique contre le travail forcé","status":"non_communique"}]'::jsonb,
   false,
+  'C',                       -- note sociale de la marque, reprise pour ses vêtements
   'large-business-without-services',  -- ou small-business, large-business-with-services (facultatif)
   null                                 -- nombre de références au catalogue (facultatif)
 );
 ```
 
-## Ajouter des produits
+## Valider les vêtements ajoutés depuis l'app
+
+Dans l'app, un code-barres inconnu propose « Ajouter ce vêtement » : la personne recopie l'étiquette
+(marque, nom, catégorie, composition, pays) et peut la photographier. Rien n'est publié avant votre validation.
+
+1. **Table Editor → product_submissions** : les nouveaux ajouts ont le statut `a_verifier`.
+2. Vérifiez la saisie avec la photo : **Storage → etiquettes**, fichier indiqué dans `photo_path`.
+3. Pour valider, passez `status` à `valide`.
+   - La marque est retrouvée par son nom ; sinon, créez-la (voir plus haut) ou indiquez son identifiant dans `brand_id`.
+   - La note sociale est celle de la marque (`brands.social_grade`) ; vous pouvez la préciser dans `social_grade`.
+   - S'il manque quelque chose, Supabase affiche un message et ne valide pas.
+4. Le vêtement part au calcul Ecobalyse et apparaît dans l'app quelques secondes après (suivi dans `product_drafts`).
+5. Pour refuser : `status` = `refuse` et la raison dans `moderator_note`.
+
+## Ajouter des produits vous-même
 
 **Table Editor → product_drafts → Insert** (une ligne), ou **Import data from CSV** avec le modèle
 `supabase/templates/produits_reels_modele.csv`.

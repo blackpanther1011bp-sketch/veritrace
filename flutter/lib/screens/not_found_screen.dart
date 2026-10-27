@@ -4,6 +4,7 @@ import '../api.dart';
 import '../barcode.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'contribute_screen.dart';
 
 class NotFoundScreen extends StatefulWidget {
   final String ean;
@@ -53,7 +54,8 @@ class _NotFoundScreenState extends State<NotFoundScreen> {
               textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           const Text(
-            "Ce code-barres n'est pas encore dans notre base. Signalez-le : nous l'ajouterons en priorité.",
+            "Ce code-barres n'est pas encore dans notre base. Ajoutez-le en recopiant son étiquette : "
+            'nous le vérifions, puis nous le notons.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 15, color: VT.muted, height: 1.45),
           ),
@@ -66,6 +68,13 @@ class _NotFoundScreenState extends State<NotFoundScreen> {
             ),
           ),
           const SizedBox(height: 18),
+          FilledButton.icon(
+            onPressed: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => ContributeScreen(ean: widget.ean))),
+            icon: const Icon(Icons.photo_camera_outlined),
+            label: const Text('Ajouter ce vêtement (1 min)'),
+          ),
+          const SizedBox(height: 14),
           if (_status == _Status.sent)
             Container(
               padding: const EdgeInsets.all(18),
@@ -95,6 +104,9 @@ class _NotFoundScreenState extends State<NotFoundScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const Text('Pas le temps ? Signalez-le simplement.',
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 10),
                   const Text('Marque (facultatif)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
                   TextField(
@@ -113,7 +125,7 @@ class _NotFoundScreenState extends State<NotFoundScreen> {
                           style: TextStyle(color: VT.danger)),
                     ),
                   const SizedBox(height: 16),
-                  FilledButton(
+                  OutlinedButton(
                     onPressed: _status == _Status.sending ? null : _submit,
                     child: Text(_status == _Status.sending ? 'Envoi…' : 'Signaler cet article'),
                   ),

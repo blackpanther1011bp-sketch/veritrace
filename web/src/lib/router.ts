@@ -46,7 +46,8 @@ export type Route =
   | { name: "product"; ean: string }
   | { name: "details"; ean: string; tab: "carbone" | "social" }
   | { name: "alternatives"; ean: string }
-  | { name: "notFound"; ean: string };
+  | { name: "notFound"; ean: string }
+  | { name: "contribute"; ean: string };
 
 export function parseRoute(fullPath: string): Route {
   const [path, query = ""] = fullPath.split("?");
@@ -59,6 +60,7 @@ export function parseRoute(fullPath: string): Route {
     return { name: "product", ean };
   }
   if (parts[0] === "inconnu" && /^\d{8,14}$/.test(ean)) return { name: "notFound", ean };
+  if (parts[0] === "ajouter" && /^\d{8,14}$/.test(ean)) return { name: "contribute", ean };
   if (parts[0] === "ar") return { name: "ar" };
   return { name: "scan" };
 }

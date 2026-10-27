@@ -20,6 +20,8 @@ dependencies:
   uuid: ^4.5.0
   # Liens « Voir le calcul sur Ecobalyse » et « Voir la source des données »
   url_launcher: ^6.3.1
+  # Photo de l'étiquette quand on ajoute un vêtement
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:

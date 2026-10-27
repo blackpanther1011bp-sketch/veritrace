@@ -79,10 +79,11 @@ jobs:
           if [ -f ios/Podfile ]; then
             perl -pi -e "s/^#?\s*platform :ios, '[0-9.]+'/platform :ios, '15.5'/" ios/Podfile
           fi
-          # nom affiché, autorisation caméra, déclaration de chiffrement (aucun chiffrement propre)
+          # nom affiché, autorisations caméra et photos, déclaration de chiffrement (aucun chiffrement propre)
           PLIST=ios/Runner/Info.plist
           plutil -replace CFBundleDisplayName -string "VeriTrace" "$PLIST"
-          plutil -replace NSCameraUsageDescription -string "VeriTrace utilise la caméra pour lire le code-barres des étiquettes de vêtements." "$PLIST"
+          plutil -replace NSCameraUsageDescription -string "VeriTrace utilise la caméra pour lire le code-barres des vêtements et photographier leur étiquette." "$PLIST"
+          plutil -replace NSPhotoLibraryUsageDescription -string "VeriTrace peut utiliser une photo d'étiquette de vêtement que vous choisissez." "$PLIST"
           plutil -replace ITSAppUsesNonExemptEncryption -bool NO "$PLIST"
           plutil -lint "$PLIST"
 

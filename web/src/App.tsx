@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from "react";
 import { parseRoute, useRoute } from "./lib/router";
 import { AlternativesScreen } from "./screens/AlternativesScreen";
+import { ContributeScreen } from "./screens/ContributeScreen";
 import { DetailsScreen } from "./screens/DetailsScreen";
 import { NotFoundScreen } from "./screens/NotFoundScreen";
 import { ProductScreen } from "./screens/ProductScreen";
@@ -28,6 +29,8 @@ export default function App() {
       return <AlternativesScreen key={route.ean} ean={route.ean} />;
     case "notFound":
       return <NotFoundScreen key={route.ean} ean={route.ean} />;
+    case "contribute":
+      return <ContributeScreen key={route.ean} ean={route.ean} />;
     case "ar":
       return (
         <Suspense fallback={<div className="ar"><p className="ar-status">Ouverture de la caméra…</p></div>}>

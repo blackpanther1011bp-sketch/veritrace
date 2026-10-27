@@ -10,11 +10,13 @@ export type EventName =
   | "premium_view"
   | "premium_start"
   | "report_sent"
-  | "exit_after_bad_grade";
+  | "exit_after_bad_grade"
+  | "contribution_start"
+  | "contribution_sent";
 
 let memorySession: string | null = null;
 
-function newId(): string {
+export function newId(): string {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
   // repli pour les navigateurs anciens
   return "10000000-1000-4000-8000-100000000000".replace(/[018]/g, (c) =>
@@ -22,7 +24,7 @@ function newId(): string {
   );
 }
 
-function sessionId(): string {
+export function sessionId(): string {
   try {
     let id = sessionStorage.getItem("vt_session");
     if (!id) {

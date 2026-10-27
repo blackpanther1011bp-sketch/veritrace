@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Header } from "../components/Header";
-import { IconCheck, IconUnknownTag } from "../components/Icons";
+import { IconCamera, IconCheck, IconUnknownTag } from "../components/Icons";
 import { reportMissingProduct } from "../lib/api";
 import { formatEan } from "../lib/barcode";
 import { navigate } from "../lib/router";
@@ -31,9 +31,14 @@ export function NotFoundScreen({ ean }: { ean: string }) {
             <IconUnknownTag size={40} />
           </div>
           <h2 className="state-title">Article pas encore référencé</h2>
-          <p className="muted">Ce code-barres n'est pas encore dans notre base. Signalez-le : nous l'ajouterons en priorité.</p>
+          <p className="muted">Ce code-barres n'est pas encore dans notre base. Ajoutez-le en recopiant son étiquette : nous le vérifions, puis nous le notons.</p>
           <span className="pill-muted">EAN {formatEan(ean)}</span>
         </div>
+
+        <button type="button" className="btn btn-primary" onClick={() => navigate(`/ajouter/${ean}`)}>
+          <IconCamera size={20} />
+          Ajouter ce vêtement (1 min)
+        </button>
 
         {status === "sent" ? (
           <section className="banner-success banner-big" role="status">
@@ -47,6 +52,7 @@ export function NotFoundScreen({ ean }: { ean: string }) {
           </section>
         ) : (
           <form className="card form" onSubmit={submit}>
+            <p className="field-label not-found-alt">Pas le temps ? Signalez-le simplement.</p>
             <div className="stack-6">
               <label htmlFor="brand" className="field-label">
                 Marque (facultatif)
@@ -66,7 +72,7 @@ export function NotFoundScreen({ ean }: { ean: string }) {
                 L'envoi a échoué. Vérifiez votre connexion puis réessayez.
               </p>
             )}
-            <button type="submit" className="btn btn-primary" disabled={status === "sending"}>
+            <button type="submit" className="btn btn-outline" disabled={status === "sending"}>
               {status === "sending" ? "Envoi…" : "Signaler cet article"}
             </button>
           </form>
