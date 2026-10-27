@@ -1,9 +1,12 @@
 name: Registre affichage environnemental
 
-# Télécharge le registre officiel des coûts environnementaux déclarés par les marques
-# (data.gouv.fr, mis à jour chaque mois) et publie un aperçu dans la branche donnees-affichage-env.
+# Télécharge chaque mois le registre officiel des coûts environnementaux déclarés par les marques
+# (data.gouv.fr), le découpe en blocs JSON et les publie dans la branche donnees-affichage-env.
+# Supabase récupère ensuite ces blocs lui-même (fonction registry_sync, voir migration 006).
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "17 5 3 * *"
   push:
     branches: [main]
     paths:
@@ -19,16 +22,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Télécharger le registre (data.gouv.fr)
-        run: curl -fsSL --retry 3 -o registre.csv "https://www.data.gouv.fr/api/1/datasets/r/25321e9e-7b01-471a-b098-ffa1e3fcf906" && ls -lh registre.csv
-      - name: Aperçu
+        run: curl -fsSL --retry 3 -o "$RUNNER_TEMP/registre.csv" "https://www.data.gouv.fr/api/1/datasets/r/25321e9e-7b01-471a-b098-ffa1e3fcf906" && ls -lh "$RUNNER_TEMP/registre.csv"
+      - name: Découper en blocs
         run: |
-          python3 .github/scripts/affichage_env.py registre.csv data/affichage-env | tee resume.txt
-          echo "::notice title=Registre::$(cat resume.txt)"
-      - name: Publier l'aperçu dans la branche donnees-affichage-env
+          python3 .github/scripts/affichage_env.py "$RUNNER_TEMP/registre.csv" "$RUNNER_TEMP/registre" | tee "$RUNNER_TEMP/resume.txt"
+          echo "::notice title=Registre::$(cat "$RUNNER_TEMP/resume.txt")"
+          du -sh "$RUNNER_TEMP/registre"
+      - name: Publier dans la branche donnees-affichage-env
         run: |
+          cd "$RUNNER_TEMP"
+          rm -rf publi && mkdir publi && cd publi
+          git init -q -b donnees-affichage-env
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git checkout -B donnees-affichage-env
-          git add data/affichage-env
-          git commit -m "Registre affichage environnemental : aperçu du $(date -u +%F)" || exit 0
-          git push -f origin donnees-affichage-env
+          mkdir -p data && cp -r "$RUNNER_TEMP/registre" data/registre
+          printf '# Données VeriTrace\n\nBranche régénérée automatiquement chaque mois depuis le registre officiel « Affichage environnemental des vêtements » (data.gouv.fr, Licence Ouverte 2.0). Ne pas modifier à la main.\n' > README.md
+          git add -A
+          git commit -qm "Registre affichage environnemental du $(date -u +%F)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" donnees-affichage-env
