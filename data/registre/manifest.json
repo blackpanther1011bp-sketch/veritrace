@@ -1,0 +1,340 @@
+{
+ "batch": "202610270656",
+ "generated_at": "2026-10-27T06:56:01+00:00",
+ "source": "https://www.data.gouv.fr/datasets/affichage-environnemental-des-vetements",
+ "rows_in_source": 571715,
+ "rows": 570204,
+ "skipped": 1510,
+ "stages": [
+  "Cycle de vie - Accessoires",
+  "Cycle de vie - Matières premières",
+  "Cycle de vie - Filature",
+  "Cycle de vie - Tissage & Tricotage",
+  "Cycle de vie - Ennoblissement",
+  "Cycle de vie - Confection",
+  "Cycle de vie - Transport",
+  "Cycle de vie - Utilisation",
+  "Cycle de vie - Fin de vie"
+ ],
+ "brands": [
+  "1083",
+  "AIRNESS",
+  "AMI PARIS",
+  "ARMEDANGELS",
+  "AS Colour B.V",
+  "ATELIER DE PRODUCTION ET DE CREATION",
+  "AZALA",
+  "American Vintage",
+  "Atelier Tuffery",
+  "Avery Tailors",
+  "BA&SH",
+  "BAIE DES CAPS",
+  "BELHARRA",
+  "BERLUTI SA",
+  "BEXLEY",
+  "BILLABONG",
+  "BIRKENSTOCK FRANCE",
+  "BLACK DIAMOND EQUIPMENT EUROPE GMBH",
+  "BONNETERIE CEVENOLE",
+  "BONOBO",
+  "BOTTEGA VENETA FRANCE",
+  "BROUSSAUD TEXTILES",
+  "BUNSHA",
+  "BZB",
+  "Basic Treasure",
+  "Bobo Choses",
+  "CALIDA FRANCE",
+  "CELINE",
+  "CELIO FRANCE",
+  "CHRISTIAN DIOR COUTURE",
+  "CINQ-HUITIEMES",
+  "CLAUDIE PIERLOT",
+  "CMC",
+  "COCACOLA",
+  "COURREGES",
+  "CYRILLUS",
+  "Coyote Denim",
+  "DC SHOES",
+  "DDP",
+  "DES PETITS HAUTS",
+  "DIM",
+  "DUTEXDOR",
+  "Desigual",
+  "E 2M",
+  "ELEMENT",
+  "EPHIGEA",
+  "ERGOS",
+  "ETABLISSEMENTS MARCEL",
+  "FAGUO",
+  "FENDI FRANCE",
+  "FURSAC",
+  "Fruit of the Loom International Ltd.",
+  "Fusion ApS",
+  "G-HEAT GROUP",
+  "GEMO",
+  "GILDAN ACTIVEWEAR",
+  "GIVENCHY",
+  "Gayaskin",
+  "Gerard Darel",
+  "H. LEMAHIEU",
+  "HILMA",
+  "INEXTENSO",
+  "INTERSPORT FRANCE",
+  "INTS FRANCE",
+  "IRO",
+  "Icepeak",
+  "JEAN PATOU",
+  "JW Anderson Limited",
+  "Jules",
+  "KENZO",
+  "KIABI",
+  "L'IMPERTINENTE",
+  "LA COUCHE DURABLE",
+  "LAFRANCAISE",
+  "LAGOPED",
+  "LE BEAU JEAN",
+  "LE BON MARCHE  MAISON ARISTIDE BOUCICAUT",
+  "LE BOURGET",
+  "LE SLIP FRANCAIS",
+  "Loom",
+  "Luhta",
+  "MAGELAN",
+  "MAISON BALZAC",
+  "MAJE",
+  "MARIE FELD",
+  "MILLET MOUNTAIN GROUP SAS",
+  "MONOPRIX HOLDING",
+  "MSFR",
+  "NOBODY'S CHILD LIMITED",
+  "NOPUBLIK",
+  "Nénés",
+  "ODLO FRANCE",
+  "PASSENGER",
+  "PAUL SMITH EUROPE",
+  "PETIT-BATEAU",
+  "PHALAENOPSIS",
+  "PICTURE ORGANIC CLOTHING",
+  "PIMKIE",
+  "PLAYTEX",
+  "PROMOD",
+  "Pablo",
+  "PangoLin",
+  "Pavenrod",
+  "Pink",
+  "Prix Mini",
+  "QUIKSILVER",
+  "RICALEWIS",
+  "RIOULT & HUREAUX",
+  "ROUGEGORGE LINGERIE",
+  "ROXY",
+  "RVCA",
+  "Rukka",
+  "SANDRO ANDY",
+  "SAPIOLOGIE",
+  "SIX ET SEPT",
+  "SKFK",
+  "SKIS ROSSIGNOL - CLUB ROSSIGNOL",
+  "SMOON",
+  "SOC D'IMPORTATION LECLERC",
+  "SOL MILLENNIUM FRANCE",
+  "SPORTMINEDOR",
+  "STELLA & SUZIE",
+  "SUPERDRY FRANCE",
+  "Sessùn",
+  "Soeur",
+  "TAPE A L'OEIL",
+  "TBS",
+  "TECNIFIBRE",
+  "TEDDYSMITH",
+  "TEX",
+  "TWINDAY",
+  "TWINSET FRANCE",
+  "Ternua",
+  "U Collection",
+  "U Essentiel",
+  "U Oxygn",
+  "U Tout Petits",
+  "V2D CREATION",
+  "VEJA FAIR TRADE S.A.R.L.",
+  "Victoria's Secret",
+  "Volcom",
+  "W.O.P World of Pop",
+  "WELL",
+  "WISE",
+  "WONDAY",
+  "WOP",
+  "YVES SAINT LAURENT",
+  "ZV FRANCE",
+  "[ND]",
+  "jacadi",
+  "l'Atelier Visconti",
+  "okaidi"
+ ],
+ "categories": [
+  {
+   "label": "Boxer / Slip (tricoté)",
+   "eco_product": "slip"
+  },
+  {
+   "label": "Caleçon (tissé)",
+   "eco_product": "calecon"
+  },
+  {
+   "label": "Chaussettes",
+   "eco_product": "chaussettes"
+  },
+  {
+   "label": "Chemise",
+   "eco_product": "chemise"
+  },
+  {
+   "label": "Jean",
+   "eco_product": "jean"
+  },
+  {
+   "label": "Jupe / Robe",
+   "eco_product": "jupe"
+  },
+  {
+   "label": "Lot de produits",
+   "eco_product": null
+  },
+  {
+   "label": "Maillot de bain",
+   "eco_product": "maillot-de-bain"
+  },
+  {
+   "label": "Manteau / Veste",
+   "eco_product": "manteau"
+  },
+  {
+   "label": "Pantalon / Short",
+   "eco_product": "pantalon"
+  },
+  {
+   "label": "Pull",
+   "eco_product": "pull"
+  },
+  {
+   "label": "T-shirt / Polo",
+   "eco_product": "tshirt"
+  }
+ ],
+ "chunks": [
+  {
+   "file": "bloc-000.json",
+   "rows": 25000,
+   "sha256": "2bd17c862c713771835e13aecf4e40bf28397f9db76dc8188eeb224be7ad3e20"
+  },
+  {
+   "file": "bloc-001.json",
+   "rows": 25000,
+   "sha256": "818ba3f0a93d30d982d3eee0edfbd255a451a2ce9e157559ae563844a54cc79d"
+  },
+  {
+   "file": "bloc-002.json",
+   "rows": 25000,
+   "sha256": "911c5d73b711a7e106afa98ae8de8dc8f7ce69e48999288537402196bf50804b"
+  },
+  {
+   "file": "bloc-003.json",
+   "rows": 25000,
+   "sha256": "b26baf223aba4a95b1c4434403710e823f3423074bf3734258dbbca89feaffed"
+  },
+  {
+   "file": "bloc-004.json",
+   "rows": 25000,
+   "sha256": "3c495910f8499396e458901948b814a6f2f9bb73d9fc207ce25e25bfbc84e926"
+  },
+  {
+   "file": "bloc-005.json",
+   "rows": 25000,
+   "sha256": "3155b8ab729ff5661fed0ba3219cea3cd5e86763dd49bd5f4db685c3ca481136"
+  },
+  {
+   "file": "bloc-006.json",
+   "rows": 25000,
+   "sha256": "b6eb571279099f91947dfe7b6c9b05e52bb24e545ce84a6b03dd93ff30306f90"
+  },
+  {
+   "file": "bloc-007.json",
+   "rows": 25000,
+   "sha256": "86f4afa136e8db6fdf627b4f9d0781b40d979664feff71e7d28da0379159a9d0"
+  },
+  {
+   "file": "bloc-008.json",
+   "rows": 25000,
+   "sha256": "5e8cfcb2296e71a80db43d9b1c36e4e149c97d3367f676501c1ce0309d51d0cc"
+  },
+  {
+   "file": "bloc-009.json",
+   "rows": 25000,
+   "sha256": "3a80c5c85c7e5fc44cb34b70ed0ce3743f6f205d9fc935c8b471c9b051c19d2e"
+  },
+  {
+   "file": "bloc-010.json",
+   "rows": 25000,
+   "sha256": "62b6b722606920b2e742e27fe84520d471d7cd095ae2b87e3f8e36468af08dd3"
+  },
+  {
+   "file": "bloc-011.json",
+   "rows": 25000,
+   "sha256": "d7d5f48ad0030e4f8fb9df12aab4e8eec5b506d777e8f0d03a8a90fd6151a373"
+  },
+  {
+   "file": "bloc-012.json",
+   "rows": 25000,
+   "sha256": "90381286c1cbd73b3e509a3c682d502f8a7080bf901c04e438fef828b8f3b07a"
+  },
+  {
+   "file": "bloc-013.json",
+   "rows": 25000,
+   "sha256": "abc121fdc20374488591b71fc7f53e9f1331b85702031ad28eed8536ab7a294f"
+  },
+  {
+   "file": "bloc-014.json",
+   "rows": 25000,
+   "sha256": "d2c2b5ceeb0bb0bcd3a04a0b1351da9985736b386dce3ab220a81944ad913b91"
+  },
+  {
+   "file": "bloc-015.json",
+   "rows": 25000,
+   "sha256": "1a2ad0bdf7bc636a3a460303dd4d1cb09fc134b0427bc0f7cb1c95f7b9fded34"
+  },
+  {
+   "file": "bloc-016.json",
+   "rows": 25000,
+   "sha256": "aaf9644a35ec7034828a2bf53b5d3b144629f2b4b2b7bb52456df089ac726979"
+  },
+  {
+   "file": "bloc-017.json",
+   "rows": 25000,
+   "sha256": "1bba3ed1d9cfbb0bb7d7a47c475beb6aa08577cbdcd8069f41926df73b82240d"
+  },
+  {
+   "file": "bloc-018.json",
+   "rows": 25000,
+   "sha256": "030e806be32b2b2557720a10cddfd368fffde1ebc12cea3149f50e0034ae7309"
+  },
+  {
+   "file": "bloc-019.json",
+   "rows": 25000,
+   "sha256": "ce5b0c001c24c8edb7839cb018db0295dd9e84a597961774a8c8c5c1cc9c40e2"
+  },
+  {
+   "file": "bloc-020.json",
+   "rows": 25000,
+   "sha256": "9eabc4be14d69944ac94537d8f983e49caa6a420f6a29524d5d561f9b5c3ae0c"
+  },
+  {
+   "file": "bloc-021.json",
+   "rows": 25000,
+   "sha256": "372e78c64bf0ec2ef34662de60b4443bce9b237f11d351b4bf23ffbabb0baf6a"
+  },
+  {
+   "file": "bloc-022.json",
+   "rows": 20204,
+   "sha256": "ad61cf2c064c99959341eaa1cf470a199cc1b7b6949c9ea0df253413787f8e5b"
+  }
+ ]
+}

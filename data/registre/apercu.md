@@ -1,0 +1,209 @@
+# Registre affichage environnemental
+
+Lot 202610270656 ; lignes source : 571715 ; codes-barres retenus : 570204 ; écartés : 1510 ; blocs : 23
+
+## Colonnes
+
+- `Marque`
+- `Catégorie`
+- `GTIN`
+- `Référence interne`
+- `Score`
+- `Score standardisé`
+- `Durabilité`
+- `Impact - Acidification`
+- `Impact - Changement climatique`
+- `Impact - Écotoxicité de l'eau douce, corrigée`
+- `Impact - Utilisation de ressources fossiles`
+- `Impact - Eutrophisation eaux douces`
+- `Impact - Radiations ionisantes`
+- `Impact - Utilisation des sols`
+- `Impact - Utilisation de ressources minérales et métalliques`
+- `Impact - Appauvrissement de la couche d'ozone`
+- `Impact - Formation d'ozone photochimique`
+- `Impact - Particules`
+- `Impact - Eutrophisation marine`
+- `Impact - Eutrophisation terrestre`
+- `Impact - Utilisation de ressources en eau`
+- `Impact - Complément microfibres`
+- `Impact - Complément export hors-Europe`
+- `Cycle de vie - Accessoires`
+- `Cycle de vie - Matières premières`
+- `Cycle de vie - Filature`
+- `Cycle de vie - Tissage & Tricotage`
+- `Cycle de vie - Ennoblissement`
+- `Cycle de vie - Confection`
+- `Cycle de vie - Transport`
+- `Cycle de vie - Utilisation`
+- `Cycle de vie - Fin de vie`
+- `Date de création`
+
+## Catégories
+
+- T-shirt / Polo → tshirt : 137063
+- Pull → pull : 103396
+- Pantalon / Short → pantalon : 90635
+- Chemise → chemise : 58326
+- Manteau / Veste → manteau : 53886
+- Jupe / Robe → jupe : 43216
+- Jean → jean : 40356
+- Boxer / Slip (tricoté) → slip : 15797
+- Maillot de bain → maillot-de-bain : 12191
+- Chaussettes → chaussettes : 11568
+- Lot de produits → None : 1940
+- Caleçon (tissé) → calecon : 1830
+
+## Marques
+
+- ARMEDANGELS : 56696
+- PAUL SMITH EUROPE : 42534
+- KIABI : 39304
+- GEMO : 28973
+- okaidi : 24924
+- CMC : 21950
+- BONOBO : 19453
+- CYRILLUS : 17506
+- QUIKSILVER : 14620
+- BILLABONG : 12797
+- MILLET MOUNTAIN GROUP SAS : 12510
+- PICTURE ORGANIC CLOTHING : 12390
+- EPHIGEA : 11830
+- NOBODY'S CHILD LIMITED : 10478
+- ROXY : 10462
+- SUPERDRY FRANCE : 10151
+- BZB : 9681
+- American Vintage : 9548
+- jacadi : 9512
+- SANDRO ANDY : 8612
+- TWINSET FRANCE : 8422
+- ZV FRANCE : 7642
+- Jules : 7379
+- ATELIER DE PRODUCTION ET DE CREATION : 7347
+- AMI PARIS : 6285
+- SIX ET SEPT : 5977
+- DES PETITS HAUTS : 5551
+- Bobo Choses : 4901
+- CALIDA FRANCE : 4883
+- BEXLEY : 4765
+- INTERSPORT FRANCE : 4685
+- ELEMENT : 4575
+- MSFR : 4454
+- GILDAN ACTIVEWEAR : 4080
+- SKIS ROSSIGNOL - CLUB ROSSIGNOL : 4063
+- AS Colour B.V : 3891
+- DIM : 3884
+- U Collection : 3758
+- ODLO FRANCE : 3752
+- CELIO FRANCE : 3575
+- Desigual : 3416
+- RVCA : 3412
+- CLAUDIE PIERLOT : 3405
+- Gerard Darel : 3225
+- 1083 : 3153
+- DC SHOES : 3093
+- Sessùn : 2961
+- Fusion ApS : 2768
+- U Essentiel : 2674
+- SOC D'IMPORTATION LECLERC : 2593
+- BONNETERIE CEVENOLE : 2510
+- MAJE : 2460
+- FENDI FRANCE : 2319
+- TEX : 2293
+- L'IMPERTINENTE : 2263
+- BA&SH : 2217
+- PROMOD : 2208
+- Loom : 2045
+- COURREGES : 2039
+- Soeur : 2008
+- Pablo : 1530
+- FURSAC : 1517
+- MAISON BALZAC : 1510
+- SKFK : 1493
+- H. LEMAHIEU : 1454
+- LE BON MARCHE  MAISON ARISTIDE BOUCICAUT : 1404
+- CHRISTIAN DIOR COUTURE : 1317
+- FAGUO : 1268
+- LAGOPED : 1101
+- IRO : 984
+- ROUGEGORGE LINGERIE : 956
+- BOTTEGA VENETA FRANCE : 828
+- Prix Mini : 794
+- KENZO : 788
+- Volcom : 762
+- TECNIFIBRE : 727
+- MONOPRIX HOLDING : 726
+- CELINE : 707
+- GIVENCHY : 603
+- LE SLIP FRANCAIS : 505
+- TBS : 492
+- LAFRANCAISE : 488
+- PLAYTEX : 474
+- STELLA & SUZIE : 471
+- SMOON : 398
+- BAIE DES CAPS : 386
+- LE BEAU JEAN : 337
+- CINQ-HUITIEMES : 319
+- ERGOS : 281
+- V2D CREATION : 270
+- WELL : 267
+- PETIT-BATEAU : 265
+- Basic Treasure : 256
+- JW Anderson Limited : 238
+- BUNSHA : 237
+- ETABLISSEMENTS MARCEL : 234
+- SOL MILLENNIUM FRANCE : 224
+- PIMKIE : 215
+- E 2M : 204
+- JEAN PATOU : 193
+- TAPE A L'OEIL : 161
+- WISE : 149
+- INEXTENSO : 145
+- U Tout Petits : 143
+- BLACK DIAMOND EQUIPMENT EUROPE GMBH : 134
+- W.O.P World of Pop : 119
+- Atelier Tuffery : 108
+- SPORTMINEDOR : 104
+- DUTEXDOR : 102
+- Ternua : 96
+- Gayaskin : 93
+- TWINDAY : 91
+- BIRKENSTOCK FRANCE : 68
+- NOPUBLIK : 56
+- PangoLin : 49
+- VEJA FAIR TRADE S.A.R.L. : 48
+- U Oxygn : 41
+- COCACOLA : 39
+- AIRNESS : 38
+- G-HEAT GROUP : 38
+- RIOULT & HUREAUX : 35
+- WONDAY : 33
+- Pink : 30
+- DDP : 30
+- LE BOURGET : 16
+- YVES SAINT LAURENT : 16
+- WOP : 14
+- INTS FRANCE : 13
+- Victoria's Secret : 12
+- Pavenrod : 12
+- Icepeak : 10
+- RICALEWIS : 10
+- Coyote Denim : 8
+- HILMA : 8
+- l'Atelier Visconti : 7
+- TEDDYSMITH : 6
+- BERLUTI SA : 5
+- PASSENGER : 5
+- MAGELAN : 4
+- PHALAENOPSIS : 3
+- BELHARRA : 3
+- BROUSSAUD TEXTILES : 3
+- AZALA : 3
+- LA COUCHE DURABLE : 3
+- SAPIOLOGIE : 1
+- Luhta : 1
+- Rukka : 1
+- Nénés : 1
+- [ND] : 1
+- Fruit of the Loom International Ltd. : 1
+- Avery Tailors : 1
+- MARIE FELD : 1
