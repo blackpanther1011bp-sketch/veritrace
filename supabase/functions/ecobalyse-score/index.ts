@@ -52,6 +52,25 @@ async function ecobalyse(path: string, body: unknown, token: string): Promise<Re
   }
 }
 
+/**
+ * Valeur d'un impact (ecs, cch) ; sinon erreur avec un extrait de la réponse, pour comprendre.
+ * Attention : l'API textile accepte n'importe quel jeton, mais un jeton non reconnu ne donne accès
+ * qu'aux données publiques, et les impacts reviennent vides (0). D'où le message dédié.
+ */
+function impactOf(response: Record<string, unknown>, metric: "ecs" | "cch"): number {
+  const v = (response.impacts as Record<string, unknown> | undefined)?.[metric];
+  if (typeof v === "number" && Number.isFinite(v) && v > 0) return v;
+  if (v === 0 || v === null) {
+    throw new TokenError(
+      "Jeton Ecobalyse non reconnu (impacts vides) : recopiez exactement le jeton de votre compte Ecobalyse " +
+        "dans le secret ECOBALYSE_TOKEN, sans espace ni guillemets, puis repassez la ligne en a_calculer",
+    );
+  }
+  const keys = Object.keys(response).join(", ");
+  const impacts = JSON.stringify(response.impacts ?? null).slice(0, 300);
+  throw new Error(`Réponse Ecobalyse sans « ${metric} » exploitable (clés : ${keys} ; impacts : ${impacts})`);
+}
+
 async function apiVersion(): Promise<string | null> {
   try {
     const res = await fetch(API, { signal: AbortSignal.timeout(10_000) });
@@ -83,8 +102,8 @@ async function thresholdsFor(product: EcoProduct, token: string): Promise<{ ecs:
   const worst = await ecobalyse("/textile/simulator", refs.worst, token);
   const method = `${SCORING_VERSION} : 5 classes égales entre la référence vertueuse et le majorant par défaut Ecobalyse`;
   for (const metric of ["ecs", "cch"] as const) {
-    const b = Number((best.impacts as Record<string, unknown>)?.[metric]);
-    const w = Number((worst.impacts as Record<string, unknown>)?.[metric]);
+    const b = impactOf(best, metric);
+    const w = impactOf(worst, metric);
     const t = thresholdsFrom(b, w);
     await sql`
       insert into public.grade_thresholds (eco_product, metric, best_ref, worst_ref, a_max, b_max, c_max, d_max, method)
@@ -139,6 +158,8 @@ async function publish(draft: DraftInput, token: string, version: string | null)
   await sql`update public.product_drafts set eco_query = ${sql.json(built.query as postgres.JSONValue)} where ean = ${draft.ean}`;
   const thresholds = await thresholdsFor(built.product, token);
   const response = await ecobalyse("/textile/simulator/detailed", built.query, token);
+  impactOf(response, "ecs");
+  impactOf(response, "cch");
   const row = toProductRow(draft, built, response, thresholds, version);
 
   await sql.begin(async (tx) => {
