@@ -126,7 +126,9 @@ export function ProductScreen({ ean }: { ean: string }) {
           <div className="stack-2">
             <span className="overline-brand">{product.brand.name}</span>
             <span className="product-name">{product.name}</span>
-            <span className="muted-sm">EAN {formatEan(product.ean)}</span>
+            <span className="muted-sm">
+              {product.reference ? `Réf. ${product.reference} · ` : ""}EAN {formatEan(product.ean)}
+            </span>
           </div>
         </section>
 

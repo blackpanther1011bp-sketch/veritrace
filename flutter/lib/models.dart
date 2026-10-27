@@ -73,6 +73,7 @@ class Product {
   final String? ecoWebUrl;
   final List<String> assumptions;
   final String? scoredAt;
+  final String? reference; // référence interne de la marque (registre officiel)
 
   Product({
     required this.ean,
@@ -97,6 +98,7 @@ class Product {
     this.ecoWebUrl,
     this.assumptions = const [],
     this.scoredAt,
+    this.reference,
   });
 
   factory Product.fromJson(Map<String, dynamic> j) => Product(
@@ -123,6 +125,7 @@ class Product {
         ecoWebUrl: j['eco_web_url'] as String?,
         assumptions: ((j['assumptions'] as List?) ?? const []).map((e) => e.toString()).toList(),
         scoredAt: j['scored_at'] as String?,
+        reference: j['reference'] as String?,
       );
 
   bool get isDemo => dataSource == 'demo';

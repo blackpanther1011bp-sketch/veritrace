@@ -57,4 +57,6 @@ export interface Product {
   assumptions: string[];
   methodology: string | null;
   scored_at: string | null;
+  /** référence interne de la marque (produits du registre officiel) */
+  reference?: string | null;
 }

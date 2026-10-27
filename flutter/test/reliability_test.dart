@@ -51,7 +51,8 @@ void main() {
 
   test('produit du registre officiel : note sociale absente, provenance « registre »', () {
     final p = Product.fromJson(_row({
-      'name': 'ACT42 BLACK_WH',
+      'name': 'Boxer / Slip',
+      'reference': 'ACT42 BLACK_WH',
       'category': 'Sous-vêtement',
       'origin_country': 'Non publié',
       'composition': 'Non publiée par le registre',
@@ -72,6 +73,7 @@ void main() {
       'scored_at': '2026-10-01',
     }));
     expect(p.isRegistry, isTrue);
+    expect(p.reference, 'ACT42 BLACK_WH');
     expect(p.isDemo, isFalse);
     expect(p.socialGrade, isNull);
     expect(p.globalGrade, Grade.B);
