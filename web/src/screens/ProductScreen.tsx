@@ -36,6 +36,7 @@ export function useProduct(ean: string) {
 }
 
 function socialSummary(product: Product): string {
+  if (product.social_grade === null) return "Pas encore évaluée pour cette marque";
   const weak = product.brand.social_checks.find((c) => c.status === "non" || c.status === "non_communique");
   if (weak) return `${weak.label} : ${STATUS_LABEL[weak.status].toLowerCase()}`;
   const partial = product.brand.social_checks.find((c) => c.status === "partiel");

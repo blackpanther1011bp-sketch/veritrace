@@ -32,7 +32,8 @@ function AlternativeCard({ p }: { p: Product }) {
       <span className="row-text">
         <span className="row-title">{p.name}</span>
         <span className="row-sub">
-          {p.brand.name} · {p.brand.kind === "seconde_main" ? "Friperie solidaire" : `Fabriqué : ${p.origin_country}`}
+          {p.brand.name} ·{" "}
+          {p.brand.kind === "seconde_main" ? "Friperie solidaire" : p.data_source === "registre" ? "Registre officiel" : `Fabriqué : ${p.origin_country}`}
         </span>
         <span className="tags">
           {tags(p).map((t) => (

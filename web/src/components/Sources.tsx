@@ -3,8 +3,15 @@ import type { Product } from "../lib/types";
 import { GradeBadge } from "./Grade";
 import { IconInfo } from "./Icons";
 
-/** Pastille de fiabilité (ou « Démo » pour les produits fictifs). */
+/** Pastille de fiabilité (« Officielle » pour le registre, « Démo » pour les produits fictifs). */
 export function ConfidencePill({ product }: { product: Product }) {
+  if (product.data_source === "registre") {
+    return (
+      <span className="status-pill" style={CONFIDENCE_STYLE.haute}>
+        Officielle
+      </span>
+    );
+  }
   if (product.data_source === "demo" || !product.confidence) {
     return (
       <span className="status-pill" style={{ color: "#4A5A50", background: "#E3E8E4" }}>
@@ -33,6 +40,7 @@ export function SourcesCard({ product }: { product: Product }) {
     );
   }
 
+  const registry = product.data_source === "registre";
   const updated = formatDate(product.scored_at);
   const sourceDate = formatDate(product.source_date);
   const cost = formatNumber(product.eco_cost, 0);
@@ -43,7 +51,7 @@ export function SourcesCard({ product }: { product: Product }) {
       <section className="card info-list" aria-label="Sources et fiabilité">
         <div className="info-row">
           <span className="muted">Méthode</span>
-          <span className="info-value">Ecobalyse (officielle, France)</span>
+          <span className="info-value">{registry ? "Ecobalyse, déclarée par la marque" : "Ecobalyse (officielle, France)"}</span>
         </div>
         {cost && (
           <div className="info-row">
@@ -70,13 +78,20 @@ export function SourcesCard({ product }: { product: Product }) {
         </div>
         {updated && (
           <div className="info-row">
-            <span className="muted">Calculé le</span>
+            <span className="muted">{registry ? "Déclaré le" : "Calculé le"}</span>
             <span className="info-value">{updated}</span>
           </div>
         )}
       </section>
 
-      {product.confidence && <p className="muted-sm">{CONFIDENCE_HELP[product.confidence]}</p>}
+      {registry ? (
+        <p className="muted-sm">
+          Coût déclaré par la marque sur le portail officiel de l'affichage environnemental (ministère de la Transition écologique). Le registre ne
+          publie pas la composition ni les pays de fabrication.
+        </p>
+      ) : (
+        product.confidence && <p className="muted-sm">{CONFIDENCE_HELP[product.confidence]}</p>
+      )}
 
       {product.assumptions.length > 0 && (
         <aside className="note">
@@ -93,17 +108,17 @@ export function SourcesCard({ product }: { product: Product }) {
       )}
 
       <p className="muted-sm">
-        Note environnement : coût Ecobalyse comparé à deux références du même type de vêtement. A, proche d'un vêtement en coton bio fabriqué en France ; E, proche du
-        « majorant par défaut » d'Ecobalyse (fabrication inconnue).
+        Note environnement : coût Ecobalyse à poids égal, comparé à deux références du même type de vêtement. A, proche d'un vêtement en coton bio fabriqué en
+        France ; E, proche du « majorant par défaut » d'Ecobalyse (fabrication inconnue).
       </p>
 
       <div className="sources-links">
         {product.eco_web_url && (
           <a className="btn btn-outline" href={product.eco_web_url} target="_blank" rel="noopener noreferrer">
-            Voir le calcul sur Ecobalyse
+            {registry ? "Voir la fiche officielle" : "Voir le calcul sur Ecobalyse"}
           </a>
         )}
-        {isWebLink(product.source_ref) ? (
+        {registry ? null : isWebLink(product.source_ref) ? (
           <a className="btn btn-outline" href={product.source_ref.trim()} target="_blank" rel="noopener noreferrer">
             Voir la source des données{sourceDate ? ` (${sourceDate})` : ""}
           </a>

@@ -137,7 +137,7 @@ class _AlternativesScreenState extends State<AlternativesScreen> {
                     children: [
                       Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                       Text(
-                        '${p.brand.name} · ${p.brand.kind == 'seconde_main' ? 'Friperie solidaire' : 'Fabriqué : ${p.originCountry}'}',
+                        '${p.brand.name} · ${p.brand.kind == 'seconde_main' ? 'Friperie solidaire' : p.isRegistry ? 'Registre officiel' : 'Fabriqué : ${p.originCountry}'}',
                         style: const TextStyle(fontSize: 13, color: VT.muted2),
                       ),
                       const SizedBox(height: 6),

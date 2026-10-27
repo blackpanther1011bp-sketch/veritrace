@@ -5,6 +5,7 @@ const sourceLabel = {
   'marque': 'Transmises par la marque',
   'etiquette': "Relevées sur l'étiquette",
   'estimation': 'Estimation (valeurs par défaut)',
+  'registre': 'Déclarées par la marque (registre officiel)',
 };
 
 const confidenceLabel = {'haute': 'Haute', 'moyenne': 'Moyenne', 'faible': 'Faible'};

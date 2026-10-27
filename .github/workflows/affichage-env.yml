@@ -2,7 +2,7 @@ name: Registre affichage environnemental
 
 # Télécharge chaque mois le registre officiel des coûts environnementaux déclarés par les marques
 # (data.gouv.fr), le découpe en blocs JSON et les publie dans la branche donnees-affichage-env.
-# Supabase récupère ensuite ces blocs lui-même (fonction registry_sync, voir migration 006).
+# Supabase récupère ensuite ces blocs lui-même (fonctions registry_sync_*, voir migration 007).
 on:
   workflow_dispatch:
   schedule:

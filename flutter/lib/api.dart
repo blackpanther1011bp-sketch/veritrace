@@ -4,11 +4,6 @@ import 'package:uuid/uuid.dart';
 
 import 'models.dart';
 
-const _productFields =
-    'ean,name,category,origin_country,composition,transport,carbon_grade,social_grade,global_grade,carbon_breakdown,is_sample,'
-    'data_source,confidence,source_ref,source_date,env_grade,eco_cost,climate_kg,eco_web_url,assumptions,methodology,scored_at,'
-    'brand:brands(id,name,kind,country,social_checks)';
-
 /// Accès au catalogue, aux alternatives, aux signalements et aux événements d'usage.
 class Api {
   Api._();
@@ -25,8 +20,9 @@ class Api {
 
   Future<Product?> fetchProduct(String ean) async {
     if (_products.containsKey(ean)) return _products[ean];
-    final row = await _db.from('products').select(_productFields).eq('ean', ean).maybeSingle();
-    final product = row == null ? null : Product.fromJson(row);
+    // Catalogue VeriTrace d'abord, puis registre officiel de l'affichage environnemental.
+    final row = await _db.rpc('get_product', params: {'p_ean': ean});
+    final product = row == null ? null : Product.fromJson(Map<String, dynamic>.from(row as Map));
     _products[ean] = product;
     return product;
   }
@@ -34,8 +30,8 @@ class Api {
   Future<List<Product>> fetchAlternatives(String ean) async {
     final hit = _alternatives[ean];
     if (hit != null) return hit;
-    final List<dynamic> rows = await _db.rpc('get_alternatives', params: {'p_ean': ean}).select(_productFields);
-    final list = rows.map((r) => Product.fromJson(r as Map<String, dynamic>)).toList();
+    final rows = (await _db.rpc('get_alternatives_json', params: {'p_ean': ean}) as List?) ?? const [];
+    final list = rows.map((r) => Product.fromJson(Map<String, dynamic>.from(r as Map))).toList();
     _alternatives[ean] = list;
     for (final p in list) {
       _products[p.ean] = p;

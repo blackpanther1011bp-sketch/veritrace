@@ -1,7 +1,8 @@
 export type Grade = "A" | "B" | "C" | "D" | "E";
 export type Level = "faible" | "moyen" | "fort";
 export type CheckStatus = "oui" | "partiel" | "non" | "non_communique";
-export type BrandKind = "fast_fashion" | "responsable" | "seconde_main";
+/** non_classee : marque du registre officiel, pas encore évaluée par VeriTrace */
+export type BrandKind = "fast_fashion" | "responsable" | "seconde_main" | "non_classee";
 
 export interface BreakdownItem {
   label: string;
@@ -23,8 +24,11 @@ export interface Brand {
   social_checks: SocialCheck[];
 }
 
-/** demo : fictif ; marque : données transmises par la marque ; etiquette : relevé sur l'étiquette ; estimation : valeurs par défaut */
-export type DataSource = "demo" | "marque" | "etiquette" | "estimation";
+/**
+ * demo : fictif ; marque : données transmises par la marque ; etiquette : relevé sur l'étiquette ;
+ * estimation : valeurs par défaut ; registre : coût déclaré par la marque au registre officiel
+ */
+export type DataSource = "demo" | "marque" | "etiquette" | "estimation" | "registre";
 export type Confidence = "haute" | "moyenne" | "faible";
 
 export interface Product {
@@ -35,7 +39,8 @@ export interface Product {
   composition: string;
   transport: string;
   carbon_grade: Grade;
-  social_grade: Grade;
+  /** null : note sociale pas encore évaluée (produits du registre officiel) */
+  social_grade: Grade | null;
   global_grade: Grade;
   carbon_breakdown: BreakdownItem[];
   is_sample: boolean;

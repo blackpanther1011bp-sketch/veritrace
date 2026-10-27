@@ -36,7 +36,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
           SegmentedButton<String>(
             segments: [
               ButtonSegment(value: 'carbone', label: Text('Carbone · ${p.carbonGrade.name}')),
-              ButtonSegment(value: 'social', label: Text('Social · ${p.socialGrade.name}')),
+              ButtonSegment(value: 'social', label: Text('Social · ${p.socialGrade?.name ?? '–'}')),
             ],
             selected: {_tab},
             showSelectedIcon: false,
@@ -62,7 +62,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
   }
 
   List<Widget> _carbon(Product p) => [
-        Text("D'où vient l'impact climat de ce vêtement${p.isDemo ? '' : ' (calcul Ecobalyse)'} :",
+        Text(
+            p.isRegistry
+                ? "D'où vient le coût environnemental de ce vêtement (registre officiel) :"
+                : "D'où vient l'impact climat de ce vêtement${p.isDemo ? '' : ' (calcul Ecobalyse)'} :",
             style: const TextStyle(fontSize: 15, color: VT.muted)),
         const SizedBox(height: 14),
         CardBox(
@@ -105,9 +108,23 @@ class _DetailsScreenState extends State<DetailsScreen> {
         SourcesCard(product: p),
       ];
 
+  String _socialNote(Product p) {
+    if (p.socialGrade == null) {
+      return "Pas encore d'évaluation sociale pour cette marque : le registre officiel ne couvre que "
+          "l'environnement. La note globale reflète donc uniquement l'environnement.";
+    }
+    if (p.isDemo) {
+      return "Données d'exemple. Sources à intégrer avant lancement : rapports d'audit, déclarations des marques, "
+          'bases de données publiques.';
+    }
+    return 'Note sociale attribuée par VeriTrace à partir des engagements publics de la marque '
+        '(audits, salaires, liste des usines).';
+  }
+
   List<Widget> _social(Product p) => [
         Text('Engagements sociaux de la marque ${p.brand.name} :', style: const TextStyle(fontSize: 15, color: VT.muted)),
         const SizedBox(height: 14),
+        if (p.brand.socialChecks.isNotEmpty) ...[
         CardBox(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Column(
@@ -134,12 +151,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        MethodNote(
-          text: p.isDemo
-              ? "Données d'exemple. Sources à intégrer avant lancement : rapports d'audit, déclarations des marques, "
-                  'bases de données publiques.'
-              : 'Note sociale attribuée par VeriTrace à partir des engagements publics de la marque '
-                  '(audits, salaires, liste des usines).',
-        ),
+        ],
+        MethodNote(text: _socialNote(p)),
       ];
 }

@@ -204,6 +204,15 @@ test("fiche publiée", () => {
   assert.match(row.methodology, /API 2\.3\.0/);
   assert.deepEqual(row.assumptions, built.notes);
 
+  // À poids égal : le même article deux fois plus lourd a le même coût par kilo, donc la même note.
+  const heavy = draft({ country_making: "Maroc", air_transport_ratio: 0, mass_kg: 2 * DEFAULT_MASS_KG.tshirt });
+  const builtHeavy = buildQuery(heavy);
+  const doubled = { ...detailed, impacts: { ecs: 2 * 1234.6, cch: 2 * 6.79 } };
+  const rowHeavy = toProductRow(heavy, builtHeavy, doubled, { ecs: thresholdsFrom(500, 1500), cch: thresholdsFrom(3, 8) }, null);
+  assert.equal(rowHeavy.env_grade, "D");
+  assert.equal(rowHeavy.carbon_grade, "D");
+  assert.equal(rowHeavy.eco_cost, 2469.2); // le coût affiché reste celui de l'article
+
   const noUrl = toProductRow(d, built, { ...detailed, webUrl: "https://ailleurs.example/x" }, { ecs: thresholdsFrom(500, 1500), cch: thresholdsFrom(3, 8) }, null);
   assert.equal(noUrl.eco_web_url, null);
   assert.throws(() => toProductRow(d, built, { impacts: {} }, { ecs: thresholdsFrom(1, 2), cch: thresholdsFrom(1, 2) }, null), /incomplète/);

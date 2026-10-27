@@ -1,10 +1,8 @@
 import { supabase } from "./supabase";
 import type { Product } from "./types";
 
-const PRODUCT_FIELDS =
-  "ean,name,category,origin_country,composition,transport,carbon_grade,social_grade,global_grade,carbon_breakdown,is_sample," +
-  "data_source,confidence,source_ref,source_date,env_grade,eco_cost,climate_kg,eco_web_url,assumptions,methodology,scored_at," +
-  "brand:brands(id,name,kind,country,social_checks)";
+// Recherche d'un code-barres dans les produits VeriTrace (démo et réels) puis dans le registre officiel
+// de l'affichage environnemental : voir les fonctions get_product et get_alternatives_json (migration 007).
 
 // Petit cache en mémoire : fiche → détails → alternatives sans nouvel appel réseau.
 const productCache = new Map<string, Product | null>();
@@ -16,7 +14,7 @@ export function getCachedProduct(ean: string): Product | null | undefined {
 
 export async function fetchProduct(ean: string): Promise<Product | null> {
   if (productCache.has(ean)) return productCache.get(ean)!;
-  const { data, error } = await supabase.from("products").select(PRODUCT_FIELDS).eq("ean", ean).maybeSingle();
+  const { data, error } = await supabase.rpc("get_product", { p_ean: ean });
   if (error) throw error;
   const product = (data as unknown as Product | null) ?? null;
   productCache.set(ean, product);
@@ -25,7 +23,7 @@ export async function fetchProduct(ean: string): Promise<Product | null> {
 
 export async function fetchAlternatives(ean: string): Promise<Product[]> {
   if (alternativesCache.has(ean)) return alternativesCache.get(ean)!;
-  const { data, error } = await supabase.rpc("get_alternatives", { p_ean: ean }).select(PRODUCT_FIELDS);
+  const { data, error } = await supabase.rpc("get_alternatives_json", { p_ean: ean });
   if (error) throw error;
   const list = (data as unknown as Product[] | null) ?? [];
   alternativesCache.set(ean, list);

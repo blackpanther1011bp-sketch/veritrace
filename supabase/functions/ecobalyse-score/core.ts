@@ -568,8 +568,12 @@ export function toProductRow(
   const ecs = impacts.ecs;
   const cch = impacts.cch;
   if (typeof ecs !== "number" || typeof cch !== "number") throw new Error("Réponse Ecobalyse incomplète (ecs ou cch manquant)");
-  const envGrade = gradeFor(ecs, thresholds.ecs);
-  const carbonGrade = gradeFor(cch, thresholds.cch);
+  // Notes « à poids égal » : les seuils sont calibrés au poids type du vêtement ; un article plus lourd ou plus léger
+  // est ramené à ce poids pour comparer la fabrication, pas la taille (même règle que le registre officiel).
+  const mass = Number(built.query.mass);
+  const k = mass > 0 ? DEFAULT_MASS_KG[built.product] / mass : 1;
+  const envGrade = gradeFor(ecs * k, thresholds.ecs);
+  const carbonGrade = gradeFor(cch * k, thresholds.cch);
   const webUrl = typeof response.webUrl === "string" && response.webUrl.startsWith("https://ecobalyse.beta.gouv.fr/") ? response.webUrl : null;
   return {
     ean: d.ean,

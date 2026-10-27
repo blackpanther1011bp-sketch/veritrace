@@ -34,13 +34,13 @@ class GradeBadge extends StatelessWidget {
 }
 
 class GradeScale extends StatelessWidget {
-  final Grade grade;
+  final Grade? grade;
   const GradeScale({super.key, required this.grade});
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: 'Note ${grade.name} sur une échelle de A à E',
+      label: grade == null ? 'Pas encore de note' : 'Note ${grade!.name} sur une échelle de A à E',
       excludeSemantics: true,
       child: Row(
         children: [

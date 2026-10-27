@@ -19,9 +19,9 @@ export function GradeBadge({ grade, size = 44, round = false }: { grade: Grade |
   );
 }
 
-export function GradeScale({ grade }: { grade: Grade }) {
+export function GradeScale({ grade }: { grade: Grade | null }) {
   return (
-    <div className="grade-scale" role="img" aria-label={`Note ${grade} sur une échelle de A à E`}>
+    <div className="grade-scale" role="img" aria-label={grade ? `Note ${grade} sur une échelle de A à E` : "Pas encore de note"}>
       {GRADES.map((g) => (
         <span
           key={g}

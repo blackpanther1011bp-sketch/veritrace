@@ -49,6 +49,36 @@ void main() {
     expect(p.assumptions, isEmpty);
   });
 
+  test('produit du registre officiel : note sociale absente, provenance « registre »', () {
+    final p = Product.fromJson(_row({
+      'name': 'ACT42 BLACK_WH',
+      'category': 'Sous-vêtement',
+      'origin_country': 'Non publié',
+      'composition': 'Non publiée par le registre',
+      'transport': 'Non publié',
+      'carbon_grade': 'B',
+      'social_grade': null,
+      'global_grade': 'B',
+      'brand': {'id': 'registre-71', 'name': 'KIABI', 'kind': 'non_classee', 'country': '', 'social_checks': []},
+      'data_source': 'registre',
+      'confidence': null,
+      'source_ref': "Registre officiel de l'affichage environnemental (data.gouv.fr)",
+      'source_date': '2026-10-01',
+      'env_grade': 'B',
+      'eco_cost': 583.3,
+      'climate_kg': 2.83,
+      'eco_web_url': 'https://affichage-environnemental.ecobalyse.beta.gouv.fr/produits/3616030137660',
+      'assumptions': [],
+      'scored_at': '2026-10-01',
+    }));
+    expect(p.isRegistry, isTrue);
+    expect(p.isDemo, isFalse);
+    expect(p.socialGrade, isNull);
+    expect(p.globalGrade, Grade.B);
+    expect(p.brand.socialChecks, isEmpty);
+    expect(sourceLabel[p.dataSource], 'Déclarées par la marque (registre officiel)');
+  });
+
   test('nombres et dates à la française', () {
     expect(formatNumberFr(1714.6, digits: 0), '1 715');
     expect(formatNumberFr(6.8), '6,8');

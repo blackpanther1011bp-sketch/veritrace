@@ -358,7 +358,7 @@ class _ArBadge extends StatelessWidget {
       case _Lookup.found:
         leading = GradeBadge(grade: p!.globalGrade, size: 40, round: true);
         title = p.name;
-        subtitle = 'Carbone ${p.carbonGrade.name} · Social ${p.socialGrade.name}';
+        subtitle = 'Carbone ${p.carbonGrade.name} · Social ${p.socialGrade?.name ?? 'non évaluée'}';
       case _Lookup.missing:
         leading = const GradeBadge(grade: null, size: 40, round: true);
         title = 'Non référencé';

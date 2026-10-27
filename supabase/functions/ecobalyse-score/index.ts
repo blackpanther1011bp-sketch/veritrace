@@ -9,6 +9,7 @@ import {
   buildQuery,
   DraftError,
   type DraftInput,
+  ECO_PRODUCTS,
   type EcoProduct,
   referenceQueries,
   SCORING_VERSION,
@@ -207,6 +208,24 @@ Deno.serve(async () => {
   let errors = 0;
   let retry = 0;
 
+  // Seuils A–E de tous les types de vêtements (utiles aussi au registre officiel) : calibrés une fois.
+  const calibrated: string[] = [];
+  try {
+    const have = await sql`select eco_product from public.grade_thresholds group by eco_product having count(*) = 2`;
+    for (const product of ECO_PRODUCTS) {
+      if (have.some((h) => h.eco_product === product) || Date.now() - started > 60_000) continue;
+      await thresholdsFor(product, token);
+      calibrated.push(product);
+    }
+  } catch (e) {
+    const message = e instanceof Error ? e.message : String(e);
+    if (e instanceof TokenError) {
+      errors += await failAllPending(message);
+      return Response.json({ published, errors, calibrated, reason: "token_refused" });
+    }
+    console.error("Calibrage :", message);
+  }
+
   while (Date.now() - started < TIME_BUDGET_MS) {
     const drafts = await claim();
     if (drafts.length === 0) break;
@@ -240,5 +259,5 @@ Deno.serve(async () => {
     }
   }
 
-  return Response.json({ published, errors, retry });
+  return Response.json({ published, errors, retry, calibrated });
 });

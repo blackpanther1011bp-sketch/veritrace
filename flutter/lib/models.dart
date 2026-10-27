@@ -33,7 +33,7 @@ class SocialCheck {
 class Brand {
   final String id;
   final String name;
-  final String kind; // fast_fashion | responsable | seconde_main
+  final String kind; // fast_fashion | responsable | seconde_main | non_classee
   final String country;
   final List<SocialCheck> socialChecks;
 
@@ -56,14 +56,14 @@ class Product {
   final String composition;
   final String transport;
   final Grade carbonGrade;
-  final Grade socialGrade;
+  final Grade? socialGrade; // null : marque pas encore évaluée (registre officiel)
   final Grade globalGrade;
   final List<BreakdownItem> carbonBreakdown;
   final bool isSample;
   final Brand brand;
 
   // Provenance et calcul Ecobalyse (absents des produits de démonstration)
-  final String dataSource; // demo | marque | etiquette | estimation
+  final String dataSource; // demo | marque | etiquette | estimation | registre
   final String? confidence; // haute | moyenne | faible
   final String? sourceRef;
   final String? sourceDate;
@@ -107,7 +107,7 @@ class Product {
         composition: j['composition'] as String,
         transport: j['transport'] as String,
         carbonGrade: gradeFrom(j['carbon_grade'] as String),
-        socialGrade: gradeFrom(j['social_grade'] as String),
+        socialGrade: j['social_grade'] == null ? null : gradeFrom(j['social_grade'] as String),
         globalGrade: gradeFrom(j['global_grade'] as String),
         carbonBreakdown:
             (j['carbon_breakdown'] as List).map((e) => BreakdownItem.fromJson(e as Map<String, dynamic>)).toList(),
@@ -126,6 +126,8 @@ class Product {
       );
 
   bool get isDemo => dataSource == 'demo';
+
+  bool get isRegistry => dataSource == 'registre';
 
   bool get isBadGrade => globalGrade == Grade.D || globalGrade == Grade.E;
 }

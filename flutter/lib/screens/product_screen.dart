@@ -78,6 +78,7 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
   }
 
   String _socialSummary(Product p) {
+    if (p.socialGrade == null) return 'Pas encore évaluée pour cette marque';
     for (final c in p.brand.socialChecks) {
       if (c.status == 'non' || c.status == 'non_communique') {
         return '${c.label} : ${statusLabel[c.status]!.toLowerCase()}';
@@ -202,7 +203,7 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
     );
   }
 
-  Widget _tile(String title, Grade grade, String summary, VoidCallback onTap) {
+  Widget _tile(String title, Grade? grade, String summary, VoidCallback onTap) {
     return CardBox(
       onTap: onTap,
       child: Column(

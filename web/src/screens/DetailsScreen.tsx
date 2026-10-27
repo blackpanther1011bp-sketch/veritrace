@@ -5,8 +5,19 @@ import { SourcesCard } from "../components/Sources";
 import { LEVEL_COLOR, LEVEL_LABEL, LEVEL_TEXT, STATUS_LABEL, STATUS_STYLE } from "../lib/grades";
 import { navigate } from "../lib/router";
 import { track } from "../lib/track";
+import type { Product } from "../lib/types";
 import { useProduct } from "./ProductScreen";
 import { ErrorState, LoadingState } from "./States";
+
+function socialNote(product: Product): string {
+  if (product.social_grade === null) {
+    return "Pas encore d'évaluation sociale pour cette marque : le registre officiel ne couvre que l'environnement. La note globale reflète donc uniquement l'environnement.";
+  }
+  if (product.data_source === "demo") {
+    return "Données d'exemple. Sources à intégrer avant lancement : rapports d'audit, déclarations des marques, bases de données publiques.";
+  }
+  return "Note sociale attribuée par VeriTrace à partir des engagements publics de la marque (audits, salaires, liste des usines).";
+}
 
 export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "carbone" | "social" }) {
   const { product, failed, retry } = useProduct(ean);
@@ -48,13 +59,17 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
             Carbone · {product.carbon_grade}
           </button>
           <button type="button" role="tab" aria-selected={tab === "social"} className={tab === "social" ? "seg seg-on" : "seg"} onClick={() => setTab("social")}>
-            Social · {product.social_grade}
+            Social · {product.social_grade ?? "–"}
           </button>
         </div>
 
         {tab === "carbone" ? (
           <>
-            <p className="lead">D'où vient l'impact climat de ce vêtement{product.data_source === "demo" ? "" : " (calcul Ecobalyse)"} :</p>
+            <p className="lead">
+              {product.data_source === "registre"
+                ? "D'où vient le coût environnemental de ce vêtement (registre officiel) :"
+                : `D'où vient l'impact climat de ce vêtement${product.data_source === "demo" ? "" : " (calcul Ecobalyse)"} :`}
+            </p>
             <section className="card breakdown">
               {product.carbon_breakdown.map((item) => (
                 <div key={item.label} className="stack-8">
@@ -76,23 +91,21 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
         ) : (
           <>
             <p className="lead">Engagements sociaux de la marque {product.brand.name} :</p>
-            <section className="card info-list">
-              {product.brand.social_checks.map((check) => (
-                <div key={check.label} className="info-row">
-                  <span className="info-label">{check.label}</span>
-                  <span className="status-pill" style={STATUS_STYLE[check.status]}>
-                    {STATUS_LABEL[check.status]}
-                  </span>
-                </div>
-              ))}
-            </section>
+            {product.brand.social_checks.length > 0 && (
+              <section className="card info-list">
+                {product.brand.social_checks.map((check) => (
+                  <div key={check.label} className="info-row">
+                    <span className="info-label">{check.label}</span>
+                    <span className="status-pill" style={STATUS_STYLE[check.status]}>
+                      {STATUS_LABEL[check.status]}
+                    </span>
+                  </div>
+                ))}
+              </section>
+            )}
             <aside className="note">
               <IconInfo size={20} />
-              <p>
-                {product.data_source === "demo"
-                  ? "Données d'exemple. Sources à intégrer avant lancement : rapports d'audit, déclarations des marques, bases de données publiques."
-                  : "Note sociale attribuée par VeriTrace à partir des engagements publics de la marque (audits, salaires, liste des usines)."}
-              </p>
+              <p>{socialNote(product)}</p>
             </aside>
           </>
         )}

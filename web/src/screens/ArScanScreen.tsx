@@ -267,7 +267,7 @@ function describe(t: Tracked): { title: string; subtitle: string } {
     case "loading":
       return { title: "Analyse…", subtitle: `EAN ${formatEan(t.ean)}` };
     case "found":
-      return { title: p!.name, subtitle: `Carbone ${p!.carbon_grade} · Social ${p!.social_grade}` };
+      return { title: p!.name, subtitle: `Carbone ${p!.carbon_grade} · Social ${p!.social_grade ?? "non évaluée"}` };
     case "missing":
       return { title: "Non référencé", subtitle: "Touchez pour le signaler" };
     case "error":

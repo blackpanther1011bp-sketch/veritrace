@@ -5,6 +5,7 @@ export const SOURCE_LABEL: Record<DataSource, string> = {
   marque: "Transmises par la marque",
   etiquette: "Relevées sur l'étiquette",
   estimation: "Estimation (valeurs par défaut)",
+  registre: "Déclarées par la marque (registre officiel)",
 };
 
 export const CONFIDENCE_LABEL: Record<Confidence, string> = {
