@@ -203,7 +203,7 @@ class _LabelScanScreenState extends State<LabelScanScreen> {
                       alignment: Alignment.centerLeft,
                       child: TextButton(
                         onPressed: () => Navigator.of(context)
-                            .pushReplacement(MaterialPageRoute(builder: (_) => ContributeScreen(ean: ean!))),
+                            .pushReplacement(MaterialPageRoute(builder: (_) => ContributeScreen(ean: ean))),
                         child: const Text('Saisir la composition à la main'),
                       ),
                     ),
