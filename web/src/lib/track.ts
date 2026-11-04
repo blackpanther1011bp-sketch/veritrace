@@ -21,7 +21,9 @@ export type EventName =
   | "ar3d_view"
   | "ar3d_place"
   | "label_live_start"
-  | "label_live_read";
+  | "label_live_read"
+  | "compare_view"
+  | "ar_card_open";
 
 let memorySession: string | null = null;
 
