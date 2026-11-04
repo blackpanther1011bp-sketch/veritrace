@@ -45,7 +45,7 @@ quatre fonctions, sur le site (iPhone et Android) et dans l'app Flutter.
 ## Mesure d'usage
 
 Événements : `ar3d_view`, `ar3d_place`, `label_live_start`, `label_live_read`, `compare_view`,
-`ar_card_open` (migration `supabase/migrations/010_evenements_ra.sql`, à appliquer pour les enregistrer).
+`ar_card_open` (migration `supabase/migrations/010_evenements_ra.sql`, appliquée en production).
 
 ## Tests
 
