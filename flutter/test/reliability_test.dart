@@ -74,11 +74,26 @@ void main() {
     }));
     expect(p.isRegistry, isTrue);
     expect(p.reference, 'ACT42 BLACK_WH');
+    expect(p.hasNoBarcode, isFalse);
     expect(p.isDemo, isFalse);
     expect(p.socialGrade, isNull);
     expect(p.globalGrade, Grade.B);
     expect(p.brand.socialChecks, isEmpty);
     expect(sourceLabel[p.dataSource], 'Déclarées par la marque (registre officiel)');
+  });
+
+  test('étiquette lue sans code-barres', () {
+    final p = Product.fromJson(_row({
+      'ean': 'L3fa09c1b27de',
+      'social_grade': null,
+      'data_source': 'etiquette',
+      'confidence': 'moyenne',
+      'label_code': 'L3fa09c1b27de',
+      'brand': {'id': 'etiquette', 'name': 'Marque non indiquée', 'kind': 'non_classee', 'country': '', 'social_checks': []},
+    }));
+    expect(p.hasNoBarcode, isTrue);
+    expect(p.labelCode, 'L3fa09c1b27de');
+    expect(p.socialGrade, isNull);
   });
 
   test('nombres et dates à la française', () {

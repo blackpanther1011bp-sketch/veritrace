@@ -31,13 +31,16 @@ export function NotFoundScreen({ ean }: { ean: string }) {
             <IconUnknownTag size={40} />
           </div>
           <h2 className="state-title">Article pas encore référencé</h2>
-          <p className="muted">Ce code-barres n'est pas encore dans notre base. Ajoutez-le en recopiant son étiquette : nous le vérifions, puis nous le notons.</p>
+          <p className="muted">Ce code-barres n'est pas encore dans notre base. Photographiez l'étiquette cousue du vêtement : sa note est calculée tout de suite.</p>
           <span className="pill-muted">EAN {formatEan(ean)}</span>
         </div>
 
-        <button type="button" className="btn btn-primary" onClick={() => navigate(`/ajouter/${ean}`)}>
+        <button type="button" className="btn btn-primary" onClick={() => navigate(`/etiquette/${ean}`)}>
           <IconCamera size={20} />
-          Ajouter ce vêtement (1 min)
+          Photographier l'étiquette (20 s)
+        </button>
+        <button type="button" className="btn btn-text" onClick={() => navigate(`/ajouter/${ean}`)}>
+          Ou saisir l'étiquette à la main
         </button>
 
         {status === "sent" ? (

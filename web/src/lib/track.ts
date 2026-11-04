@@ -12,7 +12,12 @@ export type EventName =
   | "report_sent"
   | "exit_after_bad_grade"
   | "contribution_start"
-  | "contribution_sent";
+  | "contribution_sent"
+  | "label_start"
+  | "label_read"
+  | "label_failed"
+  | "passport_created"
+  | "passport_view";
 
 let memorySession: string | null = null;
 

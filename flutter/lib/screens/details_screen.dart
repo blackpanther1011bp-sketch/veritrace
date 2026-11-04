@@ -110,8 +110,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
 
   String _socialNote(Product p) {
     if (p.socialGrade == null) {
-      return "Pas encore d'évaluation sociale pour cette marque : le registre officiel ne couvre que "
-          "l'environnement. La note globale reflète donc uniquement l'environnement.";
+      final why = p.isRegistry
+          ? "le registre officiel ne couvre que l'environnement"
+          : "VeriTrace n'a pas encore évalué les engagements sociaux de cette marque";
+      return "Pas encore d'évaluation sociale : $why. La note globale reflète donc uniquement l'environnement.";
     }
     if (p.isDemo) {
       return "Données d'exemple. Sources à intégrer avant lancement : rapports d'audit, déclarations des marques, "

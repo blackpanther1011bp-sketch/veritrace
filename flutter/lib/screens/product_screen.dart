@@ -135,7 +135,9 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
                     Text(p.brand.name.toUpperCase(),
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1.2, color: VT.muted2)),
                     Text(p.name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
-                    Text('${p.reference != null ? 'Réf. ${p.reference} · ' : ''}EAN ${formatEan(p.ean)}',
+                    Text(
+                        '${p.reference != null ? 'Réf. ${p.reference} · ' : ''}'
+                        '${p.hasNoBarcode ? 'Sans code-barres · étiquette lue' : 'EAN ${formatEan(p.ean)}'}',
                         style: const TextStyle(fontSize: 13, color: VT.muted2)),
                   ],
                 ),

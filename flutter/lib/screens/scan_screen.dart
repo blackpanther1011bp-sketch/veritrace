@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../barcode.dart';
+import '../config.dart';
 import '../models.dart';
 import '../navigation.dart';
 import '../storage.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'ar_scan_screen.dart';
+import 'label_scan_screen.dart';
 import 'not_found_screen.dart';
 
 // Produits fictifs présents en base, pour tester sans étiquette sous la main.
@@ -129,6 +132,15 @@ class _ScanScreenState extends State<ScanScreen> {
                     icon: const Icon(Icons.qr_code_scanner),
                     label: const Text("Scanner l'article"),
                   ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    onPressed: () async {
+                      await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LabelScanScreen()));
+                      _loadHistory();
+                    },
+                    icon: const Icon(Icons.photo_camera_outlined),
+                    label: const Text("Pas de code-barres ? Lire l'étiquette"),
+                  ),
                   const SizedBox(height: 8),
                   if (_manualOpen) _manualForm() else TextButton.icon(
                     onPressed: () => setState(() => _manualOpen = true),
@@ -145,7 +157,7 @@ class _ScanScreenState extends State<ScanScreen> {
                     for (final h in _history.take(4))
                       _Row(
                         grade: h.grade,
-                        title: h.name ?? 'EAN ${formatEan(h.ean)}',
+                        title: h.name ?? (h.ean.startsWith('L') ? 'Étiquette lue' : 'EAN ${formatEan(h.ean)}'),
                         subtitle: '${h.brand ?? 'Non référencé'} · ${timeAgo(h.at)}',
                         onTap: () async {
                           if (h.grade == null) {
@@ -169,6 +181,13 @@ class _ScanScreenState extends State<ScanScreen> {
                       style: TextButton.styleFrom(foregroundColor: VT.muted2),
                       child: const Text('Réinitialiser la démo', style: TextStyle(fontWeight: FontWeight.w500)),
                     ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () => launchUrl(Uri.parse('${AppConfig.siteUrl}/#/fabricants'), mode: LaunchMode.externalApplication),
+                    style: TextButton.styleFrom(foregroundColor: VT.muted2),
+                    child: const Text('Vous êtes fabricant ? Créez le passeport numérique de vos vêtements',
+                        textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w500)),
+                  ),
                 ],
               ),
             ),

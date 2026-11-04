@@ -11,7 +11,11 @@ import { ErrorState, LoadingState } from "./States";
 
 function socialNote(product: Product): string {
   if (product.social_grade === null) {
-    return "Pas encore d'évaluation sociale pour cette marque : le registre officiel ne couvre que l'environnement. La note globale reflète donc uniquement l'environnement.";
+    const why =
+      product.data_source === "registre"
+        ? "le registre officiel ne couvre que l'environnement"
+        : "VeriTrace n'a pas encore évalué les engagements sociaux de cette marque";
+    return `Pas encore d'évaluation sociale : ${why}. La note globale reflète donc uniquement l'environnement.`;
   }
   if (product.data_source === "demo") {
     return "Données d'exemple. Sources à intégrer avant lancement : rapports d'audit, déclarations des marques, bases de données publiques.";

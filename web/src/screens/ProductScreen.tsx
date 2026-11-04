@@ -127,7 +127,8 @@ export function ProductScreen({ ean }: { ean: string }) {
             <span className="overline-brand">{product.brand.name}</span>
             <span className="product-name">{product.name}</span>
             <span className="muted-sm">
-              {product.reference ? `Réf. ${product.reference} · ` : ""}EAN {formatEan(product.ean)}
+              {product.reference ? `Réf. ${product.reference} · ` : ""}
+              {product.ean.startsWith("L") ? "Sans code-barres · étiquette lue" : `EAN ${formatEan(product.ean)}`}
             </span>
           </div>
         </section>

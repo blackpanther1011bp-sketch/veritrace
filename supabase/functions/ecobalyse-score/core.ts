@@ -556,14 +556,17 @@ function transportLabel(d: DraftInput): string {
   return `Avion pour ${Math.round(air * 100)} %`;
 }
 
-/** Assemble la fiche publiée à partir de la saisie, de la réponse Ecobalyse et des seuils. */
-export function toProductRow(
-  d: DraftInput,
-  built: BuiltQuery,
-  response: Record<string, unknown>,
-  thresholds: { ecs: Thresholds; cch: Thresholds },
-  apiVersion: string | null,
-): ProductRow {
+export interface Score {
+  envGrade: Grade;
+  carbonGrade: Grade;
+  ecoCost: number;
+  climateKg: number;
+  breakdown: BreakdownItem[];
+  webUrl: string | null;
+}
+
+/** Notes et chiffres d'une réponse Ecobalyse détaillée (commun aux fiches, étiquettes lues et passeports). */
+export function scoreResponse(built: BuiltQuery, response: Record<string, unknown>, thresholds: { ecs: Thresholds; cch: Thresholds }): Score {
   const impacts = (response.impacts ?? {}) as Record<string, unknown>;
   const ecs = impacts.ecs;
   const cch = impacts.cch;
@@ -572,9 +575,29 @@ export function toProductRow(
   // est ramené à ce poids pour comparer la fabrication, pas la taille (même règle que le registre officiel).
   const mass = Number(built.query.mass);
   const k = mass > 0 ? DEFAULT_MASS_KG[built.product] / mass : 1;
-  const envGrade = gradeFor(ecs * k, thresholds.ecs);
-  const carbonGrade = gradeFor(cch * k, thresholds.cch);
   const webUrl = typeof response.webUrl === "string" && response.webUrl.startsWith("https://ecobalyse.beta.gouv.fr/") ? response.webUrl : null;
+  return {
+    envGrade: gradeFor(ecs * k, thresholds.ecs),
+    carbonGrade: gradeFor(cch * k, thresholds.cch),
+    ecoCost: Math.round(ecs * 10) / 10,
+    climateKg: Math.round(cch * 100) / 100,
+    breakdown: breakdownFromLifeCycle(response.lifeCycle),
+    webUrl,
+  };
+}
+
+/** Assemble la fiche publiée à partir de la saisie, de la réponse Ecobalyse et des seuils. */
+export function toProductRow(
+  d: DraftInput,
+  built: BuiltQuery,
+  response: Record<string, unknown>,
+  thresholds: { ecs: Thresholds; cch: Thresholds },
+  apiVersion: string | null,
+): ProductRow {
+  const s = scoreResponse(built, response, thresholds);
+  const envGrade = s.envGrade;
+  const carbonGrade = s.carbonGrade;
+  const webUrl = s.webUrl;
   return {
     ean: d.ean,
     brand_id: d.brand_id,
@@ -587,14 +610,14 @@ export function toProductRow(
     social_grade: d.social_grade,
     global_grade: combineGlobal(envGrade, d.social_grade),
     env_grade: envGrade,
-    carbon_breakdown: breakdownFromLifeCycle(response.lifeCycle),
+    carbon_breakdown: s.breakdown,
     is_sample: false,
     data_source: d.data_source,
     confidence: built.confidence,
     source_ref: d.source_ref?.trim() || null,
     source_date: d.source_date ?? null,
-    eco_cost: Math.round(ecs * 10) / 10,
-    climate_kg: Math.round(cch * 100) / 100,
+    eco_cost: s.ecoCost,
+    climate_kg: s.climateKg,
     eco_web_url: webUrl,
     assumptions: built.notes,
     methodology: `Ecobalyse${apiVersion ? ` (API ${apiVersion})` : ""} · ${SCORING_VERSION}`,

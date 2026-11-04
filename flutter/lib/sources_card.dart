@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'config.dart';
 import 'models.dart';
 import 'reliability.dart';
 import 'theme.dart';
@@ -129,6 +130,13 @@ class SourcesCard extends StatelessWidget {
           'd\'Ecobalyse (fabrication inconnue).',
           style: TextStyle(fontSize: 13, color: VT.muted2, height: 1.35),
         ),
+        if (p.passportId != null) ...[
+          const SizedBox(height: 14),
+          OutlinedButton(
+            onPressed: () => _open(context, '${AppConfig.siteUrl}/#/passeport/${p.passportId}'),
+            child: const Text('Voir le passeport numérique'),
+          ),
+        ],
         if (p.ecoWebUrl != null) ...[
           const SizedBox(height: 14),
           OutlinedButton(

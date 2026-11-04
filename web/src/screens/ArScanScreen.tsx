@@ -3,8 +3,9 @@ import { GradeBadge } from "../components/Grade";
 import { IconBack, IconChevron } from "../components/Icons";
 import { fetchProduct } from "../lib/api";
 import { badgeOrigin, boundsOf, expandThinBox, mapToView, pickCentral, type Box, type Pt, type Size } from "../lib/arGeometry";
-import { formatEan, isValidGtin, normalizeGtin } from "../lib/barcode";
+import { formatEan } from "../lib/barcode";
 import { cameraErrorMessage, createDetector, openBackCamera, setTorch, torchAvailable } from "../lib/camera";
+import { parseScannedCode } from "../lib/outils";
 import { goBack, navigate } from "../lib/router";
 import { addToHistory } from "../lib/storage";
 import { track } from "../lib/track";
@@ -108,8 +109,17 @@ export default function ArScanScreen() {
             const now = Date.now();
             const source = { width: video.videoWidth, height: video.videoHeight };
             for (const code of codes) {
-              const ean = normalizeGtin(code.rawValue);
-              if (!isValidGtin(ean)) continue;
+              const scanned = parseScannedCode(code.rawValue);
+              if (!scanned) continue;
+              if (scanned.kind === "passport") {
+                // QR code d'un passeport numérique : on ouvre directement sa page
+                cancelled = true;
+                navigator.vibrate?.(40);
+                track("passport_view");
+                navigate(`/passeport/${scanned.id}`);
+                return;
+              }
+              const ean = scanned.gtin;
               let t = trackedRef.current.get(ean);
               if (!t) {
                 t = { ean, lookup: "loading", product: null, points: [], lastSeen: now };

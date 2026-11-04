@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { GradeBadge } from "../components/Grade";
-import { IconChevron, IconKeyboard, IconScan, Logo } from "../components/Icons";
+import { IconCamera, IconChevron, IconKeyboard, IconScan, Logo } from "../components/Icons";
 import { TagIllustration } from "../components/TagIllustration";
 import { digitsOnly, formatEan, isValidGtin, normalizeGtin } from "../lib/barcode";
 import { navigate } from "../lib/router";
@@ -88,6 +88,11 @@ export function ScanScreen() {
           Scanner l'article
         </button>
 
+        <button type="button" className="btn btn-outline" onClick={() => navigate("/etiquette")}>
+          <IconCamera size={20} />
+          Pas de code-barres ? Lire l'étiquette
+        </button>
+
         {manualOpen ? (
           <form className="manual" onSubmit={submitManual} noValidate>
             <label htmlFor="code" className="field-label">
@@ -132,7 +137,7 @@ export function ScanScreen() {
                 <button key={h.ean} type="button" className="row-card" onClick={() => navigate(h.grade ? `/p/${h.ean}` : `/inconnu/${h.ean}`)}>
                   <GradeBadge grade={h.grade} />
                   <span className="row-text">
-                    <span className="row-title">{h.name ?? `EAN ${formatEan(h.ean)}`}</span>
+                    <span className="row-title">{h.name ?? (h.ean.startsWith("L") ? "Étiquette lue" : `EAN ${formatEan(h.ean)}`)}</span>
                     <span className="row-sub">
                       {h.brand ?? "Non référencé"} · {timeAgo(h.at)}
                     </span>
@@ -157,6 +162,14 @@ export function ScanScreen() {
             Réinitialiser la démo
           </button>
         )}
+
+        <button type="button" className="row-card maker-link" onClick={() => navigate("/fabricants")}>
+          <span className="row-text">
+            <span className="row-title">Vous êtes fabricant ?</span>
+            <span className="row-sub">Créez le passeport numérique de vos vêtements, prêt pour l'Europe</span>
+          </span>
+          <IconChevron size={20} className="row-chevron" />
+        </button>
       </section>
     </div>
   );

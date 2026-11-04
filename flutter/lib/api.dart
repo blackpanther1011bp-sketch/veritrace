@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
@@ -37,6 +39,39 @@ class Api {
       _products[p.ean] = p;
     }
     return list;
+  }
+
+  /// Étiquette photographiée : le texte lu sur le téléphone (et la photo, gardée pour vérification) est
+  /// envoyé au serveur, qui en tire la composition et le pays puis calcule la note avec Ecobalyse.
+  Future<Product> readLabel({
+    required String text,
+    required Uint8List photo,
+    required String category,
+    String? ean,
+    String? brand,
+  }) async {
+    try {
+      final res = await _db.functions.invoke('outils', body: {
+        'action': 'lire_etiquette',
+        'text': text.length > 4000 ? text.substring(0, 4000) : text,
+        'image': 'data:image/jpeg;base64,${base64Encode(photo)}',
+        'category': category,
+        'ean': ean,
+        'brand': (brand ?? '').trim().isEmpty ? null : brand!.trim(),
+        'client': 'android',
+      });
+      final data = Map<String, dynamic>.from(res.data as Map);
+      final product = Product.fromJson(Map<String, dynamic>.from(data['product'] as Map));
+      _products[product.ean] = product;
+      _alternatives.remove(product.ean);
+      return product;
+    } on FunctionException catch (e) {
+      final d = e.details;
+      if (d is Map && d['message'] is String) {
+        throw ServiceError((d['error'] ?? 'serveur').toString(), d['message'] as String);
+      }
+      throw const ServiceError('serveur', 'Le service ne répond pas correctement : réessayez dans un instant.');
+    }
   }
 
   Future<void> reportMissingProduct(String ean, String brand) async {
@@ -90,4 +125,14 @@ class Api {
           return null;
         });
   }
+}
+
+/// Erreur expliquée par le serveur (message en français, prêt à afficher).
+class ServiceError implements Exception {
+  final String code;
+  final String message;
+  const ServiceError(this.code, this.message);
+
+  @override
+  String toString() => message;
 }

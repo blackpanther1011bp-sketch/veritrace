@@ -5,6 +5,7 @@ import '../barcode.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'contribute_screen.dart';
+import 'label_scan_screen.dart';
 
 class NotFoundScreen extends StatefulWidget {
   final String ean;
@@ -54,8 +55,8 @@ class _NotFoundScreenState extends State<NotFoundScreen> {
               textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           const Text(
-            "Ce code-barres n'est pas encore dans notre base. Ajoutez-le en recopiant son étiquette : "
-            'nous le vérifions, puis nous le notons.',
+            "Ce code-barres n'est pas encore dans notre base. Photographiez l'étiquette cousue du vêtement : "
+            'sa note est calculée tout de suite.',
             textAlign: TextAlign.center,
             style: TextStyle(fontSize: 15, color: VT.muted, height: 1.45),
           ),
@@ -70,9 +71,14 @@ class _NotFoundScreenState extends State<NotFoundScreen> {
           const SizedBox(height: 18),
           FilledButton.icon(
             onPressed: () => Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => ContributeScreen(ean: widget.ean))),
+                .push(MaterialPageRoute(builder: (_) => LabelScanScreen(ean: widget.ean))),
             icon: const Icon(Icons.photo_camera_outlined),
-            label: const Text('Ajouter ce vêtement (1 min)'),
+            label: const Text("Photographier l'étiquette (20 s)"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => ContributeScreen(ean: widget.ean))),
+            child: const Text("Ou saisir l'étiquette à la main"),
           ),
           const SizedBox(height: 14),
           if (_status == _Status.sent)

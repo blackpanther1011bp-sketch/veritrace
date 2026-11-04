@@ -74,6 +74,8 @@ class Product {
   final List<String> assumptions;
   final String? scoredAt;
   final String? reference; // référence interne de la marque (registre officiel)
+  final String? labelCode; // étiquette lue : code public L…
+  final String? passportId; // passeport numérique du fabricant
 
   Product({
     required this.ean,
@@ -99,6 +101,8 @@ class Product {
     this.assumptions = const [],
     this.scoredAt,
     this.reference,
+    this.labelCode,
+    this.passportId,
   });
 
   factory Product.fromJson(Map<String, dynamic> j) => Product(
@@ -126,11 +130,16 @@ class Product {
         assumptions: ((j['assumptions'] as List?) ?? const []).map((e) => e.toString()).toList(),
         scoredAt: j['scored_at'] as String?,
         reference: j['reference'] as String?,
+        labelCode: j['label_code'] as String?,
+        passportId: j['passport_id'] as String?,
       );
 
   bool get isDemo => dataSource == 'demo';
 
   bool get isRegistry => dataSource == 'registre';
+
+  /// Vêtement sans code-barres, noté à partir de la photo de son étiquette
+  bool get hasNoBarcode => ean.startsWith('L');
 
   bool get isBadGrade => globalGrade == Grade.D || globalGrade == Grade.E;
 }

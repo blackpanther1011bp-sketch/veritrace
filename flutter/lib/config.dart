@@ -13,6 +13,9 @@ class AppConfig {
     defaultValue: 'sb_publishable_8qXYZf-_89RyBG8poHxY3Q_bVWAVbnZ',
   );
 
+  /// Adresse de la version web (passeports numériques, espace fabricants).
+  static const siteUrl = 'https://veritrace-wine.vercel.app';
+
   /// Nombre d'alternatives visibles sans Premium.
   static const freeAlternatives = 1;
 

@@ -13,7 +13,8 @@ export function warmUpDecoder(): void {
   prepareZXingModule({ overrides: zxingOverrides, fireImmediately: true }).catch(() => undefined);
 }
 
-const FORMATS = ["ean_13", "ean_8", "upc_a"] as const;
+// QR code : passeports numériques (GS1 Digital Link) et passeports VeriTrace
+const FORMATS = ["ean_13", "ean_8", "upc_a", "qr_code"] as const;
 
 export interface DetectedCode {
   rawValue: string;

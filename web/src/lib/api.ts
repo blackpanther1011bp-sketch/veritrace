@@ -12,6 +12,12 @@ export function getCachedProduct(ean: string): Product | null | undefined {
   return productCache.get(ean);
 }
 
+/** Garde une fiche déjà reçue (ex. étiquette qui vient d'être lue) pour l'afficher sans nouvel appel. */
+export function rememberProduct(product: Product): void {
+  productCache.set(product.ean, product);
+  alternativesCache.delete(product.ean);
+}
+
 export async function fetchProduct(ean: string): Promise<Product | null> {
   if (productCache.has(ean)) return productCache.get(ean)!;
   const { data, error } = await supabase.rpc("get_product", { p_ean: ean });

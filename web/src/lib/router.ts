@@ -47,20 +47,29 @@ export type Route =
   | { name: "details"; ean: string; tab: "carbone" | "social" }
   | { name: "alternatives"; ean: string }
   | { name: "notFound"; ean: string }
-  | { name: "contribute"; ean: string };
+  | { name: "contribute"; ean: string }
+  | { name: "label"; ean: string | null }
+  | { name: "makers" }
+  | { name: "passport"; id: string };
+
+/** Code d'un vêtement : code-barres (8 à 14 chiffres) ou étiquette lue sans code-barres (L + 12 caractères). */
+export const PRODUCT_CODE = /^(\d{8,14}|L[0-9a-f]{12})$/;
 
 export function parseRoute(fullPath: string): Route {
   const [path, query = ""] = fullPath.split("?");
   const params = new URLSearchParams(query);
   const parts = path.split("/").filter(Boolean);
   const ean = parts[1] ?? "";
-  if (parts[0] === "p" && /^\d{8,14}$/.test(ean)) {
+  if (parts[0] === "p" && PRODUCT_CODE.test(ean)) {
     if (parts[2] === "details") return { name: "details", ean, tab: params.get("onglet") === "social" ? "social" : "carbone" };
     if (parts[2] === "alternatives") return { name: "alternatives", ean };
     return { name: "product", ean };
   }
   if (parts[0] === "inconnu" && /^\d{8,14}$/.test(ean)) return { name: "notFound", ean };
   if (parts[0] === "ajouter" && /^\d{8,14}$/.test(ean)) return { name: "contribute", ean };
+  if (parts[0] === "etiquette") return { name: "label", ean: /^\d{8,14}$/.test(ean) ? ean : null };
+  if (parts[0] === "fabricants") return { name: "makers" };
+  if (parts[0] === "passeport" && /^[0-9a-f]{12}$/.test(ean)) return { name: "passport", id: ean };
   if (parts[0] === "ar") return { name: "ar" };
   return { name: "scan" };
 }

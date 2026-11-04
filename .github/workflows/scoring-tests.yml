@@ -16,4 +16,4 @@ jobs:
         with:
           node-version: "22"
       - name: Tests unitaires du cœur de calcul
-        run: node --experimental-strip-types --test supabase/functions/ecobalyse-score/core.test.ts
+        run: node --experimental-strip-types --test supabase/functions/ecobalyse-score/core.test.ts supabase/functions/outils/outils.test.ts

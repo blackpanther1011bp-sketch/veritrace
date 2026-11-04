@@ -59,4 +59,39 @@ export interface Product {
   scored_at: string | null;
   /** référence interne de la marque (produits du registre officiel) */
   reference?: string | null;
+  /** étiquette lue : code public (L…) */
+  label_code?: string;
+  /** passeport numérique du fabricant */
+  passport_id?: string;
+}
+
+export interface Passport {
+  id: string;
+  gtin: string | null;
+  company: string;
+  city: string | null;
+  country: string;
+  product_name: string;
+  reference: string | null;
+  category: string;
+  eco_product: string;
+  composition: string;
+  mass_kg: number;
+  country_spinning: string | null;
+  country_fabric: string | null;
+  country_dyeing: string | null;
+  country_making: string;
+  air_transport_ratio: number | null;
+  eco_cost: number;
+  climate_kg: number;
+  env_grade: Grade;
+  carbon_grade: Grade;
+  carbon_breakdown: BreakdownItem[];
+  stages: { label: string; ecs: number; cch: number }[];
+  eco_web_url: string | null;
+  assumptions: string[];
+  confidence: Confidence;
+  methodology: string;
+  verified: boolean;
+  created_at: string;
 }

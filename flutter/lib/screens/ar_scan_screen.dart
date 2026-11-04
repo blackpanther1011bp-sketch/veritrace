@@ -3,12 +3,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../api.dart';
 import '../ar_geometry.dart';
 import '../barcode.dart';
+import '../config.dart';
 import '../models.dart';
 import '../navigation.dart';
+import '../scanned_code.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'not_found_screen.dart';
@@ -48,7 +51,8 @@ class _Tracked {
 
 class _ArScanScreenState extends State<ArScanScreen> {
   final _controller = MobileScannerController(
-    formats: const [BarcodeFormat.ean13, BarcodeFormat.ean8, BarcodeFormat.upcA],
+    // QR code : passeports numériques (GS1 Digital Link) et passeports VeriTrace
+    formats: const [BarcodeFormat.ean13, BarcodeFormat.ean8, BarcodeFormat.upcA, BarcodeFormat.qrCode],
     detectionSpeed: DetectionSpeed.normal,
     // une analyse toutes les 100 ms : le badge suit le code-barres sans saccades
     detectionTimeoutMs: 100,
@@ -58,6 +62,7 @@ class _ArScanScreenState extends State<ArScanScreen> {
   String? _primary;
   Size? _viewSize;
   Timer? _ticker;
+  bool _openingPassport = false;
   bool _wasVisible = false;
 
   @override
@@ -88,8 +93,14 @@ class _ArScanScreenState extends State<ArScanScreen> {
     for (final barcode in capture.barcodes) {
       final raw = barcode.rawValue;
       if (raw == null) continue;
-      final ean = normalizeGtin(raw);
-      if (!isValidGtin(ean)) continue;
+      final scanned = parseScannedCode(raw);
+      if (scanned == null) continue;
+      final passport = scanned.passportId;
+      if (passport != null) {
+        unawaited(_openPassport(passport));
+        continue;
+      }
+      final ean = scanned.gtin!;
       var tracked = _tracked[ean];
       if (tracked == null) {
         tracked = _Tracked(ean);
@@ -123,6 +134,18 @@ class _ArScanScreenState extends State<ArScanScreen> {
       tracked.lookup = _Lookup.error;
     }
     if (mounted) setState(() {});
+  }
+
+  /// QR code d'un passeport numérique : sa page s'ouvre (version web).
+  Future<void> _openPassport(String id) async {
+    if (_openingPassport) return;
+    _openingPassport = true;
+    HapticFeedback.mediumImpact();
+    Api.instance.track('passport_view');
+    await _controller.stop();
+    await launchUrl(Uri.parse('${AppConfig.siteUrl}/#/passeport/$id'), mode: LaunchMode.externalApplication);
+    _openingPassport = false;
+    if (mounted) unawaited(_controller.start());
   }
 
   Future<void> _open(_Tracked tracked) async {

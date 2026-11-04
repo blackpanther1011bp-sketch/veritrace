@@ -113,6 +113,11 @@ export function SourcesCard({ product }: { product: Product }) {
       </p>
 
       <div className="sources-links">
+        {product.passport_id && (
+          <a className="btn btn-outline" href={`#/passeport/${product.passport_id}`}>
+            Voir le passeport numérique
+          </a>
+        )}
         {product.eco_web_url && (
           <a className="btn btn-outline" href={product.eco_web_url} target="_blank" rel="noopener noreferrer">
             {registry ? "Voir la fiche officielle" : "Voir le calcul sur Ecobalyse"}
