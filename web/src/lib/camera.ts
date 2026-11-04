@@ -44,14 +44,14 @@ export async function createDetector(): Promise<Detector> {
 
 export class InsecureContextError extends Error {}
 
-/** Ouvre la caméra arrière. */
-export async function openBackCamera(): Promise<MediaStream> {
+/** Ouvre la caméra arrière (définition plus haute pour lire le texte des étiquettes). */
+export async function openBackCamera(size: { width: number; height: number } = { width: 1280, height: 720 }): Promise<MediaStream> {
   if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
     throw new InsecureContextError("La caméra nécessite une connexion sécurisée (https).");
   }
   return navigator.mediaDevices.getUserMedia({
     audio: false,
-    video: { facingMode: { ideal: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } },
+    video: { facingMode: { ideal: "environment" }, width: { ideal: size.width }, height: { ideal: size.height } },
   });
 }
 

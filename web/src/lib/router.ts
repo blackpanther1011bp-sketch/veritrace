@@ -49,6 +49,7 @@ export type Route =
   | { name: "notFound"; ean: string }
   | { name: "contribute"; ean: string }
   | { name: "label"; ean: string | null }
+  | { name: "labelLive"; ean: string | null }
   | { name: "makers" }
   | { name: "passport"; id: string };
 
@@ -67,6 +68,7 @@ export function parseRoute(fullPath: string): Route {
   }
   if (parts[0] === "inconnu" && /^\d{8,14}$/.test(ean)) return { name: "notFound", ean };
   if (parts[0] === "ajouter" && /^\d{8,14}$/.test(ean)) return { name: "contribute", ean };
+  if (parts[0] === "etiquette-direct") return { name: "labelLive", ean: /^\d{8,14}$/.test(ean) ? ean : null };
   if (parts[0] === "etiquette") return { name: "label", ean: /^\d{8,14}$/.test(ean) ? ean : null };
   if (parts[0] === "fabricants") return { name: "makers" };
   if (parts[0] === "passeport" && /^[0-9a-f]{12}$/.test(ean)) return { name: "passport", id: ean };

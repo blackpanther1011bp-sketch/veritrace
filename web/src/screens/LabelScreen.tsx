@@ -89,6 +89,9 @@ export function LabelScreen({ ean }: { ean: string | null }) {
           pays de fabrication. VeriTrace lit le texte directement sur votre téléphone, puis calcule la note avec la méthode officielle Ecobalyse.
         </p>
         {ean && <span className="pill-muted contribute-ean">EAN {formatEan(ean)}</span>}
+        <button type="button" className="btn btn-outline" onClick={() => navigate(ean ? `/etiquette-direct/${ean}` : "/etiquette-direct", { replace: true })}>
+          Viser l'étiquette en direct (sans photo)
+        </button>
 
         <form id="label" className="card form" onSubmit={submit} noValidate>
           <div className="stack-6">

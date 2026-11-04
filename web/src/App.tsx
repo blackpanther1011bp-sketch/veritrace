@@ -15,6 +15,8 @@ import "./ar.css";
 
 // L'écran caméra (avec le décodeur de codes-barres) est chargé à part.
 const ArScanScreen = lazy(() => import("./screens/ArScanScreen"));
+// Lecture de l'étiquette en direct dans la caméra (moteur de lecture chargé à la demande)
+const LabelLiveScreen = lazy(() => import("./screens/LabelLiveScreen"));
 
 // QR code imprimé sur une étiquette (GS1 Digital Link : https://…/01/<GTIN>?passeport=…), ouvert avec
 // l'appareil photo du téléphone : on redirige vers la page du passeport ou la fiche du vêtement.
@@ -45,6 +47,12 @@ export default function App() {
       return <ContributeScreen key={route.ean} ean={route.ean} />;
     case "label":
       return <LabelScreen key={route.ean ?? "sans-code"} ean={route.ean} />;
+    case "labelLive":
+      return (
+        <Suspense fallback={<div className="ar"><p className="ar-status">Ouverture de la caméra…</p></div>}>
+          <LabelLiveScreen key={route.ean ?? "sans-code"} ean={route.ean} />
+        </Suspense>
+      );
     case "makers":
       return <FabricantsScreen />;
     case "passport":

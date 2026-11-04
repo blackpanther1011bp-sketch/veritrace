@@ -203,9 +203,18 @@ export function readLabelText(text: string): LabelReading {
     return lining > main ? "doublure" : "principal";
   };
   const notes: string[] = [];
-  let chosen = blocks.find((b) => sectionAt(b[0].at) !== "doublure") ?? blocks[0];
+  const main = blocks.find((b) => sectionAt(b[0].at) !== "doublure");
+  if (!main) {
+    // Seule la doublure est lisible : si le tissu principal est écrit avant (pourcentages mal lus),
+    // on ne note pas la doublure à sa place
+    const firstLining = [...clean.matchAll(new RegExp(LINING, "g"))][0]?.index ?? -1;
+    const pairs = pairsA.length > 0 ? pairsA : pairsB;
+    if (firstLining >= 0 && pairs.some((p) => p.at < firstLining)) {
+      throw new LabelError("composition_incomplete", "Le tissu principal n'est pas lisible (seule la doublure l'est) : reprenez la photo de plus près.");
+    }
+  }
+  const chosen = main ?? blocks[0];
   if (blocks.some((b) => sectionAt(b[0].at) === "doublure")) notes.push("doublure non prise en compte (tissu principal seulement)");
-  if (sectionAt(chosen[0].at) === "doublure") chosen = blocks[0];
 
   const unsupported = chosen.find((p) => p.unsupported);
   if (unsupported) {

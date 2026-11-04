@@ -10,16 +10,20 @@ export function looksLikeLabel(text: string): boolean {
   return LOOKS_LIKE_LABEL.test(text);
 }
 
+/** Moteur de lecture prêt à l'emploi (fichiers servis par le site lui-même, voir scripts/copy-ocr.mjs). */
+export async function createOcrWorker() {
+  const { createWorker } = await import("tesseract.js");
+  const base = `${window.location.origin}/ocr`;
+  return createWorker("eng", 1, { workerPath: `${base}/worker.min.js`, corePath: `${base}/core`, langPath: `${base}/lang` });
+}
+
 /**
  * Lit le texte de la photo. Si la photo est tournée (étiquette prise de travers), on réessaie à 90°, 270°
  * puis 180°, jusqu'à obtenir un texte d'étiquette. Renvoie le meilleur texte trouvé.
  */
 export async function readTextFromPhoto(photo: Blob, onProgress?: (step: string) => void): Promise<string> {
   onProgress?.("Préparation de la lecture…");
-  const { createWorker } = await import("tesseract.js");
-  // moteur, modèle de langue et fichiers WebAssembly servis par le site lui-même (voir scripts/copy-ocr.mjs)
-  const base = `${window.location.origin}/ocr`;
-  const worker = await createWorker("eng", 1, { workerPath: `${base}/worker.min.js`, corePath: `${base}/core`, langPath: `${base}/lang` });
+  const worker = await createOcrWorker();
   try {
     let best = "";
     const angles = [0, Math.PI / 2, -Math.PI / 2, Math.PI];

@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - "supabase/functions/**"
+      - "web/src/lib/**"
       - ".github/workflows/scoring-tests.yml"
   workflow_dispatch:
 
@@ -17,3 +18,5 @@ jobs:
           node-version: "22"
       - name: Tests unitaires du cœur de calcul
         run: node --experimental-strip-types --test supabase/functions/ecobalyse-score/core.test.ts supabase/functions/outils/outils.test.ts
+      - name: Tests unitaires de la lecture en direct (site web)
+        run: node --experimental-strip-types --test web/src/lib/labelLive.test.ts

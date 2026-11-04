@@ -140,3 +140,12 @@ test("étapes du cycle de vie", () => {
   assert.equal(s[2].ecs, 5);
   assert.throws(() => stagesFromLifeCycle(null));
 });
+
+test("doublure seule lisible : refus plutôt que noter la doublure", () => {
+  assert.throws(
+    () => readLabelText("SHELL / EXTERIOR\n5% COTTON\n5% ELASTANE\nLINING / DOUBLURE\n100% POLYESTER\nMADE IN MOROCCO"),
+    (e: unknown) => e instanceof LabelError && e.code === "composition_incomplete",
+  );
+  const ok = readLabelText("SHELL\n95% COTTON\n5% ELASTANE\nLINING\n100% POLYESTER");
+  assert.equal(ok.composition, "95 % coton, 5 % élasthanne");
+});

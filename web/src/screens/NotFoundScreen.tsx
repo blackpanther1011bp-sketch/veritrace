@@ -35,9 +35,12 @@ export function NotFoundScreen({ ean }: { ean: string }) {
           <span className="pill-muted">EAN {formatEan(ean)}</span>
         </div>
 
-        <button type="button" className="btn btn-primary" onClick={() => navigate(`/etiquette/${ean}`)}>
+        <button type="button" className="btn btn-primary" onClick={() => navigate(`/etiquette-direct/${ean}`)}>
           <IconCamera size={20} />
-          Photographier l'étiquette (20 s)
+          Viser l'étiquette : note en direct
+        </button>
+        <button type="button" className="btn btn-text" onClick={() => navigate(`/etiquette/${ean}`)}>
+          Ou prendre une photo de l'étiquette
         </button>
         <button type="button" className="btn btn-text" onClick={() => navigate(`/ajouter/${ean}`)}>
           Ou saisir l'étiquette à la main

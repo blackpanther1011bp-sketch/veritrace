@@ -88,7 +88,7 @@ export function ScanScreen() {
           Scanner l'article
         </button>
 
-        <button type="button" className="btn btn-outline" onClick={() => navigate("/etiquette")}>
+        <button type="button" className="btn btn-outline" onClick={() => navigate("/etiquette-direct")}>
           <IconCamera size={20} />
           Pas de code-barres ? Lire l'étiquette
         </button>

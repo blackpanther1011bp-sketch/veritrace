@@ -169,3 +169,16 @@
   color: var(--ink);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
 }
+
+/* ---------- Lecture de l'étiquette en direct ---------- */
+.label-live .live-guide { fill: none; stroke: rgba(255, 255, 255, 0.85); stroke-width: 3; stroke-dasharray: 14 10; }
+.label-live .live-box { fill: rgba(242, 201, 76, 0.12); stroke: #f2c94c; stroke-width: 3; stroke-dasharray: 10 8; transition: all 0.25s ease; }
+.label-live .live-box-done { fill: rgba(61, 220, 151, 0.12); stroke: var(--mint); stroke-dasharray: none; }
+@media (prefers-reduced-motion: reduce) { .label-live .live-box { transition: none; } }
+.live-badge { width: 260px; height: 72px; }
+.live-bottom { display: flex; flex-direction: column; gap: 10px; }
+.live-chips { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 4px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.live-chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; min-height: 40px; padding: 0 14px; border-radius: 999px; border: 1.5px solid rgba(255, 255, 255, 0.5); background: rgba(15, 26, 20, 0.55); color: #fff; font-size: 14px; font-weight: 500; cursor: pointer; }
+.chip-on { background: var(--mint); border-color: var(--mint); color: var(--ink); font-weight: 700; }
+.live-photo, .live-again { color: #c9d4cd; min-height: 40px; }
