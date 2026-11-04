@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { GradeBadge, GradeScale } from "../components/Grade";
 import { Header, SampleTag } from "../components/Header";
-import { CategoryIcon, IconArrow } from "../components/Icons";
+import { CategoryIcon, IconArrow, IconChevron, IconCube } from "../components/Icons";
 import { ConfidencePill } from "../components/Sources";
 import { fetchAlternatives, fetchProduct, getCachedProduct } from "../lib/api";
 import { formatEan } from "../lib/barcode";
@@ -11,6 +11,9 @@ import { addToHistory } from "../lib/storage";
 import { track, trackOnExit } from "../lib/track";
 import type { Product } from "../lib/types";
 import { ErrorState, LoadingState } from "./States";
+
+// Réalité augmentée ancrée (moteur 3D) : chargée seulement quand on l'ouvre.
+const ArPanel = lazy(() => import("../components/ArPanel"));
 
 // Une vue de fiche n'est comptée qu'une fois par session (pas à chaque retour arrière).
 const viewedThisSession = new Set<string>();
@@ -47,6 +50,7 @@ function socialSummary(product: Product): string {
 export function ProductScreen({ ean }: { ean: string }) {
   const { product, failed, retry } = useProduct(ean);
   const [altCount, setAltCount] = useState<number | null>(null);
+  const [arOpen, setArOpen] = useState(false);
 
   // Produit absent de la base : écran « introuvable »
   useEffect(() => {
@@ -141,6 +145,17 @@ export function ProductScreen({ ean }: { ean: string }) {
           </div>
         </section>
 
+        <button type="button" className="row-card ar3d-open" onClick={() => setArOpen(true)}>
+          <span className="ar3d-open-icon">
+            <IconCube size={24} />
+          </span>
+          <span className="row-text">
+            <span className="row-title">Voir en réalité augmentée</span>
+            <span className="row-sub">Posez le panneau 3D de la note dans la pièce</span>
+          </span>
+          <IconChevron size={20} className="row-chevron" />
+        </button>
+
         <div className="grid-2">
           <button type="button" className="card tile" onClick={() => navigate(`/p/${product.ean}/details?onglet=carbone`)}>
             <span className="tile-head">
@@ -191,6 +206,20 @@ export function ProductScreen({ ean }: { ean: string }) {
           Comprendre la note
         </button>
       </footer>
+
+      {arOpen && (
+        <Suspense
+          fallback={
+            <div className="scrim">
+              <section className="sheet-dialog ar3d-sheet">
+                <p className="ar3d-msg">Chargement de la réalité augmentée…</p>
+              </section>
+            </div>
+          }
+        >
+          <ArPanel product={product} onClose={() => setArOpen(false)} />
+        </Suspense>
+      )}
     </div>
   );
 }

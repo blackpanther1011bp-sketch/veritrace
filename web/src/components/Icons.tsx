@@ -47,6 +47,13 @@ export const IconCamera = (p: IconProps) => (
     <circle cx="12" cy="13" r="3.5" />
   </svg>
 );
+/** Cube posé dans l'espace : réalité augmentée ancrée. */
+export const IconCube = (p: IconProps) => (
+  <svg {...base(p)}>
+    <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z" />
+    <path d="M4 7.5l8 4.5 8-4.5M12 12v9" />
+  </svg>
+);
 export const IconUnknownTag = (p: IconProps) => (
   <svg {...base(p)}>
     <path d="M3 6a2 2 0 0 1 2-2h7.2a2 2 0 0 1 1.4.6l6.8 6.8a2 2 0 0 1 0 2.8l-6.2 6.2a2 2 0 0 1-2.8 0L4.6 13.6A2 2 0 0 1 4 12.2z" />

@@ -17,7 +17,9 @@ export type EventName =
   | "label_read"
   | "label_failed"
   | "passport_created"
-  | "passport_view";
+  | "passport_view"
+  | "ar3d_view"
+  | "ar3d_place";
 
 let memorySession: string | null = null;
 
