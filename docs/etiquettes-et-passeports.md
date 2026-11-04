@@ -58,9 +58,9 @@ un QR de passeport VeriTrace ouvre la page du passeport.
 
 ## 4. Mise en ligne
 
-- Site web (Vercel) : la commande de compilation doit être `npm run build` (réglage du projet). Elle copie le
-  moteur de lecture de texte (Tesseract) et le modèle de langue dans `dist/ocr`, servis par le site lui-même.
-  Avec `vite build` seul, la lecture d'étiquette échoue.
+- Site web (Vercel), relié à GitHub (dossier racine `web`) : chaque envoi sur `main` met le site en ligne. Un
+  plugin Vite (`scripts/copy-ocr.mjs`) copie le moteur de lecture (Tesseract) et le modèle de langue dans `dist/ocr`,
+  que Vercel lance `vite build` ou `npm run build`.
 - Fonction serveur `outils` : déployée avec la vérification JWT désactivée (les apps l'appellent avec la clé
   publique). Les abus sont limités par les quotas de `app_settings`.
 - App Android : le workflow ajoute des règles R8 pour ML Kit (modules chinois, japonais, coréen et devanagari
