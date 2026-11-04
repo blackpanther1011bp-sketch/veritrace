@@ -5,6 +5,7 @@ import '../barcode.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'contribute_screen.dart';
+import 'label_live_screen.dart';
 import 'label_scan_screen.dart';
 
 class NotFoundScreen extends StatefulWidget {
@@ -71,9 +72,14 @@ class _NotFoundScreenState extends State<NotFoundScreen> {
           const SizedBox(height: 18),
           FilledButton.icon(
             onPressed: () => Navigator.of(context)
-                .push(MaterialPageRoute(builder: (_) => LabelScanScreen(ean: widget.ean))),
+                .push(MaterialPageRoute(builder: (_) => LabelLiveScreen(ean: widget.ean))),
             icon: const Icon(Icons.photo_camera_outlined),
-            label: const Text("Photographier l'étiquette (20 s)"),
+            label: const Text("Viser l'étiquette : note en direct"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context)
+                .push(MaterialPageRoute(builder: (_) => LabelScanScreen(ean: widget.ean))),
+            child: const Text("Ou prendre une photo de l'étiquette"),
           ),
           TextButton(
             onPressed: () => Navigator.of(context)

@@ -8,12 +8,14 @@ import 'package:url_launcher/url_launcher.dart';
 import '../api.dart';
 import '../ar_geometry.dart';
 import '../barcode.dart';
+import '../compare.dart';
 import '../config.dart';
 import '../models.dart';
 import '../navigation.dart';
 import '../scanned_code.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'alternatives_screen.dart';
 import 'not_found_screen.dart';
 
 /// Réalité augmentée légère : la note du vêtement s'affiche sur l'image de la
@@ -30,6 +32,8 @@ const _lostAfter = Duration(milliseconds: 900);
 const _badgeWidth = 240.0;
 const _badgeHeight = 68.0;
 const _pillSize = 48.0;
+const _cardWidth = 300.0;
+const _cardHeight = 270.0;
 const _topReserved = 72.0;
 const _bottomReserved = 180.0;
 
@@ -43,6 +47,13 @@ class _Tracked {
   Product? product;
   List<Offset> corners = const [];
   DateTime lastSeen = DateTime.now();
+
+  /// dernière position connue à l'écran : la fiche enrichie y reste quand le code sort de l'image
+  Rect? lastBox;
+
+  /// alternatives mieux notées (chargées à l'ouverture de la fiche enrichie) ; null : pas encore chargées
+  List<Product>? alternatives;
+  bool alternativesLoading = false;
 
   bool get visible => corners.length >= 4 && DateTime.now().difference(lastSeen) < _lostAfter;
 
@@ -64,6 +75,8 @@ class _ArScanScreenState extends State<ArScanScreen> {
   Timer? _ticker;
   bool _openingPassport = false;
   bool _wasVisible = false;
+  // fiche enrichie ouverte dans la caméra (code-barres concerné)
+  String? _cardEan;
 
   @override
   void initState() {
@@ -157,6 +170,8 @@ class _ArScanScreenState extends State<ArScanScreen> {
         await _lookupProduct(tracked);
         return;
       case _Lookup.found:
+        _openCard(tracked);
+        return;
       case _Lookup.missing:
         break;
     }
@@ -170,6 +185,114 @@ class _ArScanScreenState extends State<ArScanScreen> {
     if (mounted) unawaited(_controller.start());
   }
 
+  /// Fiche enrichie : répartition de l'impact, pays, alternatives, sans quitter la caméra.
+  void _openCard(_Tracked t) {
+    setState(() => _cardEan = t.ean);
+    Api.instance.track('ar_card_open', ean: t.ean, grade: t.product?.globalGrade);
+    if (t.alternatives == null && !t.alternativesLoading && t.product?.globalGrade != Grade.A) {
+      t.alternativesLoading = true;
+      Api.instance.fetchAlternatives(t.ean).then((list) => t.alternatives = list, onError: (_) => t.alternatives = const <Product>[]).whenComplete(() {
+        t.alternativesLoading = false;
+        if (mounted) setState(() {});
+      });
+    }
+  }
+
+  /// Fiche complète (ou alternatives) : la caméra est mise en pause pendant la visite.
+  Future<void> _leaveTo(Future<void> Function() go) async {
+    await _controller.stop();
+    if (!mounted) return;
+    await go();
+    if (mounted) unawaited(_controller.start());
+  }
+
+  void _showComparison(Comparison c) {
+    Api.instance.track('compare_view', ean: c.best.ean, grade: c.best.globalGrade);
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
+      builder: (sheet) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(sheet).height * 0.85),
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+            children: [
+              const Text('Comparaison du rayon', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: VT.ink)),
+              const SizedBox(height: 4),
+              const Text('Articles scannés pendant votre visite, du mieux au moins bien noté.',
+                  style: TextStyle(fontSize: 13, color: VT.muted2)),
+              const SizedBox(height: 12),
+              for (final (i, p) in c.ranked.indexed)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Material(
+                    color: VT.ground,
+                    borderRadius: BorderRadius.circular(16),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(16),
+                      onTap: () {
+                        Navigator.of(sheet).pop();
+                        _leaveTo(() => openProduct(context, p.ean, countScan: false));
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 24,
+                              child: i == 0
+                                  ? const Icon(Icons.emoji_events, color: Color(0xFFD4A514), size: 20)
+                                  : Text('${i + 1}',
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(fontWeight: FontWeight.w700, color: VT.muted2)),
+                            ),
+                            const SizedBox(width: 8),
+                            GradeBadge(grade: p.globalGrade, size: 40),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(p.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: VT.ink)),
+                                  Text(
+                                    [p.brand.name, if (p.ecoCost != null) '${p.ecoCost!.round()} pts'].join(' · '),
+                                    style: const TextStyle(fontSize: 13, color: VT.muted2),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Icon(Icons.chevron_right, color: VT.muted2),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              TextButton(
+                onPressed: () {
+                  Navigator.of(sheet).pop();
+                  setState(() {
+                    _tracked.clear();
+                    _primary = null;
+                    _cardEan = null;
+                  });
+                },
+                child: const Text('Vider la comparaison'),
+              ),
+              FilledButton(onPressed: () => Navigator.of(sheet).pop(), child: const Text('Continuer à scanner')),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -179,6 +302,13 @@ class _ArScanScreenState extends State<ArScanScreen> {
           _viewSize = constraints.biggest;
           final view = constraints.biggest;
           final visible = _tracked.values.where((t) => t.visible).toList();
+          for (final t in visible) {
+            t.lastBox = expandThinBox(t.box);
+          }
+          // comparateur : tous les articles reconnus pendant la visite
+          final comparison = compareProducts(_tracked.values.where((t) => t.product != null).map((t) => t.product!));
+          final bestEan = comparison?.best.ean;
+          final card = _cardEan == null ? null : _tracked[_cardEan];
           // plusieurs étiquettes à l'image : le code le plus proche du centre a le grand badge,
           // les autres une pastille avec leur note
           final top = MediaQuery.paddingOf(context).top + _topReserved;
@@ -203,10 +333,11 @@ class _ArScanScreenState extends State<ArScanScreen> {
                 child: CustomPaint(painter: _OutlinePainter(primary == null ? null : expandThinBox(primary.box))),
               ),
               for (final t in visible)
-                if (t != primary) _pillFor(t, view, top),
-              if (primary != null) _badgeFor(primary, view, top),
+                if (t != primary && t.ean != _cardEan) _pillFor(t, view, top, best: t.ean == bestEan),
+              if (primary != null && primary.ean != _cardEan) _badgeFor(primary, view, top, best: primary.ean == bestEan),
               Positioned(left: 0, right: 0, top: 0, child: _topBar(context)),
-              Positioned(left: 0, right: 0, bottom: 0, child: _bottomPanel(focus)),
+              Positioned(left: 0, right: 0, bottom: 0, child: _bottomPanel(focus, comparison)),
+              if (card != null && card.product != null && card.lastBox != null) _cardFor(card, view, top, best: card.ean == bestEan),
             ],
           );
         },
@@ -215,7 +346,7 @@ class _ArScanScreenState extends State<ArScanScreen> {
   }
 
   /// Badge accroché au-dessus du code-barres (ou en dessous s'il manque de place).
-  Widget _badgeFor(_Tracked t, Size view, double topLimit) {
+  Widget _badgeFor(_Tracked t, Size view, double topLimit, {bool best = false}) {
     final origin = badgeOrigin(
       barcode: expandThinBox(t.box),
       viewSize: view,
@@ -231,12 +362,42 @@ class _ArScanScreenState extends State<ArScanScreen> {
       top: origin.dy,
       width: _badgeWidth,
       height: _badgeHeight,
-      child: _ArBadge(tracked: t, onTap: () => _open(t)),
+      child: _ArBadge(tracked: t, best: best, onTap: () => _open(t)),
+    );
+  }
+
+  /// Fiche enrichie accrochée au code-barres (reste à sa dernière place si le code sort de l'image).
+  Widget _cardFor(_Tracked t, Size view, double topLimit, {bool best = false}) {
+    final origin = badgeOrigin(
+      barcode: t.lastBox!,
+      viewSize: view,
+      badgeSize: const Size(_cardWidth, _cardHeight),
+      topLimit: topLimit,
+      bottomReserved: _bottomReserved,
+    );
+    final p = t.product!;
+    return AnimatedPositioned(
+      key: ValueKey('card-${t.ean}'),
+      duration: const Duration(milliseconds: 110),
+      curve: Curves.easeOut,
+      left: origin.dx,
+      top: origin.dy,
+      width: _cardWidth,
+      child: _ArCard(
+        product: p,
+        best: best,
+        alternatives: t.alternatives,
+        onClose: () => setState(() => _cardEan = null),
+        onProduct: () => _leaveTo(() => openProduct(context, p.ean, countScan: false)),
+        onAlternatives: () => _leaveTo(
+          () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => AlternativesScreen(product: p))),
+        ),
+      ),
     );
   }
 
   /// Pastille compacte (note seule) pour les autres codes-barres visibles.
-  Widget _pillFor(_Tracked t, Size view, double topLimit) {
+  Widget _pillFor(_Tracked t, Size view, double topLimit, {bool best = false}) {
     final origin = badgeOrigin(
       barcode: expandThinBox(t.box),
       viewSize: view,
@@ -253,7 +414,7 @@ class _ArScanScreenState extends State<ArScanScreen> {
       top: origin.dy,
       width: _pillSize,
       height: _pillSize,
-      child: _ArPill(tracked: t, onTap: () => _open(t)),
+      child: _ArPill(tracked: t, best: best, onTap: () => _open(t)),
     );
   }
 
@@ -296,11 +457,11 @@ class _ArScanScreenState extends State<ArScanScreen> {
 
   /// Panneau du bas : rappel du dernier article détecté, utilisable même si le
   /// badge sort de l'écran.
-  Widget _bottomPanel(_Tracked? focus) {
+  Widget _bottomPanel(_Tracked? focus, Comparison? comparison) {
     Widget content;
     if (focus == null) {
       content = const Text(
-        'Visez le code-barres : la note du vêtement apparaît directement dessus.',
+        'Visez un ou plusieurs codes-barres : la note apparaît dessus, et le meilleur du rayon reçoit une couronne.',
         textAlign: TextAlign.center,
         style: TextStyle(color: Colors.white, fontSize: 15, height: 1.4),
       );
@@ -308,7 +469,7 @@ class _ArScanScreenState extends State<ArScanScreen> {
       final p = focus.product;
       final (title, subtitle) = switch (focus.lookup) {
         _Lookup.loading => ('Analyse du code…', 'EAN ${formatEan(focus.ean)}'),
-        _Lookup.found => (p!.name, '${p.brand.name} · touchez pour voir la fiche'),
+        _Lookup.found => (p!.name, '${p.brand.name} · touchez pour la fiche enrichie'),
         _Lookup.missing => ('Article pas encore référencé', 'Touchez pour le signaler'),
         _Lookup.error => ('Connexion impossible', 'Touchez pour réessayer'),
       };
@@ -352,7 +513,233 @@ class _ArScanScreenState extends State<ArScanScreen> {
           colors: [Color(0x00000000), Color(0xCC000000)],
         ),
       ),
-      child: content,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (comparison != null) ...[
+            _CompareBar(comparison: comparison, onTap: () => _showComparison(comparison)),
+            const SizedBox(height: 10),
+          ],
+          content,
+        ],
+      ),
+    );
+  }
+}
+
+/// Couronne du meilleur article de la comparaison.
+class _Crown extends StatelessWidget {
+  final double size;
+  const _Crown({this.size = 28});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [BoxShadow(color: Colors.black38, blurRadius: 6)],
+      ),
+      child: Icon(Icons.emoji_events, color: const Color(0xFFD4A514), size: size * 0.66),
+    );
+  }
+}
+
+class _CompareBar extends StatelessWidget {
+  final Comparison comparison;
+  final VoidCallback onTap;
+  const _CompareBar({required this.comparison, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final best = comparison.best;
+    return Material(
+      color: const Color(0xD90F1A14),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Color(0xFFF2C94C), width: 1.5),
+      ),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          child: Row(
+            children: [
+              const Icon(Icons.emoji_events, color: Color(0xFFF2C94C)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Le meilleur ici : ${best.name} (${best.globalGrade.name})',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14.5)),
+                    Text(comparison.summary, style: const TextStyle(color: Color(0xFFC9D4CD), fontSize: 12.5)),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(color: const Color(0xFFF2C94C), borderRadius: BorderRadius.circular(999)),
+                child: Text('Comparer ${comparison.ranked.length}',
+                    style: const TextStyle(color: VT.ink, fontWeight: FontWeight.w700, fontSize: 13)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Fiche enrichie accrochée au code-barres : verdict, répartition de l'impact, pays, composition et
+/// meilleure alternative, sans quitter la caméra.
+class _ArCard extends StatelessWidget {
+  final Product product;
+  final bool best;
+  final List<Product>? alternatives;
+  final VoidCallback onClose;
+  final VoidCallback onProduct;
+  final VoidCallback onAlternatives;
+
+  const _ArCard({
+    required this.product,
+    required this.best,
+    required this.alternatives,
+    required this.onClose,
+    required this.onProduct,
+    required this.onAlternatives,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final p = product;
+    final bars = [...p.carbonBreakdown]..sort((a, b) => b.share.compareTo(a.share));
+    final facts = [
+      if (!p.originCountry.toLowerCase().startsWith('non ')) 'Fabriqué : ${p.originCountry}',
+      if (!p.composition.toLowerCase().startsWith('non ')) p.composition,
+    ].join(' · ');
+    final alts = alternatives;
+    final altText = alts == null
+        ? "Recherche d'alternatives…"
+        : alts.isEmpty
+            ? "Pas d'alternative mieux notée connue"
+            : 'Mieux noté : ${alts.first.name} (${alts.first.globalGrade.name})${alts.length > 1 ? ' · ${alts.length} alternatives' : ''}';
+    return Material(
+      color: Colors.white,
+      elevation: 10,
+      shadowColor: Colors.black54,
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 10, 8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    GradeBadge(grade: p.globalGrade, size: 44, round: true),
+                    if (best) const Positioned(left: -10, top: -12, child: _Crown(size: 26)),
+                  ],
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(verdicts[p.globalGrade]!.$1,
+                          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: VT.ink)),
+                      Text(
+                        [p.brand.name, if (p.ecoCost != null) '${p.ecoCost!.round()} pts'].join(' · '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontSize: 12.5, color: VT.muted),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(tooltip: 'Fermer la fiche', onPressed: onClose, icon: const Icon(Icons.close, color: VT.ink)),
+              ],
+            ),
+            const SizedBox(height: 6),
+            for (final b in bars.take(3))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6, right: 4),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 110,
+                      child: Text(b.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(fontSize: 12.5, color: VT.muted)),
+                    ),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: (b.share.clamp(4, 100)) / 100,
+                          minHeight: 8,
+                          backgroundColor: VT.line,
+                          color: levelColor[b.level] ?? VT.green,
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 40,
+                      child: Text('${b.share} %', textAlign: TextAlign.right, style: const TextStyle(fontSize: 12.5, color: VT.muted2)),
+                    ),
+                  ],
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.only(right: 4, bottom: 8),
+              child: Text(facts.isEmpty ? 'Composition et pays non communiqués' : facts,
+                  style: const TextStyle(fontSize: 12.5, color: VT.muted, height: 1.35)),
+            ),
+            if (p.globalGrade != Grade.A)
+              Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: Material(
+                  color: (alts?.isNotEmpty ?? false) ? VT.mintTint : VT.line,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: (alts?.isNotEmpty ?? false) ? onAlternatives : null,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+                      child: Text(altText,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: (alts?.isNotEmpty ?? false) ? FontWeight.w700 : FontWeight.w500,
+                            color: (alts?.isNotEmpty ?? false) ? VT.green : VT.muted2,
+                          )),
+                    ),
+                  ),
+                ),
+              ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: onProduct,
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [Text('Fiche complète'), Icon(Icons.chevron_right, size: 18)],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -360,8 +747,9 @@ class _ArScanScreenState extends State<ArScanScreen> {
 class _ArBadge extends StatelessWidget {
   final _Tracked tracked;
   final VoidCallback onTap;
+  final bool best;
 
-  const _ArBadge({required this.tracked, required this.onTap});
+  const _ArBadge({required this.tracked, required this.onTap, this.best = false});
 
   @override
   Widget build(BuildContext context) {
@@ -391,9 +779,9 @@ class _ArBadge extends StatelessWidget {
         title = 'Hors connexion';
         subtitle = 'Touchez pour réessayer';
     }
-    return Semantics(
+    final badge = Semantics(
       button: true,
-      label: '$title. $subtitle',
+      label: '$title. $subtitle${best ? '. Le meilleur des articles scannés' : ''}',
       excludeSemantics: true,
       child: Material(
         color: Colors.white,
@@ -433,6 +821,22 @@ class _ArBadge extends StatelessWidget {
         ),
       ),
     );
+    if (!best) return badge;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: const Color(0xFFF2C94C), width: 3),
+            ),
+          ),
+        ),
+        Positioned.fill(child: badge),
+        const Positioned(left: -9, top: -13, child: IgnorePointer(child: _Crown())),
+      ],
+    );
   }
 }
 
@@ -463,8 +867,9 @@ class _OutlinePainter extends CustomPainter {
 class _ArPill extends StatelessWidget {
   final _Tracked tracked;
   final VoidCallback onTap;
+  final bool best;
 
-  const _ArPill({required this.tracked, required this.onTap});
+  const _ArPill({required this.tracked, required this.onTap, this.best = false});
 
   @override
   Widget build(BuildContext context) {
@@ -485,21 +890,29 @@ class _ArPill extends StatelessWidget {
         child = const Icon(Icons.wifi_off, color: VT.danger, size: 24);
         label = 'Hors connexion. Touchez pour réessayer';
     }
-    return Semantics(
+    final pill = Semantics(
       button: true,
-      label: label,
+      label: best ? '$label. Le meilleur des articles scannés' : label,
       excludeSemantics: true,
       child: Material(
         color: Colors.white,
         elevation: 4,
         shadowColor: Colors.black54,
-        shape: const CircleBorder(),
+        shape: best ? const CircleBorder(side: BorderSide(color: Color(0xFFF2C94C), width: 3)) : const CircleBorder(),
         child: InkWell(
           customBorder: const CircleBorder(),
           onTap: onTap,
           child: Center(child: child),
         ),
       ),
+    );
+    if (!best) return pill;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Positioned.fill(child: pill),
+        const Positioned(left: -12, top: -12, child: IgnorePointer(child: _Crown(size: 24))),
+      ],
     );
   }
 }

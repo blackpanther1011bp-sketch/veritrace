@@ -10,7 +10,7 @@ import '../storage.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'ar_scan_screen.dart';
-import 'label_scan_screen.dart';
+import 'label_live_screen.dart';
 import 'not_found_screen.dart';
 
 // Produits fictifs présents en base, pour tester sans étiquette sous la main.
@@ -135,7 +135,7 @@ class _ScanScreenState extends State<ScanScreen> {
                   const SizedBox(height: 10),
                   OutlinedButton.icon(
                     onPressed: () async {
-                      await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LabelScanScreen()));
+                      await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LabelLiveScreen()));
                       _loadHistory();
                     },
                     icon: const Icon(Icons.photo_camera_outlined),

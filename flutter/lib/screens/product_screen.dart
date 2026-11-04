@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../api.dart';
 import '../barcode.dart';
+import '../config.dart';
 import '../models.dart';
 import '../sources_card.dart';
 import '../storage.dart';
@@ -164,6 +166,46 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
                 ),
               ),
             ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        // Réalité augmentée ancrée : panneau 3D de la note posé dans la pièce (AR Quick Look sur iPhone,
+        // WebXR sur Android), servi par le site et ouvert dans l'app
+        Material(
+          color: VT.ink,
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {
+              Api.instance.track('ar3d_view', ean: p.ean, grade: p.globalGrade);
+              launchUrl(Uri.parse('${AppConfig.siteUrl}/#/p/${p.ean}?ra=1'), mode: LaunchMode.inAppBrowserView);
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(color: VT.mint, borderRadius: BorderRadius.circular(12)),
+                    child: const Icon(Icons.view_in_ar, color: VT.ink),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Voir en réalité augmentée',
+                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+                        Text('Posez le panneau 3D de la note dans la pièce',
+                            style: TextStyle(color: Color(0xFFA9B8AE), fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.chevron_right, color: Color(0xFFA9B8AE)),
+                ],
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 14),

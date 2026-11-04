@@ -77,6 +77,11 @@ export function ProductScreen({ ean }: { ean: string }) {
     };
   }, [product]);
 
+  // Ouverture directe de la réalité augmentée (lien « ?ra=1 », utilisé par l'app mobile)
+  useEffect(() => {
+    if (product && /[?&]ra=1\b/.test(window.location.hash)) setArOpen(true);
+  }, [product]);
+
   // Mesure d'abandon : l'utilisateur quitte l'app sur un vêtement mal noté.
   useEffect(() => {
     if (!product || !isBadGrade(product.global_grade)) return;
@@ -217,7 +222,13 @@ export function ProductScreen({ ean }: { ean: string }) {
             </div>
           }
         >
-          <ArPanel product={product} onClose={() => setArOpen(false)} />
+          <ArPanel
+            product={product}
+            onClose={() => {
+              setArOpen(false);
+              if (/[?&]ra=1\b/.test(window.location.hash)) navigate(`/p/${product.ean}`, { replace: true });
+            }}
+          />
         </Suspense>
       )}
     </div>

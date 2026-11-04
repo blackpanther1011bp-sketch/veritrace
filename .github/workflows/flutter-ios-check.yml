@@ -1,0 +1,51 @@
+name: Flutter iOS (compilation)
+
+# Vérifie que l'app iPhone compile (caméra, lecture d'étiquette ML Kit…) à chaque modification, sans
+# signature ni envoi sur TestFlight : aucun secret Apple n'est nécessaire. L'envoi sur TestFlight reste
+# le workflow manuel « Flutter iOS (TestFlight) ».
+on:
+  push:
+    branches: [main]
+    paths:
+      - "flutter/**"
+      - ".github/workflows/flutter-ios-check.yml"
+  workflow_dispatch:
+
+jobs:
+  ios:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: flutter
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Générer le projet iOS
+        run: |
+          flutter create . --project-name veritrace --org ma.studiokante --platforms=ios
+          rm -f test/widget_test.dart
+          PBX=ios/Runner.xcodeproj/project.pbxproj
+          perl -pi -e 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]+;/IPHONEOS_DEPLOYMENT_TARGET = 15.5;/g' "$PBX"
+          if [ -f ios/Podfile ]; then
+            perl -pi -e "s/^#?\s*platform :ios, '[0-9.]+'/platform :ios, '15.5'/" ios/Podfile
+          fi
+          PLIST=ios/Runner/Info.plist
+          plutil -replace NSCameraUsageDescription -string "VeriTrace utilise la caméra pour lire le code-barres des vêtements et leur étiquette." "$PLIST"
+          plutil -replace NSPhotoLibraryUsageDescription -string "VeriTrace peut utiliser une photo d'étiquette de vêtement que vous choisissez." "$PLIST"
+          plutil -lint "$PLIST"
+
+      - name: Installer les dépendances
+        run: flutter pub get
+
+      - name: Compiler (sans signature)
+        run: ../.github/scripts/run-logged.sh flutter build ios --release --no-codesign

@@ -9,6 +9,7 @@ import '../label_reader.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'contribute_screen.dart';
+import 'label_live_screen.dart';
 import 'product_screen.dart';
 
 /// Lecture de l'étiquette cousue : photo (composition, « Made in ») et type de vêtement, lecture du texte
@@ -143,6 +144,14 @@ class _LabelScanScreenState extends State<LabelScanScreen> {
               ),
             ),
           ],
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: _busy
+                ? null
+                : () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => LabelLiveScreen(ean: widget.ean))),
+            icon: const Icon(Icons.center_focus_strong_outlined),
+            label: const Text("Viser l'étiquette en direct (sans photo)"),
+          ),
           const SizedBox(height: 14),
           CardBox(
             child: Column(
