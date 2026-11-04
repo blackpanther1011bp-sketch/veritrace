@@ -48,6 +48,16 @@ jobs:
           sed -i 's#android:label="veritrace"#android:label="VeriTrace"#' "$MANIFEST"
           grep -q "android.permission.INTERNET" "$MANIFEST"
           cat "$MANIFEST"
+          # Lecture d'étiquette (ML Kit, alphabet latin) : les modules chinois, japonais, coréen et devanagari
+          # ne sont pas inclus ; l'optimiseur R8 doit ignorer leurs références (sinon la compilation échoue)
+          cat >> android/app/proguard-rules.pro <<'EOF'
+          -dontwarn com.google.mlkit.vision.text.chinese.**
+          -dontwarn com.google.mlkit.vision.text.devanagari.**
+          -dontwarn com.google.mlkit.vision.text.japanese.**
+          -dontwarn com.google.mlkit.vision.text.korean.**
+          EOF
+          sed -i 's/^[[:space:]]*//' android/app/proguard-rules.pro
+          cat android/app/proguard-rules.pro
 
       - name: Installer les dépendances
         run: flutter pub get
