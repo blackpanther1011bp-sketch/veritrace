@@ -269,7 +269,8 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
         super.onResume();
         displayRotation = currentRotation();
         geometryChanged = true;
-        if (session == null) {
+        Session s = session;
+        if (s == null) {
             try {
                 if (ArCoreApk.getInstance().requestInstall(this, !installRequested)
                         == ArCoreApk.InstallStatus.INSTALL_REQUESTED) {
@@ -284,12 +285,12 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
                     }
                     return;
                 }
-                Session created = new Session(this);
-                chooseCamera(created);
-                configure(created);
-                session = created;
+                s = new Session(this);
+                chooseCamera(s);
+                configure(s);
             } catch (Exception e) {
                 Log.e(TAG, "Démarrage d'ARCore", e);
+                if (s != null) s.close();
                 if (e instanceof UnavailableDeviceNotCompatibleException) {
                     finishWith("unsupported", null,
                             "Ce téléphone n'est pas compatible avec la réalité augmentée 3D. Le scanner classique reste disponible.");
@@ -308,12 +309,15 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
             }
         }
         try {
-            session.resume();
+            s.resume();
         } catch (Exception e) {
             Log.e(TAG, "Reprise d'ARCore", e);
+            if (session == null) s.close();
             finishWith("error", null, "La caméra est occupée ou indisponible : réessayez dans un instant.");
             return;
         }
+        // Le rendu n'utilise la session qu'une fois reprise
+        session = s;
         surface.onResume();
     }
 
@@ -407,7 +411,13 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
         config.setUpdateMode(Config.UpdateMode.LATEST_CAMERA_IMAGE);
         config.setPlaneFindingMode(Config.PlaneFindingMode.DISABLED);
         config.setLightEstimationMode(Config.LightEstimationMode.DISABLED);
-        s.configure(config);
+        try {
+            s.configure(config);
+        } catch (RuntimeException e) {
+            // réglage refusé par ce téléphone : configuration par défaut d'ARCore
+            Log.w(TAG, "Configuration ARCore", e);
+            s.configure(new Config(s));
+        }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -572,9 +582,9 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
         if (item.anchor != null && item.anchor.getTrackingState() != TrackingState.STOPPED) {
             float[] current = item.anchor.getPose().getTranslation();
             float moved = Geometry.distance(current, world);
-            if (moved < 0.015f) return; // déjà bien placé : pas de tremblement
+            if (moved < 0.02f) return; // déjà bien placé : pas de tremblement
             // petit écart : on lisse ; grand écart (vêtement déplacé) : on saute
-            float k = moved > 0.2f ? 1f : 0.5f;
+            float k = moved > 0.2f ? 1f : 0.4f;
             target = new float[] {
                 current[0] + (world[0] - current[0]) * k,
                 current[1] + (world[1] - current[1]) * k,
