@@ -55,3 +55,13 @@ Plafond : `passeports_par_jour` (200 par défaut).
 
 Le scanner de l'app lit aussi les QR codes : un QR GS1 Digital Link (`…/01/<GTIN>`) ouvre la fiche du vêtement,
 un QR de passeport VeriTrace ouvre la page du passeport.
+
+## 4. Mise en ligne
+
+- Site web (Vercel) : la commande de compilation doit être `npm run build` (réglage du projet). Elle copie le
+  moteur de lecture de texte (Tesseract) et le modèle de langue dans `dist/ocr`, servis par le site lui-même.
+  Avec `vite build` seul, la lecture d'étiquette échoue.
+- Fonction serveur `outils` : déployée avec la vérification JWT désactivée (les apps l'appellent avec la clé
+  publique). Les abus sont limités par les quotas de `app_settings`.
+- App Android : le workflow ajoute des règles R8 pour ML Kit (modules chinois, japonais, coréen et devanagari
+  non inclus) ; sans elles, la compilation de l'APK échoue.
