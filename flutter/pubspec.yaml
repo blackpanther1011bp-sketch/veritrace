@@ -26,6 +26,9 @@ dependencies:
   google_mlkit_text_recognition: ^0.17.1
   # Image de la caméra en continu : lecture de l'étiquette en direct (réalité augmentée sur l'étiquette)
   camera: ^0.12.0
+  # Réalité augmentée native (Android, ARCore) : la note posée en 3D sur le code-barres (plugin local)
+  veritrace_ar:
+    path: packages/veritrace_ar
 
 dev_dependencies:
   flutter_test:

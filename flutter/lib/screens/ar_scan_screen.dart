@@ -11,6 +11,7 @@ import '../barcode.dart';
 import '../compare.dart';
 import '../config.dart';
 import '../models.dart';
+import '../native_ar.dart';
 import '../navigation.dart';
 import '../scanned_code.dart';
 import '../theme.dart';
@@ -77,10 +78,15 @@ class _ArScanScreenState extends State<ArScanScreen> {
   bool _wasVisible = false;
   // fiche enrichie ouverte dans la caméra (code-barres concerné)
   String? _cardEan;
+  // réalité augmentée 3D native disponible (Android avec ARCore)
+  bool _nativeAr = false;
 
   @override
   void initState() {
     super.initState();
+    NativeAr.available().then((ok) {
+      if (ok && mounted) setState(() => _nativeAr = true);
+    });
     // cache les badges dont le code-barres a quitté l'image
     _ticker = Timer.periodic(const Duration(milliseconds: 250), (_) {
       final anyVisible = _tracked.values.any((t) => t.visible);
@@ -182,6 +188,16 @@ class _ArScanScreenState extends State<ArScanScreen> {
     } else {
       await Navigator.of(context).push(MaterialPageRoute(builder: (_) => NotFoundScreen(ean: tracked.ean)));
     }
+    if (mounted) unawaited(_controller.start());
+  }
+
+  /// Réalité augmentée 3D (ARCore) : la caméra passe à l'écran natif, puis reprend au retour.
+  Future<void> _openNativeAr() async {
+    await _controller.stop();
+    if (!mounted) return;
+    await NativeAr.open(context);
+    if (!mounted) return;
+    if (!await NativeAr.available() && mounted) setState(() => _nativeAr = false);
     if (mounted) unawaited(_controller.start());
   }
 
@@ -437,6 +453,10 @@ class _ArScanScreenState extends State<ArScanScreen> {
                 style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700),
               ),
             ),
+            if (_nativeAr) ...[
+              _Ar3dButton(onPressed: _openNativeAr),
+              const SizedBox(width: 8),
+            ],
             ValueListenableBuilder<MobileScannerState>(
               valueListenable: _controller,
               builder: (context, state, _) {
@@ -460,10 +480,12 @@ class _ArScanScreenState extends State<ArScanScreen> {
   Widget _bottomPanel(_Tracked? focus, Comparison? comparison) {
     Widget content;
     if (focus == null) {
-      content = const Text(
-        'Visez un ou plusieurs codes-barres : la note apparaît dessus, et le meilleur du rayon reçoit une couronne.',
+      content = Text(
+        _nativeAr
+            ? 'Visez un ou plusieurs codes-barres : la note apparaît dessus. Bouton 3D : elle reste posée sur le vêtement.'
+            : 'Visez un ou plusieurs codes-barres : la note apparaît dessus, et le meilleur du rayon reçoit une couronne.',
         textAlign: TextAlign.center,
-        style: TextStyle(color: Colors.white, fontSize: 15, height: 1.4),
+        style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.4),
       );
     } else {
       final p = focus.product;
@@ -913,6 +935,39 @@ class _ArPill extends StatelessWidget {
         Positioned.fill(child: pill),
         const Positioned(left: -12, top: -12, child: IgnorePointer(child: _Crown(size: 24))),
       ],
+    );
+  }
+}
+
+/// Passage à la réalité augmentée 3D (note posée dans l'espace, Android avec ARCore).
+class _Ar3dButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const _Ar3dButton({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: 'Réalité augmentée 3D : la note reste posée sur le vêtement',
+      child: Material(
+        color: const Color(0x66000000),
+        shape: const StadiumBorder(),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: onPressed,
+          child: const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.view_in_ar, color: VT.mint, size: 20),
+                SizedBox(width: 6),
+                Text('3D', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,0 +1,6 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  exclude:
+    # plugin local (réalité augmentée native) : compilé avec l'app, analysé dans son propre dossier
+    - packages/**

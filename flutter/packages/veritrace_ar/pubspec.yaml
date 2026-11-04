@@ -1,0 +1,19 @@
+name: veritrace_ar
+description: Réalité augmentée native de VeriTrace (ARCore, Android) — la note du vêtement posée en 3D sur son code-barres.
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.veritrace.ar
+        pluginClass: VeritraceArPlugin
