@@ -35,7 +35,7 @@ Pas de prospection, pas de profilage, pas de décision automatisée sur les pers
 | Fabricants | Entreprise, ville, produit, étapes de fabrication | Jusqu'à demande de suppression |
 | Toute connexion aux fonctions serveur | Empreinte HMAC secrète de l'adresse IP, renouvelée chaque jour (l'adresse elle-même n'est pas stockée) | 30 jours |
 | Personnes qui écrivent | Objet, message, e-mail de réponse (facultatif) | 12 mois |
-| Tout utilisateur, en cas d'erreur technique | Message d'erreur, écran, navigateur ou modèle de téléphone, version ; sans IP ni identité | 30 jours (90 au plus) |
+| Tout utilisateur, en cas d'erreur technique | Message d'erreur, écran, navigateur ou modèle de téléphone, version, pays et ville approximatifs ; sans adresse IP conservée ni identité | 30 jours (90 au plus) |
 
 Aucune donnée sensible au sens de la loi 09-08 (santé, opinions, origine, etc.) n'est demandée. Pas de compte, pas de
 nom ni d'e-mail obligatoire, pas de cookie de suivi. L'historique des scans reste sur l'appareil.

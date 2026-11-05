@@ -31,13 +31,6 @@ if (enabled) {
       stackFrameVariables: false,
     },
   });
-
-  // Vérification de l'installation : ouvrir /#/diagnostic-sentry déclenche une vraie erreur (à retirer ensuite)
-  if (window.location.hash === "#/diagnostic-sentry") {
-    setTimeout(() => {
-      throw new Error("Test Sentry VeriTrace : vérification de l'installation (site)");
-    }, 500);
-  }
 }
 
 /** Erreurs de React (racine de l'application) transmises à Sentry. */

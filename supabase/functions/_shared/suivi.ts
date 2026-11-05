@@ -31,6 +31,13 @@ function load(): Promise<SentrySdk | null> {
         defaultIntegrations: false,
         environment: "production",
         tracesSampleRate: 0,
+        // Sentry ne doit pas déduire d'adresse IP de l'envoi (ce serait celle du serveur Supabase, mais la règle
+        // reste : aucune adresse IP dans les rapports)
+        beforeSend(event: { sdk?: { settings?: Record<string, unknown> }; user?: Record<string, unknown> }) {
+          event.sdk = { ...event.sdk, settings: { ...event.sdk?.settings, infer_ip: "never" } };
+          if (event.user) delete event.user.ip_address;
+          return event;
+        },
         dataCollection: {
           userInfo: false,
           cookies: false,

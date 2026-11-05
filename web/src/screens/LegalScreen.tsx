@@ -115,8 +115,8 @@ function Privacy() {
           </tr>
           <tr>
             <td>
-              Rapports d'erreur techniques : message d'erreur, écran concerné, navigateur ou modèle de téléphone, version de l'application. Sans adresse IP,
-              sans identité, sans capture ni enregistrement d'écran
+              Rapports d'erreur techniques : message d'erreur, écran concerné, navigateur ou modèle de téléphone, version de l'application, pays et ville approximatifs
+              (déduits par Sentry à la réception). Sans adresse IP conservée, sans identité, sans capture ni enregistrement d'écran
             </td>
             <td>Détecter et corriger les pannes</td>
             <td>30 jours (90 jours au plus selon l'offre Sentry)</td>
