@@ -1,24 +1,12 @@
 {
   "rewrites": [
-    {
-      "source": "/passeport/:id([0-9a-f]{12})",
-      "destination": "/api/passeport"
-    },
+    { "source": "/passeport/:id([0-9a-f]{12})", "destination": "/api/passeport" },
     {
       "source": "/01/:path*",
-      "has": [
-        {
-          "type": "query",
-          "key": "passeport",
-          "value": "(?<id>[0-9a-f]{12})"
-        }
-      ],
+      "has": [{ "type": "query", "key": "passeport", "value": "(?<id>[0-9a-f]{12})" }],
       "destination": "/api/passeport?id=:id"
     },
-    {
-      "source": "/01/:path*",
-      "destination": "/index.html"
-    }
+    { "source": "/01/:path*", "destination": "/index.html" }
   ],
   "headers": [
     {
@@ -28,22 +16,10 @@
           "key": "Content-Security-Policy",
           "value": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self' blob:; connect-src 'self' https://vqegfoncyrqivtrbvorg.supabase.co blob: data:; img-src 'self' data: blob:; media-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(self), xr-spatial-tracking=(self), microphone=(), geolocation=(), payment=(), usb=()"
-        }
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(self), xr-spatial-tracking=(self), microphone=(), geolocation=(), payment=(), usb=()" }
       ]
     }
   ]
