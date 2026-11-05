@@ -42,6 +42,7 @@ Après une vérification, marquer l'erreur de test « résolue » dans Sentry.
      natifs, rares ; l'app le retire déjà de ses propres rapports).
 2. **Erreurs du site lisibles** (cartes de code) : créer un jeton d'organisation dans Sentry (Settings → Auth
    Tokens), l'ajouter dans Vercel (projet `veritrace` → Settings → Environment Variables) sous le nom
-   `SENTRY_AUTH_TOKEN`, environnement Production, puis republier le site. Les cartes sont envoyées à Sentry pendant
+   `SENTRY_AUTH_TOKEN` (ou un nom qui commence ainsi : dans ce projet, `SENTRY_AUTH_TOKEN10`), environnement
+   Production, puis republier le site. Les cartes sont envoyées à Sentry pendant
    la construction puis supprimées : elles ne sont jamais publiées. Le jeton ne doit jamais être écrit dans le
    dépôt ni dans une conversation.

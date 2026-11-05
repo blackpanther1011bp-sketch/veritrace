@@ -13,7 +13,12 @@ const securityHeaders = Object.fromEntries(vercel.headers.flatMap((h) => h.heade
 // Cartes de code (source maps) envoyées à Sentry pour lire les erreurs dans le code d'origine, seulement quand le
 // jeton SENTRY_AUTH_TOKEN est défini (variable d'environnement de Vercel, jamais dans le dépôt). Les cartes sont
 // supprimées de dist/ juste après l'envoi : elles ne sont jamais publiées sur le site.
-const sentryToken = process.env.SENTRY_AUTH_TOKEN?.trim();
+// Nom accepté : SENTRY_AUTH_TOKEN, ou un nom qui commence ainsi (Vercel a refusé le nom exact pour ce projet ; la
+// variable y est enregistrée sous SENTRY_AUTH_TOKEN10).
+const sentryToken = (
+  process.env.SENTRY_AUTH_TOKEN ??
+    Object.entries(process.env).find(([nom]) => nom.startsWith("SENTRY_AUTH_TOKEN"))?.[1]
+)?.trim();
 const commit = process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 12);
 const sentryPlugins = sentryToken
   ? sentryVitePlugin({
