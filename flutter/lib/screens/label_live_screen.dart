@@ -359,7 +359,7 @@ class _LabelLiveScreenState extends State<LabelLiveScreen> with WidgetsBindingOb
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: VT.ink)),
                       Text(p?.composition ?? _preview ?? '',
-                          maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12.5, color: VT.muted)),
+                          maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, color: VT.muted)),
                     ],
                   ),
                 ),

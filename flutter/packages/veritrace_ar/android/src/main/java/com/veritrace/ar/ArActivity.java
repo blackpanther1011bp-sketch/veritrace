@@ -164,6 +164,7 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         reader = new BarcodeReader();
+        PanelPainter.loadFonts(getAssets());
 
         FrameLayout root = new FrameLayout(this);
         root.setBackgroundColor(0xFF0F1A14);

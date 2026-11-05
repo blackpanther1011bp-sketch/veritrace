@@ -68,7 +68,7 @@
 }
 .ar-badge-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
 .ar-badge-title { font-weight: 700; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ar-badge-sub { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ar-badge-sub { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ar-spinner {
   width: 32px;
   height: 32px;
@@ -189,7 +189,7 @@
 .ar-pill .ar-crown { top: -12px; left: -12px; width: 26px; height: 26px; }
 .compare-bar { display: flex; align-items: center; gap: 10px; width: 100%; max-width: 480px; margin: 0 auto 10px; padding: 10px 12px; border: 1.5px solid #f2c94c; border-radius: 16px; background: rgba(15, 26, 20, 0.85); color: #fff; text-align: left; cursor: pointer; }
 .compare-title { font-weight: 700; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.compare-sub { font-size: 12.5px; color: #c9d4cd; }
+.compare-sub { font-size: 13px; color: #c9d4cd; }
 .compare-count { flex: none; font-size: 13px; font-weight: 700; color: var(--ink); background: #f2c94c; border-radius: 999px; padding: 6px 10px; }
 .compare-sheet { color: var(--ink); max-height: 88dvh; overflow-y: auto; }
 .compare-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
@@ -203,12 +203,12 @@
 .ar-card-grade { position: relative; flex: none; display: flex; }
 .ar-card-close { flex: none; width: 36px; height: 36px; border: none; border-radius: 50%; background: var(--line); color: var(--ink); font-size: 22px; line-height: 1; cursor: pointer; }
 .ar-card-bars { display: flex; flex-direction: column; gap: 6px; }
-.ar-card-bar { display: grid; grid-template-columns: 112px 1fr 38px; align-items: center; gap: 8px; font-size: 12.5px; }
+.ar-card-bar { display: grid; grid-template-columns: 112px 1fr 38px; align-items: center; gap: 8px; font-size: 13px; }
 .ar-card-bar-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--muted); }
 .ar-card-track { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
 .ar-card-track span { display: block; height: 100%; border-radius: 4px; }
 .ar-card-pct { text-align: right; color: var(--muted-2); }
-.ar-card-facts { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.35; }
+.ar-card-facts { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.35; }
 .ar-card-alt { border: none; border-radius: 12px; padding: 9px 10px; background: var(--mint-tint); color: var(--green); font-size: 13px; font-weight: 700; text-align: left; cursor: pointer; }
 .ar-card-alt:disabled { background: var(--line); color: var(--muted-2); font-weight: 500; cursor: default; }
 .ar-card-more { align-self: flex-end; display: inline-flex; align-items: center; gap: 2px; border: none; background: none; color: var(--green); font-size: 13.5px; font-weight: 700; cursor: pointer; padding: 2px 0; }

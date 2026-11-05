@@ -116,8 +116,10 @@ export function PassportScreen({ id }: { id: string }) {
           <div className="stack-4">
             <p className="verdict-title">{formatNumber(p.eco_cost, 0)} points</p>
             <p className="verdict-text">
-              Coût environnemental (méthode officielle Ecobalyse) · Climat : {formatNumber(p.climate_kg, 1)} kg CO₂e · Note VeriTrace à poids égal : {p.env_grade}
+              Coût environnemental calculé avec Ecobalyse à partir des données du fabricant · Climat : {formatNumber(p.climate_kg, 1)} kg CO₂e · Note
+              VeriTrace à poids égal : {p.env_grade}
             </p>
+            <p className="muted-sm">La note VeriTrace est indicative : ce n'est ni un label ni une certification, et elle ne peut pas figurer sur le produit.</p>
           </div>
         </section>
 

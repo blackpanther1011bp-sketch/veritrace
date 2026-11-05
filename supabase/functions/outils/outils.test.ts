@@ -149,3 +149,13 @@ test("doublure seule lisible : refus plutôt que noter la doublure", () => {
   const ok = readLabelText("SHELL\n95% COTTON\n5% ELASTANE\nLINING\n100% POLYESTER");
   assert.equal(ok.composition, "95 % coton, 5 % élasthanne");
 });
+
+test("adresse du client : l'en-tête écrit par le client ne contourne pas le quota", async () => {
+  const { clientIp } = await import("./reseau.ts");
+  const h = (o: Record<string, string>) => new Headers(o);
+  assert.equal(clientIp(h({ "x-forwarded-for": "faux-1, 203.0.113.7" })), "203.0.113.7");
+  assert.equal(clientIp(h({ "x-forwarded-for": "faux-2, 203.0.113.7" })), "203.0.113.7");
+  assert.equal(clientIp(h({ "cf-connecting-ip": "198.51.100.4", "x-forwarded-for": "faux, 203.0.113.7" })), "198.51.100.4");
+  assert.equal(clientIp(h({ "x-real-ip": "192.0.2.9" })), "192.0.2.9");
+  assert.equal(clientIp(h({})), "inconnue");
+});

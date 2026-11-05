@@ -1,3 +1,4 @@
+import { LegalLinks } from "./LegalScreen";
 import { useEffect, useState, type FormEvent } from "react";
 import { GradeBadge } from "../components/Grade";
 import { IconCamera, IconChevron, IconKeyboard, IconScan, Logo } from "../components/Icons";
@@ -62,11 +63,12 @@ export function ScanScreen() {
       <header className="brandbar">
         <div className="brand">
           <Logo />
-          <span className="brand-name">VeriTrace</span>
+          <h1 className="brand-name">VeriTrace</h1>
         </div>
         <span className="pill-outline">Démo</span>
       </header>
 
+      <main>
       <div className="viewfinder">
         <div className="ar-preview" aria-hidden="true">
           <TagIllustration />
@@ -170,7 +172,9 @@ export function ScanScreen() {
           </span>
           <IconChevron size={20} className="row-chevron" />
         </button>
+        <LegalLinks />
       </section>
+      </main>
     </div>
   );
 }

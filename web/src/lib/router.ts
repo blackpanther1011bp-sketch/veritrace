@@ -51,7 +51,8 @@ export type Route =
   | { name: "label"; ean: string | null }
   | { name: "labelLive"; ean: string | null }
   | { name: "makers" }
-  | { name: "passport"; id: string };
+  | { name: "passport"; id: string }
+  | { name: "legal"; page: "confidentialite" | "mentions-legales" | "conditions" };
 
 /** Code d'un vêtement : code-barres (8 à 14 chiffres) ou étiquette lue sans code-barres (L + 12 caractères). */
 export const PRODUCT_CODE = /^(\d{8,14}|L[0-9a-f]{12})$/;
@@ -73,5 +74,6 @@ export function parseRoute(fullPath: string): Route {
   if (parts[0] === "fabricants") return { name: "makers" };
   if (parts[0] === "passeport" && /^[0-9a-f]{12}$/.test(ean)) return { name: "passport", id: ean };
   if (parts[0] === "ar") return { name: "ar" };
+  if (parts[0] === "confidentialite" || parts[0] === "mentions-legales" || parts[0] === "conditions") return { name: "legal", page: parts[0] };
   return { name: "scan" };
 }

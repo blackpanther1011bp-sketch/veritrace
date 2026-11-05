@@ -13,7 +13,7 @@ const _confidenceStyle = {
   'faible': (Color(0xFFA3361F), Color(0xFFFCE6E1)),
 };
 
-/// Pastille de fiabilité (« Officielle » pour le registre, « Démo » pour les produits fictifs).
+/// Pastille de fiabilité (« Coût officiel » pour le registre, « Démo » pour les produits fictifs).
 class ConfidencePill extends StatelessWidget {
   final Product product;
   const ConfidencePill({super.key, required this.product});
@@ -23,7 +23,7 @@ class ConfidencePill extends StatelessWidget {
     final c = product.isRegistry ? 'haute' : product.confidence;
     final demo = product.isDemo || c == null;
     final style = demo ? (VT.muted, VT.line) : _confidenceStyle[c]!;
-    final label = demo ? 'Démo' : (product.isRegistry ? 'Officielle' : (confidenceLabel[c] ?? c));
+    final label = demo ? 'Démo' : (product.isRegistry ? 'Coût officiel' : (confidenceLabel[c] ?? c));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(color: style.$2, borderRadius: BorderRadius.circular(999)),

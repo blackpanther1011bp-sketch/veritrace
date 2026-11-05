@@ -86,7 +86,7 @@ class _ScanScreenState extends State<ScanScreen> {
                   const Icon(Icons.verified_outlined, color: VT.mint, size: 28),
                   const SizedBox(width: 10),
                   const Text('VeriTrace',
-                      style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700)),
+                      style: TextStyle(fontFamily: 'Space Grotesk', color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700)),
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -187,6 +187,13 @@ class _ScanScreenState extends State<ScanScreen> {
                     style: TextButton.styleFrom(foregroundColor: VT.muted2),
                     child: const Text('Vous êtes fabricant ? Créez le passeport numérique de vos vêtements',
                         textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w500)),
+                  ),
+                  TextButton(
+                    onPressed: () =>
+                        launchUrl(Uri.parse('${AppConfig.siteUrl}/#/confidentialite'), mode: LaunchMode.inAppBrowserView),
+                    style: TextButton.styleFrom(foregroundColor: VT.muted2),
+                    child: const Text('Confidentialité · Mentions légales · Conditions',
+                        textAlign: TextAlign.center, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
                   ),
                 ],
               ),
@@ -315,7 +322,7 @@ class _ArPreview extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Impact élevé', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: VT.ink)),
-                      Text('Carbone D · Social E', style: TextStyle(fontSize: 12, color: VT.muted)),
+                      Text('Carbone D · Social E', style: TextStyle(fontSize: 13, color: VT.muted)),
                     ],
                   ),
                 ],

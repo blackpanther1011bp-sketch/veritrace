@@ -1,5 +1,6 @@
 package com.veritrace.ar;
 
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -30,6 +31,24 @@ final class PanelPainter {
     private static final int NO_GRADE = 0xFFDDE3DE;
     private static final int[] GRADE_COLOR = {0xFF4FB37A, 0xFFA6CF5A, 0xFFF2C94C, 0xFFF09A4A, 0xFFE0614B};
     private static final int[] GRADE_TINT = {0xFFE3F4EA, 0xFFEEF6DF, 0xFFFDF6DC, 0xFFFFF1E4, 0xFFFCE6E1};
+
+    // Polices de la marque (DM Sans, Space Grotesk), embarquées dans le module ; police du système à défaut
+    private static Typeface regular = Typeface.DEFAULT;
+    private static Typeface bold = Typeface.DEFAULT_BOLD;
+    private static Typeface display = Typeface.DEFAULT_BOLD;
+
+    /** À appeler une fois (thread principal) avant de dessiner les panneaux. */
+    static void loadFonts(AssetManager assets) {
+        try {
+            regular = Typeface.createFromAsset(assets, "fonts/DMSans-Regular.ttf");
+            bold = Typeface.createFromAsset(assets, "fonts/DMSans-Bold.ttf");
+            display = Typeface.createFromAsset(assets, "fonts/SpaceGrotesk-Bold.ttf");
+        } catch (RuntimeException e) {
+            regular = Typeface.DEFAULT;
+            bold = Typeface.DEFAULT_BOLD;
+            display = Typeface.DEFAULT_BOLD;
+        }
+    }
 
     private static final float CARD_LEFT = 12f;
     private static final float CARD_TOP = 40f;
@@ -67,6 +86,7 @@ final class PanelPainter {
         canvas.drawCircle(cx, cy, CIRCLE / 2f, fill(g >= 0 ? GRADE_COLOR[g] : NO_GRADE));
         String letter = found ? d.grade : d.state == PanelData.State.LOADING ? "…" : d.state == PanelData.State.UNKNOWN ? "?" : "!";
         TextPaint big = text(84f, INK, true);
+        big.setTypeface(display);
         big.setTextAlign(Paint.Align.CENTER);
         canvas.drawText(letter, cx, cy - (big.descent() + big.ascent()) / 2f, big);
         if (found && best) drawCrown(canvas, cx, top - 2f);
@@ -135,6 +155,7 @@ final class PanelPainter {
         RectF banner = new RectF(left, 232f, CARD_RIGHT - PAD, 296f);
         canvas.drawRoundRect(banner, 18f, 18f, fill(g >= 0 ? GRADE_TINT[g] : LINE));
         TextPaint vp = text(30f, INK, true);
+        vp.setTypeface(display);
         canvas.drawText(ellipsize(verdict, vp, banner.width() - 40f), banner.left + 20f, banner.bottom - 21f, vp);
 
         // Chiffres (ou consigne)
@@ -241,7 +262,7 @@ final class PanelPainter {
         TextPaint p = new TextPaint(Paint.ANTI_ALIAS_FLAG);
         p.setTextSize(size);
         p.setColor(color);
-        p.setTypeface(bold ? Typeface.DEFAULT_BOLD : Typeface.DEFAULT);
+        p.setTypeface(bold ? PanelPainter.bold : regular);
         return p;
     }
 

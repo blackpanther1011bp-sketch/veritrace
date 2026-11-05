@@ -11,6 +11,7 @@ import '../barcode.dart';
 import '../compare.dart';
 import '../config.dart';
 import '../models.dart';
+import '../reliability.dart';
 import '../native_ar.dart';
 import '../navigation.dart';
 import '../scanned_code.dart';
@@ -277,7 +278,7 @@ class _ArScanScreenState extends State<ArScanScreen> {
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: VT.ink)),
                                   Text(
-                                    [p.brand.name, if (p.ecoCost != null) '${p.ecoCost!.round()} pts'].join(' · '),
+                                    [p.brand.name, if (p.ecoCost != null) '${formatPoints(p.ecoCost!)} pts'].join(' · '),
                                     style: const TextStyle(fontSize: 13, color: VT.muted2),
                                   ),
                                 ],
@@ -601,7 +602,7 @@ class _CompareBar extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14.5)),
-                    Text(comparison.summary, style: const TextStyle(color: Color(0xFFC9D4CD), fontSize: 12.5)),
+                    Text(comparison.summary, style: const TextStyle(color: Color(0xFFC9D4CD), fontSize: 13)),
                   ],
                 ),
               ),
@@ -681,10 +682,10 @@ class _ArCard extends StatelessWidget {
                       Text(verdicts[p.globalGrade]!.$1,
                           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: VT.ink)),
                       Text(
-                        [p.brand.name, if (p.ecoCost != null) '${p.ecoCost!.round()} pts'].join(' · '),
+                        [p.brand.name, if (p.ecoCost != null) '${formatPoints(p.ecoCost!)} pts'].join(' · '),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(fontSize: 12.5, color: VT.muted),
+                        style: const TextStyle(fontSize: 13, color: VT.muted),
                       ),
                     ],
                   ),
@@ -703,7 +704,7 @@ class _ArCard extends StatelessWidget {
                       child: Text(b.label,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12.5, color: VT.muted)),
+                          style: const TextStyle(fontSize: 13, color: VT.muted)),
                     ),
                     Expanded(
                       child: ClipRRect(
@@ -718,7 +719,7 @@ class _ArCard extends StatelessWidget {
                     ),
                     SizedBox(
                       width: 40,
-                      child: Text('${b.share} %', textAlign: TextAlign.right, style: const TextStyle(fontSize: 12.5, color: VT.muted2)),
+                      child: Text('${b.share} %', textAlign: TextAlign.right, style: const TextStyle(fontSize: 13, color: VT.muted2)),
                     ),
                   ],
                 ),
@@ -726,7 +727,7 @@ class _ArCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(right: 4, bottom: 8),
               child: Text(facts.isEmpty ? 'Composition et pays non communiqués' : facts,
-                  style: const TextStyle(fontSize: 12.5, color: VT.muted, height: 1.35)),
+                  style: const TextStyle(fontSize: 13, color: VT.muted, height: 1.35)),
             ),
             if (p.globalGrade != Grade.A)
               Padding(
@@ -791,7 +792,10 @@ class _ArBadge extends StatelessWidget {
       case _Lookup.found:
         leading = GradeBadge(grade: p!.globalGrade, size: 40, round: true);
         title = p.name;
-        subtitle = 'Carbone ${p.carbonGrade.name} · Social ${p.socialGrade?.name ?? 'non évaluée'}';
+        // coût environnemental affiché avec la note dès qu'il est connu
+        subtitle = p.ecoCost != null
+            ? '${formatPoints(p.ecoCost!)} pts · note VeriTrace ${p.globalGrade.name}'
+            : 'Carbone ${p.carbonGrade.name} · Social ${p.socialGrade?.name ?? 'non évaluée'}';
       case _Lookup.missing:
         leading = const GradeBadge(grade: null, size: 40, round: true);
         title = 'Non référencé';
@@ -832,7 +836,7 @@ class _ArBadge extends StatelessWidget {
                       Text(subtitle,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 12.5, color: VT.muted)),
+                          style: const TextStyle(fontSize: 13, color: VT.muted)),
                     ],
                   ),
                 ),

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { LegalLinks } from "./LegalScreen";
 import { Header } from "../components/Header";
 import { IconCheck, IconInfo } from "../components/Icons";
 import { CATEGORIES, checkComposition, COUNTRIES } from "../lib/contribute";
@@ -203,6 +204,12 @@ export function FabricantsScreen() {
             public quand on scanne son code-barres, une fois vérifié par l'équipe VeriTrace.
           </p>
         </aside>
+        <p className="muted-sm">
+          En créant un passeport, vous acceptez les <a href="#/conditions">conditions d'utilisation</a> : vous représentez l'entreprise indiquée, et la
+          note VeriTrace ne doit pas être reprise sur vos produits ou votre communication comme un label. Seul le coût environnemental, avec sa source,
+          peut l'être.
+        </p>
+        <LegalLinks />
       </main>
       <footer className="actions">
         <button type="submit" form="maker" className="btn btn-primary" disabled={sending}>

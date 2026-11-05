@@ -6,6 +6,7 @@ import { ConfidencePill } from "../components/Sources";
 import { fetchAlternatives, fetchProduct, getCachedProduct } from "../lib/api";
 import { formatEan } from "../lib/barcode";
 import { carbonSummary, GRADE_TINT, isBadGrade, STATUS_LABEL, VERDICT } from "../lib/grades";
+import { formatNumber } from "../lib/reliability";
 import { navigate } from "../lib/router";
 import { addToHistory } from "../lib/storage";
 import { track, trackOnExit } from "../lib/track";
@@ -122,6 +123,7 @@ export function ProductScreen({ ean }: { ean: string }) {
   }
 
   const verdict = VERDICT[product.global_grade];
+  const cost = formatNumber(product.eco_cost, 0);
   const hasAlternatives = altCount !== null && altCount > 0;
 
   return (
@@ -145,10 +147,24 @@ export function ProductScreen({ ean }: { ean: string }) {
         <section className="verdict" style={{ background: GRADE_TINT[product.global_grade] }}>
           <GradeBadge grade={product.global_grade} size={64} round />
           <div className="stack-4">
+            <p className="verdict-kicker">Note VeriTrace</p>
             <p className="verdict-title">{verdict.title}</p>
             <p className="verdict-text">{verdict.text}</p>
           </div>
         </section>
+
+        {cost && (
+          <section className="card cost-card" aria-label="Coût environnemental">
+            <span className="cost-value">
+              {cost} <span className="cost-unit">points d'impact</span>
+            </span>
+            <span className="muted-sm">
+              {product.data_source === "registre"
+                ? "Coût environnemental officiel, déclaré par la marque. La note VeriTrace le compare aux vêtements du même type."
+                : "Coût environnemental estimé par VeriTrace avec Ecobalyse (non déclaré par la marque). La note VeriTrace le compare aux vêtements du même type."}
+            </span>
+          </section>
+        )}
 
         <button type="button" className="row-card ar3d-open" onClick={() => setArOpen(true)}>
           <span className="ar3d-open-icon">

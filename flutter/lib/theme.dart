@@ -56,6 +56,8 @@ const statusStyle = {
 ThemeData buildTheme() {
   final base = ThemeData(
     useMaterial3: true,
+    // DM Sans pour le texte, Space Grotesk pour les titres et les notes (comme sur le site)
+    fontFamily: 'DM Sans',
     colorScheme: ColorScheme.fromSeed(seedColor: VT.green, primary: VT.green, surface: VT.ground),
     scaffoldBackgroundColor: VT.ground,
   );
@@ -65,7 +67,7 @@ ThemeData buildTheme() {
       foregroundColor: VT.ink,
       elevation: 0,
       scrolledUnderElevation: 0,
-      titleTextStyle: TextStyle(color: VT.ink, fontSize: 20, fontWeight: FontWeight.w700),
+      titleTextStyle: TextStyle(fontFamily: 'Space Grotesk', color: VT.ink, fontSize: 20, fontWeight: FontWeight.w700),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(

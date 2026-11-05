@@ -5,6 +5,7 @@ import { AlternativesScreen } from "./screens/AlternativesScreen";
 import { ContributeScreen } from "./screens/ContributeScreen";
 import { DetailsScreen } from "./screens/DetailsScreen";
 import { FabricantsScreen } from "./screens/FabricantsScreen";
+import { LegalScreen } from "./screens/LegalScreen";
 import { LabelScreen } from "./screens/LabelScreen";
 import { NotFoundScreen } from "./screens/NotFoundScreen";
 import { PassportScreen } from "./screens/PassportScreen";
@@ -26,6 +27,21 @@ if (/^\/01\/\d{8,14}/.test(window.location.pathname)) {
   window.history.replaceState(null, "", `/#${target}`);
 }
 
+const SCREEN_TITLES: Record<ReturnType<typeof parseRoute>["name"], string> = {
+  scan: "Scanner un vêtement",
+  ar: "Scanner",
+  product: "Fiche du vêtement",
+  details: "Comprendre la note",
+  alternatives: "Alternatives",
+  notFound: "Vêtement introuvable",
+  contribute: "Ajouter un vêtement",
+  label: "Lire l'étiquette",
+  labelLive: "Étiquette en direct",
+  makers: "Espace fabricants",
+  passport: "Passeport numérique",
+  legal: "Informations légales",
+};
+
 export default function App() {
   const path = useRoute();
   const route = parseRoute(path);
@@ -33,6 +49,11 @@ export default function App() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [path]);
+
+  // Titre de l'onglet par écran (lecteurs d'écran, historique, favoris)
+  useEffect(() => {
+    document.title = `${SCREEN_TITLES[route.name]} · VeriTrace`;
+  }, [route.name]);
 
   switch (route.name) {
     case "product":
@@ -57,6 +78,8 @@ export default function App() {
       return <FabricantsScreen />;
     case "passport":
       return <PassportScreen key={route.id} id={route.id} />;
+    case "legal":
+      return <LegalScreen key={route.page} page={route.page} />;
     case "ar":
       return (
         <Suspense fallback={<div className="ar"><p className="ar-status">Ouverture de la caméra…</p></div>}>

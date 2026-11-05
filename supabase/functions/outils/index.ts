@@ -2,7 +2,8 @@
 //
 //  - lire_etiquette : photo et/ou texte de l'étiquette cousue d'un vêtement → composition, pays → note
 //    Ecobalyse. Le texte lu sur le téléphone est essayé d'abord (gratuit) ; l'IA de vision prend le relais.
-//    Avec un code-barres, le résultat est publié pour les utilisateurs suivants (« non vérifié »).
+//    Avec un code-barres, le résultat est gardé en attente de vérification (publication automatique
+//    désactivée par défaut, réglage etiquette_publication_auto).
 //  - creer_passeport : formulaire d'un fabricant → coût environnemental officiel → passeport numérique public.
 //
 // Secrets : ECOBALYSE_TOKEN (déjà utilisé par ecobalyse-score) ; ANTHROPIC_API_KEY facultatif (sans elle, seule la
@@ -24,6 +25,7 @@ import {
   readLabelText,
 } from "./label.ts";
 import { isValidGtin, passportId, passportQuery, stagesFromLifeCycle, validatePassport } from "./passport.ts";
+import { clientIp } from "./reseau.ts";
 
 // Adresses modifiables pour les tests locaux uniquement (faux serveurs)
 const ECOBALYSE = Deno.env.get("ECOBALYSE_API_URL") ?? "https://ecobalyse.beta.gouv.fr/api";
@@ -60,11 +62,22 @@ async function takeQuota(bucket: string, max: number): Promise<boolean> {
   return r.ok === true;
 }
 
-/** Empreinte de la connexion, renouvelée chaque jour (aucune adresse IP n'est stockée). */
+// Clé secrète de l'empreinte : sans elle, on ne peut pas retrouver une adresse en essayant toutes les adresses IP
+let pepperKey: Promise<CryptoKey> | null = null;
+const pepper = () =>
+  pepperKey ??= crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(Deno.env.get("QUOTA_PEPPER") ?? Deno.env.get("SUPABASE_DB_URL") ?? ""),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+
+/** Empreinte de la connexion (HMAC secret), renouvelée chaque jour : aucune adresse IP n'est stockée. */
 async function clientBucket(req: Request, kind: string): Promise<string> {
-  const ip = (req.headers.get("x-forwarded-for") ?? req.headers.get("cf-connecting-ip") ?? "inconnue").split(",")[0].trim();
+  const ip = clientIp(req.headers);
   const data = new TextEncoder().encode(`${ip}|${new Date().toISOString().slice(0, 10)}`);
-  const hash = new Uint8Array(await crypto.subtle.digest("SHA-256", data));
+  const hash = new Uint8Array(await crypto.subtle.sign("HMAC", await pepper(), data));
   return `${kind}:${[...hash.slice(0, 8)].map((b) => b.toString(16).padStart(2, "0")).join("")}`;
 }
 
@@ -226,6 +239,10 @@ async function readLabel(body: Record<string, unknown>, req: Request): Promise<R
   if (!(await takeQuota(await clientBucket(req, "etiquette"), limit(conf, "etiquette_par_appareil_par_jour", 40)))) {
     throw new LabelError("quota", "Vous avez atteint le nombre de lectures du jour : réessayez demain.");
   }
+  // Plafond global : protège le calcul Ecobalyse et la base même si le quota par appareil était contourné
+  if (!(await takeQuota("etiquettes", limit(conf, "etiquettes_par_jour", 2000)))) {
+    throw new LabelError("quota", "Le service a atteint sa limite de lectures pour aujourd'hui : réessayez demain.");
+  }
 
   // 1. Texte lu sur l'appareil (gratuit : navigateur ou téléphone) ;
   // 2. IA de vision si le texte ne suffit pas, seulement si une clé IA est configurée (facultatif)
@@ -276,7 +293,9 @@ async function readLabel(body: Record<string, unknown>, req: Request): Promise<R
     ...built.notes,
   ];
 
-  const publish = conf.etiquette_publication_auto !== false;
+  // Une lecture d'étiquette n'est rattachée au code-barres (visible par tous) que si la publication automatique
+  // est explicitement activée ; sinon elle reste visible par son auteur seul (code L…) jusqu'à validation.
+  const publish = conf.etiquette_publication_auto === true;
   const [row] = await sql`
     insert into public.label_readings (
       ean, brand_name, name, category, eco_product, composition, country_making, method, model, extracted,
@@ -304,7 +323,7 @@ async function readLabel(body: Record<string, unknown>, req: Request): Promise<R
 async function createPassport(body: Record<string, unknown>, req: Request): Promise<Response> {
   const input = validatePassport(body);
   const conf = await settings();
-  if (!(await takeQuota(await clientBucket(req, "passeport"), 30)) || !(await takeQuota("passeports", limit(conf, "passeports_par_jour", 200)))) {
+  if (!(await takeQuota(await clientBucket(req, "passeport"), limit(conf, "passeports_par_appareil_par_jour", 10))) || !(await takeQuota("passeports", limit(conf, "passeports_par_jour", 200)))) {
     throw new LabelError("quota", "Nombre maximal de passeports atteint pour aujourd'hui : réessayez demain.");
   }
   const built = passportQuery(input);
@@ -349,6 +368,13 @@ Deno.serve(async (req) => {
         return await readLabel(body, req);
       case "creer_passeport":
         return await createPassport(body, req);
+      case "etat":
+        // Vérification de l'en-tête utilisé pour les quotas (aucune adresse renvoyée)
+        return reply(200, {
+          ok: true,
+          ip_source: req.headers.get("cf-connecting-ip") ? "cf-connecting-ip" : req.headers.get("x-forwarded-for") ? "x-forwarded-for (dernière valeur)" : "aucune",
+          xff_valeurs: (req.headers.get("x-forwarded-for") ?? "").split(",").filter((v) => v.trim()).length,
+        });
       default:
         return reply(400, { ok: false, error: "action", message: "Action inconnue." });
     }

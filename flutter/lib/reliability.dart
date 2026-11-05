@@ -52,3 +52,14 @@ bool isWebLink(String? value) => value != null && RegExp(r'^https?://', caseSens
 
 /// Première lettre en majuscule (hypothèses du calcul).
 String capitalize(String s) => s.isEmpty ? s : s[0].toUpperCase() + s.substring(1);
+
+/// 1 266 (espace fine insécable entre les milliers, comme sur le site).
+String formatPoints(double value) {
+  final digits = value.round().abs().toString();
+  final out = StringBuffer(value.round() < 0 ? '-' : '');
+  for (var i = 0; i < digits.length; i++) {
+    if (i > 0 && (digits.length - i) % 3 == 0) out.write('\u202F');
+    out.write(digits[i]);
+  }
+  return out.toString();
+}

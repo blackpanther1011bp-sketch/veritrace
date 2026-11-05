@@ -3,12 +3,12 @@ import type { Product } from "../lib/types";
 import { GradeBadge } from "./Grade";
 import { IconInfo } from "./Icons";
 
-/** Pastille de fiabilité (« Officielle » pour le registre, « Démo » pour les produits fictifs). */
+/** Pastille de fiabilité (« Coût officiel » pour le registre, « Démo » pour les produits fictifs). */
 export function ConfidencePill({ product }: { product: Product }) {
   if (product.data_source === "registre") {
     return (
       <span className="status-pill" style={CONFIDENCE_STYLE.haute}>
-        Officielle
+        Coût officiel
       </span>
     );
   }

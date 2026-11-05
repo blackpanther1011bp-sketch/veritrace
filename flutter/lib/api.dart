@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -12,6 +13,9 @@ class Api {
   static final instance = Api._();
 
   SupabaseClient get _db => Supabase.instance.client;
+
+  /// Délai maximal d'un appel : sur un réseau de magasin faible, l'écran « Réessayer » plutôt qu'une attente sans fin.
+  static const _timeout = Duration(seconds: 12);
   final _sessionId = const Uuid().v4();
 
   // Petit cache en mémoire : fiche → détails → alternatives sans nouvel appel réseau.
@@ -23,7 +27,7 @@ class Api {
   Future<Product?> fetchProduct(String ean) async {
     if (_products.containsKey(ean)) return _products[ean];
     // Catalogue VeriTrace d'abord, puis registre officiel de l'affichage environnemental.
-    final row = await _db.rpc('get_product', params: {'p_ean': ean});
+    final row = await _db.rpc('get_product', params: {'p_ean': ean}).timeout(_timeout);
     final product = row == null ? null : Product.fromJson(Map<String, dynamic>.from(row as Map));
     _products[ean] = product;
     return product;
@@ -32,7 +36,7 @@ class Api {
   Future<List<Product>> fetchAlternatives(String ean) async {
     final hit = _alternatives[ean];
     if (hit != null) return hit;
-    final rows = (await _db.rpc('get_alternatives_json', params: {'p_ean': ean}) as List?) ?? const [];
+    final rows = (await _db.rpc('get_alternatives_json', params: {'p_ean': ean}).timeout(_timeout) as List?) ?? const [];
     final list = rows.map((r) => Product.fromJson(Map<String, dynamic>.from(r as Map))).toList();
     _alternatives[ean] = list;
     for (final p in list) {
@@ -59,12 +63,14 @@ class Api {
         'ean': ean,
         'brand': (brand ?? '').trim().isEmpty ? null : brand!.trim(),
         'client': 'android',
-      });
+      }).timeout(const Duration(seconds: 60));
       final data = Map<String, dynamic>.from(res.data as Map);
       final product = Product.fromJson(Map<String, dynamic>.from(data['product'] as Map));
       _products[product.ean] = product;
       _alternatives.remove(product.ean);
       return product;
+    } on TimeoutException {
+      throw const ServiceError('delai', 'Le calcul prend trop de temps : réessayez dans un instant.');
     } on FunctionException catch (e) {
       final d = e.details;
       if (d is Map && d['message'] is String) {
@@ -79,7 +85,7 @@ class Api {
     await _db.from('product_reports').insert({
       'ean': ean,
       'brand': clean.isEmpty ? null : (clean.length > 80 ? clean.substring(0, 80) : clean),
-    });
+    }).timeout(_timeout);
   }
 
   /// Dépose la photo d'étiquette (lecture réservée à l'équipe) et renvoie son nom.

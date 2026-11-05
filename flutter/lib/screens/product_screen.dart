@@ -5,6 +5,7 @@ import '../api.dart';
 import '../barcode.dart';
 import '../config.dart';
 import '../models.dart';
+import '../reliability.dart';
 import '../sources_card.dart';
 import '../storage.dart';
 import '../theme.dart';
@@ -135,7 +136,7 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(p.brand.name.toUpperCase(),
-                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, letterSpacing: 1.2, color: VT.muted2)),
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 1.2, color: VT.muted2)),
                     Text(p.name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
                     Text(
                         '${p.reference != null ? 'Réf. ${p.reference} · ' : ''}'
@@ -159,7 +160,9 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(verdict.$1, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+                    const Text('NOTE VERITRACE',
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.8, color: VT.muted)),
+                    Text(verdict.$1, style: const TextStyle(fontFamily: 'Space Grotesk', fontSize: 22, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
                     Text(verdict.$2, style: const TextStyle(fontSize: 14, color: VT.muted, height: 1.4)),
                   ],
@@ -168,6 +171,30 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
             ],
           ),
         ),
+        // Coût environnemental affiché avec la note (règles françaises du 1er octobre 2026)
+        if (p.ecoCost != null) ...[
+          const SizedBox(height: 14),
+          CardBox(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text.rich(TextSpan(children: [
+                  TextSpan(
+                      text: formatPoints(p.ecoCost!),
+                      style: const TextStyle(fontFamily: 'Space Grotesk', fontSize: 24, fontWeight: FontWeight.w700)),
+                  const TextSpan(text: '  points d\'impact', style: TextStyle(fontSize: 15, color: VT.muted)),
+                ])),
+                const SizedBox(height: 4),
+                Text(
+                  p.isRegistry
+                      ? 'Coût environnemental officiel, déclaré par la marque. La note VeriTrace le compare aux vêtements du même type.'
+                      : 'Coût environnemental estimé par VeriTrace avec Ecobalyse (non déclaré par la marque). La note VeriTrace le compare aux vêtements du même type.',
+                  style: const TextStyle(fontSize: 13, color: VT.muted2, height: 1.35),
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 14),
         // Réalité augmentée ancrée : panneau 3D de la note posé dans la pièce (AR Quick Look sur iPhone,
         // WebXR sur Android), servi par le site et ouvert dans l'app

@@ -117,7 +117,7 @@ class SampleTag extends StatelessWidget {
       margin: const EdgeInsets.only(right: 16),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(color: VT.line, borderRadius: BorderRadius.circular(999)),
-      child: const Text('Exemple', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: VT.muted)),
+      child: const Text('Exemple', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: VT.muted)),
     );
   }
 }

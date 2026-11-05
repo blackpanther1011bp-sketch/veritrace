@@ -462,7 +462,11 @@ function describe(t: Tracked): { title: string; subtitle: string } {
     case "loading":
       return { title: "Analyse…", subtitle: `EAN ${formatEan(t.ean)}` };
     case "found":
-      return { title: p!.name, subtitle: `Carbone ${p!.carbon_grade} · Social ${p!.social_grade ?? "non évaluée"}` };
+      // Coût environnemental (points) affiché avec la note dès qu'il est connu (règles françaises du 1er octobre 2026)
+      return {
+        title: p!.name,
+        subtitle: p!.eco_cost != null ? `${formatNumber(p!.eco_cost, 0)} pts · note VeriTrace ${p!.global_grade}` : `Carbone ${p!.carbon_grade} · Social ${p!.social_grade ?? "non évaluée"}`,
+      };
     case "missing":
       return { title: "Non référencé", subtitle: "Touchez pour le signaler" };
     case "error":

@@ -1,4 +1,4 @@
-# Méthode de notation VeriTrace (v1)
+# Méthode de notation VeriTrace (v2)
 
 ## Environnement et carbone : Ecobalyse
 
@@ -27,7 +27,7 @@ plus de 570 000 codes-barres déclarés par 150 marques (Kiabi, Gémo, Okaïdi, 
 Pour chaque code-barres, la marque y déclare le coût environnemental calculé avec Ecobalyse, le coût pour 100 g,
 la durabilité, l'impact climat et la répartition par étape. VeriTrace reprend ces valeurs telles quelles :
 
-- la fiche affiche « Fiabilité : Officielle » et un lien vers la fiche publique du ministère ;
+- la fiche affiche « Coût officiel » et un lien vers la fiche publique du ministère ;
 - le registre ne publie ni la composition ni les pays de fabrication : l'application l'indique (« Non publié ») ;
 - les codes-barres dont la clé de contrôle est fausse et les déclarations de test sont écartés ;
 - l'import est automatique : GitHub Actions découpe le fichier chaque mois, puis Supabase le recharge
@@ -36,28 +36,38 @@ la durabilité, l'impact climat et la répartition par étape. VeriTrace reprend
 Le registre ne couvre que l'environnement : la **note sociale** de ces marques s'affiche « non évaluée » et la
 note globale est alors la note environnement seule. VeriTrace n'invente pas de note sociale.
 
-## De la valeur à la note A–E
+## De la valeur à la note A–E (v2, novembre 2026)
 
-Pour chaque type de vêtement (T-shirt, jean, pull…), VeriTrace calcule avec Ecobalyse deux références au même poids
-(le poids type d'Ecobalyse pour ce vêtement) :
+La note VeriTrace situe le coût environnemental d'un vêtement par rapport aux vêtements **du même type déclarés au
+registre officiel** (568 264 vêtements notés en novembre 2026), à poids égal :
 
-| Référence | Paramètres |
+| Note | Position parmi les vêtements du même type |
 | --- | --- |
-| Vertueuse | coton biologique, tissage, teinture et confection en France, petite marque (200 références), prix × 3 |
-| Majorant par défaut | exemple officiel Ecobalyse : coton, pays inconnus, grande marque sans réparation |
+| A | parmi les 10 % les mieux placés |
+| B | entre 10 % et 30 % |
+| C | entre 30 % et 60 % |
+| D | entre 60 % et 80 % |
+| E | parmi les 20 % les moins bien placés |
 
-L'écart entre les deux est découpé en cinq classes égales :
+Les seuils sont les quantiles 10 / 30 / 60 / 80 % du coût (note environnement) et de l'impact climat (note carbone),
+calculés par type de vêtement (fonction SQL `recalibrate_grade_thresholds`, tâche planifiée
+`veritrace-notes-recalibrage`, le 4 de chaque mois, après l'import du registre). Un type qui compte moins de
+500 vêtements au registre garde ses seuils précédents.
 
-- **A** : jusqu'à 20 % de l'écart au-dessus de la référence vertueuse ;
-- **B, C, D** : jusqu'à 40 %, 60 % et 80 % ;
-- **E** : au-delà, jusqu'au majorant et plus.
+**Pourquoi ce changement.** La v1 découpait en cinq classes égales l'écart entre une référence « vertueuse » (coton
+bio, fabrication en France) et le majorant par défaut d'Ecobalyse, volontairement pénalisant et que presque aucune
+marque déclarée n'atteint : 48 % du registre était noté A et 82 % A ou B. Une note aussi généreuse ne distinguait plus
+rien.
 
 **À poids égal.** Avant comparaison, le coût de chaque article est ramené au poids type de son vêtement
 (coût pour 100 g × poids type) : un manteau lourd n'est pas pénalisé pour sa taille, ni un body de bébé avantagé
 pour sa légèreté. Le coût affiché reste celui de l'article.
 
-Les seuils sont stockés dans la table `grade_thresholds` (lisible publiquement). Supprimer une ligne force un
-nouveau calibrage au calcul suivant, par exemple après une mise à jour d'Ecobalyse.
+**Le coût d'abord.** Partout où la note apparaît, le coût environnemental en points est affiché avec elle, et la
+note est présentée comme « note VeriTrace » : depuis le 1er octobre 2026, quiconque communique un score sur un
+vêtement en France doit aussi publier le coût officiel, et ne pas créer de confusion avec lui.
+
+Les seuils sont stockés dans la table `grade_thresholds` (lisible publiquement, colonne `method`).
 
 ## Note globale
 
@@ -81,4 +91,6 @@ Sans note sociale (marques du registre officiel), la note globale est la note en
   (Europe de l'Ouest, etc.).
 - La note sociale est encore attribuée par l'équipe VeriTrace ; une méthode sourcée (certifications vérifiées,
   Fashion Transparency Index, Open Supply Hub) est prévue.
-- Les seuils A–E sont une convention VeriTrace, publiée ici ; ce n'est pas une note officielle de l'État.
+- Les seuils A–E sont une convention VeriTrace, publiée ici ; ce n'est pas une note officielle de l'État, ni un
+  label : un fabricant ne peut pas la reproduire sur ses produits (conditions d'utilisation).
+- La note est relative : elle compare aux vêtements déclarés au registre (surtout des marques vendues en France).
