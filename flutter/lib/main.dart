@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'config.dart';
@@ -20,6 +19,8 @@ Future<void> main() async {
   await L10n.init();
   // Suivi des erreurs (Sentry), seulement dans l'app publiée. Réglage strict pour la vie privée : ni adresse IP
   // ni identité, ni capture d'écran, ni enregistrement des écrans ; seulement l'erreur, l'écran et le téléphone.
+  // Pas de suivi des sessions : il compterait les ouvertures de l'app avec un identifiant d'installation.
+  // Vérification : appui long sur « VeriTrace » à l'accueil (erreur de test, voir scan_screen.dart).
   await SentryFlutter.init(
     (options) {
       options.dsn = kReleaseMode ? AppConfig.sentryDsn : '';
@@ -28,27 +29,19 @@ Future<void> main() async {
       options.sendDefaultPii = false;
       options.attachScreenshot = false;
       options.attachViewHierarchy = false;
+      options.enableAutoSessionTracking = false;
+      // Android ajoute de lui-même un identifiant d'installation tiré au hasard : retiré de chaque rapport
+      options.beforeSend = (event, hint) {
+        event.user = null;
+        return event;
+      };
+      options.beforeSendTransaction = (transaction, hint) {
+        transaction.user = null;
+        return transaction;
+      };
     },
     appRunner: () => runApp(const VeriTraceApp()),
   );
-  await _verifySentryOnce();
-}
-
-/// Vérification de l'installation de Sentry : une seule erreur de test par téléphone, au premier lancement
-/// d'une version publiée (à retirer une fois l'installation confirmée).
-Future<void> _verifySentryOnce() async {
-  if (!kReleaseMode) return;
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('sentry_test_envoye') ?? false) return;
-    await Sentry.captureException(
-      StateError("Test Sentry VeriTrace : vérification de l'installation (app)"),
-      stackTrace: StackTrace.current,
-    );
-    await prefs.setBool('sentry_test_envoye', true);
-  } catch (_) {
-    // la vérification ne doit jamais gêner l'app
-  }
 }
 
 class VeriTraceApp extends StatelessWidget {

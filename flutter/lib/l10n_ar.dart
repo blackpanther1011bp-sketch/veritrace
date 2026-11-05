@@ -632,6 +632,8 @@ const arStrings = <String, String>{
       'عرض البدائل الأفضل تقييمًا ({n})',
 
   // screens/scan_screen.dart
+  'Rapport de test envoyé au suivi des erreurs.': 'تم إرسال تقرير تجريبي إلى نظام تتبع الأخطاء.',
+  'Suivi des erreurs désactivé dans cette version de développement.': 'تتبع الأخطاء معطَّل في نسخة التطوير هذه.',
   'Ce code ne ressemble pas à un code-barres valide (8, 12 ou 13 chiffres).':
       'هذا الرمز لا يبدو رمزًا شريطيًا صالحًا (8 أو 12 أو 13 رقمًا).',
   "Visez l'étiquette d'un vêtement : sa note s'affiche directement sur l'image de la caméra.":

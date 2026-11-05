@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:sentry_flutter/sentry_flutter.dart' show Sentry;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../barcode.dart';
@@ -62,6 +64,21 @@ class _ScanScreenState extends State<ScanScreen> {
     _loadHistory();
   }
 
+  /// Vérification du suivi des erreurs (Sentry) : un appui long sur « VeriTrace » envoie une erreur de test,
+  /// sans aucune donnée de l'utilisateur. Rien n'est envoyé automatiquement : seulement sur ce geste volontaire.
+  Future<void> _sendSentryTest() async {
+    final messenger = ScaffoldMessenger.of(context);
+    if (!kReleaseMode) {
+      messenger.showSnackBar(SnackBar(content: Text(tr('Suivi des erreurs désactivé dans cette version de développement.'))));
+      return;
+    }
+    await Sentry.captureException(
+      StateError("Test Sentry VeriTrace : vérification de l'installation (app)"),
+      stackTrace: StackTrace.current,
+    );
+    messenger.showSnackBar(SnackBar(content: Text(tr('Rapport de test envoyé au suivi des erreurs.'))));
+  }
+
   void _submitManual() {
     final code = normalizeGtin(_codeField.text);
     if (!isValidGtin(code)) {
@@ -86,8 +103,12 @@ class _ScanScreenState extends State<ScanScreen> {
                 children: [
                   const Icon(Icons.verified_outlined, color: VT.mint, size: 28),
                   const SizedBox(width: 10),
-                  const Text('VeriTrace',
-                      style: TextStyle(fontFamily: 'Space Grotesk', color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+                  // appui long sur le nom : vérification du suivi des erreurs (voir _sendSentryTest)
+                  GestureDetector(
+                    onLongPress: _sendSentryTest,
+                    child: const Text('VeriTrace',
+                        style: TextStyle(fontFamily: 'Space Grotesk', color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+                  ),
                   const SizedBox(width: 12),
                   // choix de la langue et mention « Démo » : réduits si l'écran est étroit, sans déborder
                   Expanded(
