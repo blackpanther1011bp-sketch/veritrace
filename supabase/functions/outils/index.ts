@@ -25,7 +25,7 @@ import {
   readLabelText,
 } from "./label.ts";
 import { isValidGtin, passportId, passportQuery, stagesFromLifeCycle, validatePassport } from "./passport.ts";
-import { clientIp } from "./reseau.ts";
+import { clientIp, ipSource } from "./reseau.ts";
 
 // Adresses modifiables pour les tests locaux uniquement (faux serveurs)
 const ECOBALYSE = Deno.env.get("ECOBALYSE_API_URL") ?? "https://ecobalyse.beta.gouv.fr/api";
@@ -353,8 +353,21 @@ async function createPassport(body: Record<string, unknown>, req: Request): Prom
 
 // ---------------------------------------------------------------------------------------------
 
+/** Diagnostic des quotas : d'où vient l'adresse retenue et son empreinte tronquée (jamais l'adresse elle-même).
+ *  Deux appels depuis deux connexions différentes doivent donner deux empreintes différentes. */
+async function quotaCheck(req: Request) {
+  const bucket = await clientBucket(req, "etat");
+  return reply(200, {
+    ok: true,
+    ip_source: ipSource(req.headers),
+    xff_valeurs: (req.headers.get("x-forwarded-for") ?? "").split(",").filter((v) => v.trim()).length,
+    empreinte: bucket.slice(-6),
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
+  if (req.method === "GET" && new URL(req.url).searchParams.get("action") === "etat") return await quotaCheck(req);
   if (req.method !== "POST") return reply(405, { ok: false, error: "methode", message: "Méthode non autorisée." });
   let body: Record<string, unknown>;
   try {
@@ -369,12 +382,7 @@ Deno.serve(async (req) => {
       case "creer_passeport":
         return await createPassport(body, req);
       case "etat":
-        // Vérification de l'en-tête utilisé pour les quotas (aucune adresse renvoyée)
-        return reply(200, {
-          ok: true,
-          ip_source: req.headers.get("cf-connecting-ip") ? "cf-connecting-ip" : req.headers.get("x-forwarded-for") ? "x-forwarded-for (dernière valeur)" : "aucune",
-          xff_valeurs: (req.headers.get("x-forwarded-for") ?? "").split(",").filter((v) => v.trim()).length,
-        });
+        return await quotaCheck(req);
       default:
         return reply(400, { ok: false, error: "action", message: "Action inconnue." });
     }

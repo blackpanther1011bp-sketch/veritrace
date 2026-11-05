@@ -159,3 +159,16 @@ test("adresse du client : l'en-tête écrit par le client ne contourne pas le qu
   assert.equal(clientIp(h({ "x-real-ip": "192.0.2.9" })), "192.0.2.9");
   assert.equal(clientIp(h({})), "inconnue");
 });
+
+test("adresse du client : les adresses internes de l'hébergeur sont ignorées (sinon quota commun à tous)", async () => {
+  const { clientIp, ipSource, isInternalIp } = await import("./reseau.ts");
+  const h = (o: Record<string, string>) => new Headers(o);
+  assert.equal(clientIp(h({ "x-forwarded-for": "203.0.113.7, 10.0.4.12" })), "203.0.113.7");
+  assert.equal(clientIp(h({ "x-forwarded-for": "faux, 203.0.113.7, 172.20.0.3, 100.70.1.1" })), "203.0.113.7");
+  assert.equal(clientIp(h({ "x-forwarded-for": "2001:db8::1, fd00::5" })), "2001:db8::1");
+  assert.equal(ipSource(h({ "x-forwarded-for": "faux, 203.0.113.7, 10.0.0.1" })), "x-forwarded-for (valeur 2 sur 3)");
+  assert.equal(isInternalIp("192.168.1.1"), true);
+  assert.equal(isInternalIp("::ffff:10.1.2.3"), true);
+  assert.equal(isInternalIp("172.32.0.1"), false);
+  assert.equal(isInternalIp("faux-1"), true);
+});
