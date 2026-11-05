@@ -10,7 +10,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // l'app est pensée pour être tenue verticalement, comme en magasin
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  await Supabase.initialize(url: AppConfig.supabaseUrl, anonKey: AppConfig.supabaseKey);
+  await Supabase.initialize(url: AppConfig.supabaseUrl, publishableKey: AppConfig.supabaseKey);
   runApp(const VeriTraceApp());
 }
 

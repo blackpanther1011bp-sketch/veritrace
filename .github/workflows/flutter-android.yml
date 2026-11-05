@@ -1,35 +1,48 @@
 name: Flutter Android
 
-# Vérifie le code Flutter, lance les tests et fabrique l'APK Android à chaque modification.
+# Vérifie le code Flutter, lance les tests et fabrique les APK Android à chaque modification.
+# Actions épinglées par empreinte (SHA) : une étiquette modifiée chez un tiers ne change pas ce qui s'exécute ici.
 on:
   push:
     branches: [main]
     paths:
       - "flutter/**"
       - ".github/workflows/flutter-android.yml"
+      - ".github/scripts/android_setup.py"
   workflow_dispatch:
 
 jobs:
   android:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 40
     permissions:
       # nécessaire pour publier l'APK dans les « Releases » du dépôt
       contents: write
     defaults:
       run:
         working-directory: flutter
+    env:
+      # Clé de publication (Play Store), facultative : sans ces secrets, la clé de test du dépôt est utilisée
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: temurin
           java-version: "17"
 
-      - uses: subosito/flutter-action@v2
+      # Cache Gradle : dépendances Android réutilisées d'un build à l'autre
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+
+      # Version de Flutter fixée : on la monte volontairement, pas au hasard d'une nouvelle sortie
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
+          flutter-version: 3.47.9
           cache: true
 
       - name: Version de Flutter
@@ -37,27 +50,29 @@ jobs:
 
       - name: Générer le projet Android
         run: |
-          flutter create . --project-name veritrace --org com.veritrace --platforms=android
+          # Identifiant définitif, le même que sur iPhone
+          flutter create . --project-name veritrace --org ma.studiokante --platforms=android
           # test d'exemple généré par Flutter, remplacé par nos propres tests
           rm -f test/widget_test.dart
-          MANIFEST=android/app/src/main/AndroidManifest.xml
-          # l'APK de production a besoin d'Internet pour joindre la base Supabase
-          if ! grep -q "android.permission.INTERNET" "$MANIFEST"; then
-            sed -i 's#<manifest xmlns:android="http://schemas.android.com/apk/res/android">#&\n    <uses-permission android:name="android.permission.INTERNET"/>#' "$MANIFEST"
+          # nom, permissions, signature, icône et écran de démarrage, règles R8
+          python3 ../.github/scripts/android_setup.py
+
+      - name: Préparer la signature
+        run: |
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/publication.jks"
+            STORE="$RUNNER_TEMP/publication.jks"; STORE_PASS="$ANDROID_KEYSTORE_PASSWORD"
+            ALIAS="$ANDROID_KEY_ALIAS"; KEY_PASS="$ANDROID_KEY_PASSWORD"
+            echo "SIGNATURE=publication" >> "$GITHUB_ENV"
+            echo "::notice title=Signature::APK signé avec la clé de publication (secrets du dépôt)"
+          else
+            STORE="$PWD/signing/veritrace-test.jks"; STORE_PASS="veritrace-test"
+            ALIAS="veritrace"; KEY_PASS="veritrace-test"
+            echo "SIGNATURE=test" >> "$GITHUB_ENV"
+            echo "::notice title=Signature::APK signé avec la clé de test du dépôt (la même à chaque build : mise à jour sans désinstaller)"
           fi
-          sed -i 's#android:label="veritrace"#android:label="VeriTrace"#' "$MANIFEST"
-          grep -q "android.permission.INTERNET" "$MANIFEST"
-          cat "$MANIFEST"
-          # Lecture d'étiquette (ML Kit, alphabet latin) : les modules chinois, japonais, coréen et devanagari
-          # ne sont pas inclus ; l'optimiseur R8 doit ignorer leurs références (sinon la compilation échoue)
-          cat >> android/app/proguard-rules.pro <<'EOF'
-          -dontwarn com.google.mlkit.vision.text.chinese.**
-          -dontwarn com.google.mlkit.vision.text.devanagari.**
-          -dontwarn com.google.mlkit.vision.text.japanese.**
-          -dontwarn com.google.mlkit.vision.text.korean.**
-          EOF
-          sed -i 's/^[[:space:]]*//' android/app/proguard-rules.pro
-          cat android/app/proguard-rules.pro
+          printf 'storeFile=%s\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
+            "$STORE" "$STORE_PASS" "$ALIAS" "$KEY_PASS" > android/key.properties
 
       - name: Installer les dépendances
         run: flutter pub get
@@ -68,14 +83,34 @@ jobs:
       - name: Lancer les tests
         run: flutter test
 
-      - name: Construire l'APK
-        run: ../.github/scripts/run-logged.sh flutter build apk --release
+      # Un APK par type de processeur : ~40 Mo au lieu de 104 Mo (le paquet universel embarquait les 3)
+      - name: Construire les APK
+        run: |
+          ../.github/scripts/run-logged.sh flutter build apk --release --split-per-abi \
+            --build-name=0.1.${{ github.run_number }} --build-number=${{ github.run_number }}
+          ls -lh build/app/outputs/flutter-apk/
 
-      - name: Publier l'APK
-        uses: actions/upload-artifact@v4
+      - name: Vérifier la signature et les permissions
+        run: |
+          APK=build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -n 1)apksigner
+          AAPT=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -n 1)aapt2
+          "$APKSIGNER" verify --print-certs "$APK" | tee "$RUNNER_TEMP/certs.txt"
+          if [ "$SIGNATURE" = "test" ]; then
+            grep -qi "SHA-256 digest: e96def02855fffd26fae8c6528bb011efbaf9771438195e016a41823cc28cb9e" "$RUNNER_TEMP/certs.txt" \
+              || { echo "::error::L'APK n'est pas signé avec la clé de test attendue"; exit 1; }
+          fi
+          "$AAPT" dump permissions "$APK" | tee "$RUNNER_TEMP/permissions.txt"
+          if grep -Eq "RECORD_AUDIO|EXTERNAL_STORAGE" "$RUNNER_TEMP/permissions.txt"; then
+            echo "::error::Permission inutile encore présente dans l'APK"; exit 1
+          fi
+          "$AAPT" dump badging "$APK" | grep -E "^package:|^application-label:"
+
+      - name: Publier les APK (artefact)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: veritrace-android-apk
-          path: flutter/build/app/outputs/flutter-apk/app-release.apk
+          path: flutter/build/app/outputs/flutter-apk/app-*-release.apk
           if-no-files-found: error
           retention-days: 30
 
@@ -88,9 +123,11 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           TAG="android-build-${{ github.run_number }}"
-          cp build/app/outputs/flutter-apk/app-release.apk VeriTrace.apk
-          gh release create "$TAG" VeriTrace.apk \
+          OUT=build/app/outputs/flutter-apk
+          cp "$OUT/app-arm64-v8a-release.apk" VeriTrace.apk
+          cp "$OUT/app-armeabi-v7a-release.apk" VeriTrace-ancien-telephone.apk
+          gh release create "$TAG" VeriTrace.apk VeriTrace-ancien-telephone.apk \
             --target "${{ github.sha }}" \
             --title "VeriTrace Android – build ${{ github.run_number }}" \
-            --notes "APK de test (données fictives). Commit ${{ github.sha }}." \
+            --notes "APK de test. VeriTrace.apk : téléphones récents (64 bits, la grande majorité). VeriTrace-ancien-telephone.apk : téléphones 32 bits. Signature : clé ${SIGNATURE}. Commit ${{ github.sha }}." \
             --latest

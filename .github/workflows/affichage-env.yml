@@ -20,7 +20,7 @@ jobs:
   extract:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Télécharger le registre (data.gouv.fr)
         run: curl -fsSL --retry 3 -o "$RUNNER_TEMP/registre.csv" "https://www.data.gouv.fr/api/1/datasets/r/25321e9e-7b01-471a-b098-ffa1e3fcf906" && ls -lh "$RUNNER_TEMP/registre.csv"
       - name: Découper en blocs

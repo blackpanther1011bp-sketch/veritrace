@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Écran de démarrage VeriTrace : fond vert nuit, logo au centre -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item><color android:color="#0F1A14" /></item>
+    <item>
+        <bitmap android:gravity="center" android:src="@mipmap/launch_logo" />
+    </item>
+</layer-list>

@@ -47,19 +47,20 @@ jobs:
           fi
           echo "Configuration Apple présente."
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: maxim-lobanov/setup-xcode@v1
+      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
         with:
           xcode-version: latest-stable
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: "3.12"
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
+          flutter-version: 3.47.9
           cache: true
 
       - name: Installer les outils de signature
@@ -72,6 +73,8 @@ jobs:
         run: |
           flutter create . --project-name veritrace --org ma.studiokante --platforms=ios
           rm -f test/widget_test.dart
+          # icône VeriTrace (sans transparence, comme l'exige l'App Store)
+          cp branding/ios/AppIcon.appiconset/*.png ios/Runner/Assets.xcassets/AppIcon.appiconset/
           PBX=ios/Runner.xcodeproj/project.pbxproj
           grep -q "PRODUCT_BUNDLE_IDENTIFIER = ${IOS_BUNDLE_ID};" "$PBX"
           # version minimale d'iOS

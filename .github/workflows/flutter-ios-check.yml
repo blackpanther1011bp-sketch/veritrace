@@ -19,27 +19,31 @@ jobs:
       run:
         working-directory: flutter
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: maxim-lobanov/setup-xcode@v1
+      - uses: maxim-lobanov/setup-xcode@ed7a3b1fda3918c0306d1b724322adc0b8cc0a90 # v1.7.0
         with:
           xcode-version: latest-stable
 
-      - uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
+          flutter-version: 3.47.9
           cache: true
 
       - name: Générer le projet iOS
         run: |
           flutter create . --project-name veritrace --org ma.studiokante --platforms=ios
           rm -f test/widget_test.dart
+          # icône VeriTrace (sans transparence, comme l'exige l'App Store)
+          cp branding/ios/AppIcon.appiconset/*.png ios/Runner/Assets.xcassets/AppIcon.appiconset/
           PBX=ios/Runner.xcodeproj/project.pbxproj
           perl -pi -e 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]+;/IPHONEOS_DEPLOYMENT_TARGET = 15.5;/g' "$PBX"
           if [ -f ios/Podfile ]; then
             perl -pi -e "s/^#?\s*platform :ios, '[0-9.]+'/platform :ios, '15.5'/" ios/Podfile
           fi
           PLIST=ios/Runner/Info.plist
+          plutil -replace CFBundleDisplayName -string "VeriTrace" "$PLIST"
           plutil -replace NSCameraUsageDescription -string "VeriTrace utilise la caméra pour lire le code-barres des vêtements et leur étiquette." "$PLIST"
           plutil -replace NSPhotoLibraryUsageDescription -string "VeriTrace peut utiliser une photo d'étiquette de vêtement que vous choisissez." "$PLIST"
           plutil -lint "$PLIST"
