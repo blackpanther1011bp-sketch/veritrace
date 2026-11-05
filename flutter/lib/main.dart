@@ -44,13 +44,12 @@ T _anonymize<T extends SentryEvent>(T event) {
   event.user = null;
   final device = event.contexts.device;
   if (device != null) {
-    device.deviceUniqueIdentifier = null;
-    try {
-      device.unknown?.remove('id');
-    } catch (_) {
-      // table non modifiable : on remplace le contexte sans les champs inconnus
-      event.contexts.device = SentryDevice.fromJson(device.toJson()..remove('id'));
-    }
+    // contexte « appareil » reconstruit sans ses deux identifiants (le reste est gardé tel quel)
+    event.contexts.device = SentryDevice.fromJson(
+      device.toJson()
+        ..remove('id')
+        ..remove('device_unique_identifier'),
+    );
   }
   return event;
 }
