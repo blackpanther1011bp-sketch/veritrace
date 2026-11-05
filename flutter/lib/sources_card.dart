@@ -123,7 +123,7 @@ class SourcesCard extends StatelessWidget {
         ],
         const SizedBox(height: 14),
         Text(
-          tr("Note environnement : coût Ecobalyse à poids égal, comparé à deux références du même type de vêtement. A, proche d'un vêtement en coton bio fabriqué en France ; E, proche du « majorant par défaut » d'Ecobalyse (fabrication inconnue)."),
+          tr("Note environnement : coût Ecobalyse à poids égal, comparé aux vêtements du même type déclarés au registre officiel. A : parmi les 10 % les mieux placés ; E : parmi les 20 % les moins bien placés."),
           style: const TextStyle(fontSize: 13, color: VT.muted2, height: 1.35),
         ),
         if (p.passportId != null) ...[

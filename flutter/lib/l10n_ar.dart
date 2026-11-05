@@ -198,8 +198,8 @@ const arStrings = <String, String>{
       'كلفة صرّحت بها العلامة التجارية على البوابة الرسمية للإفصاح البيئي (وزارة التحول البيئي الفرنسية). لا ينشر السجل التركيب ولا بلدان الصنع.',
   'Hypothèses du calcul :':
       'افتراضات الحساب:',
-  "Note environnement : coût Ecobalyse à poids égal, comparé à deux références du même type de vêtement. A, proche d'un vêtement en coton bio fabriqué en France ; E, proche du « majorant par défaut » d'Ecobalyse (fabrication inconnue).":
-      'التقييم البيئي: كلفة Ecobalyse بوزن متساوٍ، مقارنةً بمرجعين من النوع نفسه من الملابس. A: قريب من قطعة من القطن العضوي مصنوعة في فرنسا؛ E: قريب من « القيمة القصوى الافتراضية » لـ Ecobalyse (مكان الصنع غير معروف).',
+  "Note environnement : coût Ecobalyse à poids égal, comparé aux vêtements du même type déclarés au registre officiel. A : parmi les 10 % les mieux placés ; E : parmi les 20 % les moins bien placés.":
+      'التقييم البيئي: كلفة Ecobalyse بوزن متساوٍ، مقارنةً بقطع الملابس من النوع نفسه المُصرَّح بها في السجل الرسمي. A: ضمن أفضل 10٪؛ E: ضمن أسوأ 20٪.',
   'Voir le passeport numérique':
       'عرض الجواز الرقمي',
   'Voir la fiche officielle':
