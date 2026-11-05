@@ -7,6 +7,7 @@ import { fetchAlternatives, fetchProduct, getCachedProduct } from "../lib/api";
 import { formatEan } from "../lib/barcode";
 import { carbonSummary, GRADE_TINT, isBadGrade, STATUS_LABEL, VERDICT } from "../lib/grades";
 import { formatNumber } from "../lib/reliability";
+import { isSourced, SOCIAL_MAX_POINTS, socialScore } from "../lib/social";
 import { navigate } from "../lib/router";
 import { addToHistory } from "../lib/storage";
 import { track, trackOnExit } from "../lib/track";
@@ -40,10 +41,15 @@ export function useProduct(ean: string) {
 }
 
 function socialSummary(product: Product): string {
-  if (product.social_grade === null) return "Pas encore évaluée pour cette marque";
-  const weak = product.brand.social_checks.find((c) => c.status === "non" || c.status === "non_communique");
+  const checks = product.brand.social_checks;
+  if (product.social_grade === null) {
+    return isSourced(checks) ? "Évaluation incomplète : non notée" : "Non évaluée : aucune source publique vérifiable";
+  }
+  const score = socialScore(checks);
+  if (score) return `${score.points} points sur ${SOCIAL_MAX_POINTS} · sources publiques`;
+  const weak = checks.find((c) => c.status === "non" || c.status === "non_communique" || c.status === "non_demontre");
   if (weak) return `${weak.label} : ${STATUS_LABEL[weak.status].toLowerCase()}`;
-  const partial = product.brand.social_checks.find((c) => c.status === "partiel");
+  const partial = checks.find((c) => c.status === "partiel");
   if (partial) return `${partial.label} : partielle`;
   return "Engagements sociaux vérifiés";
 }
@@ -150,6 +156,7 @@ export function ProductScreen({ ean }: { ean: string }) {
             <p className="verdict-kicker">Note VeriTrace</p>
             <p className="verdict-title">{verdict.title}</p>
             <p className="verdict-text">{verdict.text}</p>
+            {product.social_grade === null && <p className="verdict-scope">Note environnement seule : note sociale non évaluée.</p>}
           </div>
         </section>
 

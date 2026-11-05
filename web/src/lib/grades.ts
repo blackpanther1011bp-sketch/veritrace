@@ -35,12 +35,14 @@ export const STATUS_LABEL: Record<CheckStatus, string> = {
   partiel: "Partielle",
   non: "Non",
   non_communique: "Non communiqué",
+  non_demontre: "Non démontré",
 };
 export const STATUS_STYLE: Record<CheckStatus, { color: string; background: string }> = {
   oui: { color: "#1F6B4A", background: "#DDF2E5" },
   partiel: { color: "#7A5B00", background: "#FCF1CF" },
   non: { color: "#A3361F", background: "#FCE6E1" },
   non_communique: { color: "#4A5A50", background: "#E3E8E4" },
+  non_demontre: { color: "#4A5A50", background: "#E3E8E4" },
 };
 
 export function isBadGrade(grade: Grade): boolean {

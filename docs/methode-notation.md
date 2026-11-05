@@ -33,8 +33,9 @@ la durabilité, l'impact climat et la répartition par étape. VeriTrace reprend
 - l'import est automatique : GitHub Actions découpe le fichier chaque mois, puis Supabase le recharge
   (fonctions `registry_sync_start` et `registry_sync_step`, tâches planifiées `veritrace-registre-*`).
 
-Le registre ne couvre que l'environnement : la **note sociale** de ces marques s'affiche « non évaluée » et la
-note globale est alors la note environnement seule. VeriTrace n'invente pas de note sociale.
+Le registre ne couvre que l'environnement. La **note sociale** vient d'ailleurs : de preuves publiques vérifiées par
+VeriTrace pour chaque marque (voir [methode-note-sociale.md](methode-note-sociale.md)). Sans preuves, elle s'affiche
+« non évaluée » et la note globale est la note environnement seule. VeriTrace n'invente pas de note sociale.
 
 ## De la valeur à la note A–E (v2, novembre 2026)
 
@@ -72,7 +73,8 @@ Les seuils sont stockés dans la table `grade_thresholds` (lisible publiquement,
 ## Note globale
 
 Moyenne de la note environnement et de la note sociale ; en cas d'égalité entre deux lettres, la meilleure est retenue.
-Sans note sociale (marques du registre officiel), la note globale est la note environnement.
+Sans note sociale (marque non évaluée, étiquette lue, passeport), la note globale est la note environnement, et la fiche
+l'indique : « Note environnement seule : note sociale non évaluée ».
 
 ## Fiabilité affichée
 
@@ -89,8 +91,9 @@ Sans note sociale (marques du registre officiel), la note globale est la note en
 - Approximations signalées : modal et lyocell comptés comme viscose ; laine et polyamide recyclés comptés comme neufs.
 - Pays absents de la liste Ecobalyse (Portugal, Espagne, Italie…) : la région correspondante est utilisée
   (Europe de l'Ouest, etc.).
-- La note sociale est encore attribuée par l'équipe VeriTrace ; une méthode sourcée (certifications vérifiées,
-  Fashion Transparency Index, Open Supply Hub) est prévue.
+- La note sociale (v1) ne couvre encore que six marques du registre et trois critères de transparence et de contrôle
+  (voir [methode-note-sociale.md](methode-note-sociale.md)) ; les produits de démonstration gardent des données
+  sociales fictives, signalées comme telles.
 - Les seuils A–E sont une convention VeriTrace, publiée ici ; ce n'est pas une note officielle de l'État, ni un
   label : un fabricant ne peut pas la reproduire sur ses produits (conditions d'utilisation).
 - La note est relative : elle compare aux vêtements déclarés au registre (surtout des marques vendues en France).
