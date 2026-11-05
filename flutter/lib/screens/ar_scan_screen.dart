@@ -237,7 +237,7 @@ class _ArScanScreenState extends State<ArScanScreen> {
             shrinkWrap: true,
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
             children: [
-              const Text('Comparaison du rayon', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: VT.ink)),
+              const Text('Comparaison du rayon', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: VT.ink)),
               const SizedBox(height: 4),
               const Text('Articles scannés pendant votre visite, du mieux au moins bien noté.',
                   style: TextStyle(fontSize: 13, color: VT.muted2)),
@@ -451,7 +451,7 @@ class _ArScanScreenState extends State<ArScanScreen> {
               child: Text(
                 "Visez l'étiquette",
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700),
+                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ),
             if (_nativeAr) ...[
@@ -601,7 +601,7 @@ class _CompareBar extends StatelessWidget {
                     Text('Le meilleur ici : ${best.name} (${best.globalGrade.name})',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14.5)),
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
                     Text(comparison.summary, style: const TextStyle(color: Color(0xFFC9D4CD), fontSize: 13)),
                   ],
                 ),

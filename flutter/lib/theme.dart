@@ -61,7 +61,20 @@ ThemeData buildTheme() {
     colorScheme: ColorScheme.fromSeed(seedColor: VT.green, primary: VT.green, surface: VT.ground),
     scaffoldBackgroundColor: VT.ground,
   );
+  // Échelle de texte : 13 · 15 · 16 · 18 · 20 · 24 (comme sur le site), 13 minimum même pour les textes de Material
+  final t = base.textTheme;
   return base.copyWith(
+    textTheme: t.copyWith(
+      bodySmall: t.bodySmall?.copyWith(fontSize: 13),
+      bodyMedium: t.bodyMedium?.copyWith(fontSize: 15),
+      bodyLarge: t.bodyLarge?.copyWith(fontSize: 16),
+      labelSmall: t.labelSmall?.copyWith(fontSize: 13),
+      labelMedium: t.labelMedium?.copyWith(fontSize: 13),
+      labelLarge: t.labelLarge?.copyWith(fontSize: 15),
+      titleSmall: t.titleSmall?.copyWith(fontSize: 15),
+      titleMedium: t.titleMedium?.copyWith(fontSize: 16),
+      titleLarge: t.titleLarge?.copyWith(fontSize: 20),
+    ),
     appBarTheme: const AppBarTheme(
       backgroundColor: VT.ground,
       foregroundColor: VT.ink,

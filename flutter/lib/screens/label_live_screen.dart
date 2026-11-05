@@ -382,7 +382,7 @@ class _LabelLiveScreenState extends State<LabelLiveScreen> with WidgetsBindingOb
             _Round(icon: Icons.arrow_back, label: 'Retour', onPressed: () => Navigator.of(context).maybePop()),
             const Expanded(
               child: Text("Visez l'étiquette cousue",
-                  textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.w700)),
+                  textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
             ),
             _Round(
               icon: _torch ? Icons.flashlight_off : Icons.flashlight_on,

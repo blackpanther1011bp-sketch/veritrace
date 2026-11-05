@@ -80,10 +80,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     children: [
                       Row(
                         children: [
-                          Text(item.label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                          Text(item.label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                           const Spacer(),
                           Text(levelLabel[item.level] ?? item.level,
-                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: levelText[item.level])),
+                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: levelText[item.level])),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -136,7 +136,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   child: Row(
                     children: [
-                      Expanded(child: Text(c.label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500))),
+                      Expanded(child: Text(c.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(

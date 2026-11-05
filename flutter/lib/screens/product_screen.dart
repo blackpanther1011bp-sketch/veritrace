@@ -137,7 +137,7 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
                   children: [
                     Text(p.brand.name.toUpperCase(),
                         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 1.2, color: VT.muted2)),
-                    Text(p.name, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700)),
+                    Text(p.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                     Text(
                         '${p.reference != null ? 'Réf. ${p.reference} · ' : ''}'
                         '${p.hasNoBarcode ? 'Sans code-barres · étiquette lue' : 'EAN ${formatEan(p.ean)}'}',
@@ -162,9 +162,9 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
                   children: [
                     const Text('NOTE VERITRACE',
                         style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.8, color: VT.muted)),
-                    Text(verdict.$1, style: const TextStyle(fontFamily: 'Space Grotesk', fontSize: 22, fontWeight: FontWeight.w700)),
+                    Text(verdict.$1, style: const TextStyle(fontFamily: 'Space Grotesk', fontSize: 20, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
-                    Text(verdict.$2, style: const TextStyle(fontSize: 14, color: VT.muted, height: 1.4)),
+                    Text(verdict.$2, style: const TextStyle(fontSize: 15, color: VT.muted, height: 1.4)),
                   ],
                 ),
               ),
@@ -261,7 +261,7 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   child: Row(
                     children: [
-                      const Text('Fiabilité des données', style: TextStyle(color: VT.muted, fontSize: 14)),
+                      const Text('Fiabilité des données', style: TextStyle(color: VT.muted, fontSize: 15)),
                       const Spacer(),
                       ConfidencePill(product: p),
                     ],
@@ -302,11 +302,11 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
       padding: const EdgeInsets.symmetric(vertical: 13),
       child: Row(
         children: [
-          Text(label, style: const TextStyle(color: VT.muted, fontSize: 14)),
+          Text(label, style: const TextStyle(color: VT.muted, fontSize: 15)),
           const SizedBox(width: 12),
           Expanded(
             child: Text(value,
-                textAlign: TextAlign.right, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                textAlign: TextAlign.right, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
           ),
         ],
       ),

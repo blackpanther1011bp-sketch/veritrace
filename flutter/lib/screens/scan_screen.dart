@@ -86,7 +86,7 @@ class _ScanScreenState extends State<ScanScreen> {
                   const Icon(Icons.verified_outlined, color: VT.mint, size: 28),
                   const SizedBox(width: 10),
                   const Text('VeriTrace',
-                      style: TextStyle(fontFamily: 'Space Grotesk', color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700)),
+                      style: TextStyle(fontFamily: 'Space Grotesk', color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
                   const Spacer(),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -208,7 +208,7 @@ class _ScanScreenState extends State<ScanScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const Text('Code-barres', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+        const Text('Code-barres', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
         const SizedBox(height: 6),
         Row(
           children: [
@@ -321,7 +321,7 @@ class _ArPreview extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Impact élevé', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: VT.ink)),
+                      Text('Impact élevé', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: VT.ink)),
                       Text('Carbone D · Social E', style: TextStyle(fontSize: 13, color: VT.muted)),
                     ],
                   ),

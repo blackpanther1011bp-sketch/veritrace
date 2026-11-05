@@ -49,7 +49,7 @@ class SourcesCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 13),
         child: Row(
           children: [
-            Text(label, style: const TextStyle(color: VT.muted, fontSize: 14)),
+            Text(label, style: const TextStyle(color: VT.muted, fontSize: 15)),
             const SizedBox(width: 12),
             Expanded(child: Align(alignment: Alignment.centerRight, child: value)),
           ],
@@ -57,7 +57,7 @@ class SourcesCard extends StatelessWidget {
       );
 
   Widget _value(String text) =>
-      Text(text, textAlign: TextAlign.right, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500));
+      Text(text, textAlign: TextAlign.right, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500));
 
   @override
   Widget build(BuildContext context) {

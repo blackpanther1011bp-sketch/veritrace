@@ -93,7 +93,7 @@ class _AlternativesScreenState extends State<AlternativesScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text('Au lieu de : ${widget.product.name} · ${widget.product.brand.name}',
-                            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                       ),
                     ],
                   ),
@@ -192,7 +192,7 @@ class _AlternativesScreenState extends State<AlternativesScreen> {
               ),
               const SizedBox(height: 12),
               const Text('Comparez toutes les options mieux notées, en ligne et près de chez vous.',
-                  style: TextStyle(color: Color(0xFFC9D4CD), fontSize: 14, height: 1.45)),
+                  style: TextStyle(color: Color(0xFFC9D4CD), fontSize: 15, height: 1.45)),
               const SizedBox(height: 12),
               FilledButton(
                 onPressed: _openPaywall,

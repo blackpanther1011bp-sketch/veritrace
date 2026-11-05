@@ -53,7 +53,7 @@ class _NotFoundScreenState extends State<NotFoundScreen> {
           ),
           const SizedBox(height: 14),
           const Text('Article pas encore référencé',
-              textAlign: TextAlign.center, style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
           const Text(
             "Ce code-barres n'est pas encore dans notre base. Photographiez l'étiquette cousue du vêtement : "
@@ -117,9 +117,9 @@ class _NotFoundScreenState extends State<NotFoundScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text('Pas le temps ? Signalez-le simplement.',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 10),
-                  const Text('Marque (facultatif)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+                  const Text('Marque (facultatif)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
                   TextField(
                     controller: _brand,

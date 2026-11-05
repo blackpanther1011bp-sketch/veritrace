@@ -134,7 +134,7 @@ class ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Connexion impossible', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700)),
+            const Text('Connexion impossible', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
             const SizedBox(height: 12),
             const Text('Vérifiez votre connexion internet, puis réessayez.',
                 textAlign: TextAlign.center, style: TextStyle(color: VT.muted)),

@@ -110,7 +110,7 @@ class _LabelScanScreenState extends State<LabelScanScreen> {
 
   Widget _label(String text) => Padding(
         padding: const EdgeInsets.only(bottom: 6),
-        child: Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700)),
+        child: Text(text, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
       );
 
   Widget _errorText(String text) => Padding(
