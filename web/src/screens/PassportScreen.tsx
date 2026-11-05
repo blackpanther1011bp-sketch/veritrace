@@ -3,7 +3,7 @@ import { GradeBadge } from "../components/Grade";
 import { Header } from "../components/Header";
 import { IconInfo } from "../components/Icons";
 import { formatEan } from "../lib/barcode";
-import { fetchPassport, passportJson, passportLink } from "../lib/outils";
+import { fetchPassport, passportJson, passportLink, passportShareLink } from "../lib/outils";
 import { CONFIDENCE_LABEL, CONFIDENCE_STYLE, formatDate, formatNumber } from "../lib/reliability";
 import { navigate } from "../lib/router";
 import { track } from "../lib/track";
@@ -27,6 +27,7 @@ export function PassportScreen({ id }: { id: string }) {
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [qrSvg, setQrSvg] = useState<string | null>(null);
+  const [shared, setShared] = useState<"copie" | "erreur" | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -86,6 +87,20 @@ export function PassportScreen({ id }: { id: string }) {
   }
 
   const p = passport;
+  const shareLink = passportShareLink(p);
+  // Partage : feuille de partage du téléphone si elle existe, sinon copie du lien
+  async function share() {
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: `${p.product_name} · Passeport numérique`, url: shareLink });
+        return;
+      }
+      await navigator.clipboard.writeText(shareLink);
+      setShared("copie");
+    } catch (e) {
+      if ((e as Error)?.name !== "AbortError") setShared("erreur");
+    }
+  }
   const maxStage = Math.max(...p.stages.map((s) => s.ecs), 1);
   const chain: [string, string | null][] = [
     ["Filature", p.country_spinning],
@@ -200,13 +215,25 @@ export function PassportScreen({ id }: { id: string }) {
         )}
 
         <section className="card passport-qr">
-          {qrSvg ? <div className="qr" role="img" aria-label="QR code du passeport" dangerouslySetInnerHTML={{ __html: qrSvg }} /> : <div className="qr skeleton" />}
+          {qrSvg ? <div className="qr" role="img" aria-label="QR code du passeport" data-lien={link} dangerouslySetInnerHTML={{ __html: qrSvg }} /> : <div className="qr skeleton" />}
           <div className="stack-6">
             <p className="strong">QR code à imprimer sur l'étiquette</p>
             <p className="muted-sm">
               {p.gtin ? "Au format GS1 Digital Link, celui des futurs passeports numériques européens." : "Ajoutez un code-barres au produit pour obtenir un QR code au format GS1 Digital Link."}
             </p>
           </div>
+        </section>
+        <section className="card stack-6 no-print" aria-label="Partager le passeport">
+          <p className="strong">Lien à partager</p>
+          <p className="muted-sm share-link">{shareLink}</p>
+          <button type="button" className="btn btn-primary" onClick={share}>
+            Partager le lien
+          </button>
+          {shared && (
+            <p className={shared === "copie" ? "muted-sm" : "field-error"} role="status">
+              {shared === "copie" ? "Lien copié : collez-le dans WhatsApp, un e-mail…" : "Copie impossible : sélectionnez le lien ci-dessus."}
+            </p>
+          )}
         </section>
         <div className="sources-links no-print">
           {qrSvg && (

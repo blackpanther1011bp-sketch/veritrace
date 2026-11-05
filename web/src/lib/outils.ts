@@ -117,7 +117,11 @@ export function parseScannedCode(raw: string): ScannedCode | null {
   } catch {
     return null;
   }
-  const passport = url.searchParams.get("passeport") ?? url.hash.match(/#\/passeport\/([0-9a-f]{12})/)?.[1] ?? null;
+  const passport =
+    url.searchParams.get("passeport") ??
+    url.hash.match(/#\/passeport\/([0-9a-f]{12})/)?.[1] ??
+    url.pathname.match(/^\/passeport\/([0-9a-f]{12})\/?$/)?.[1] ??
+    null;
   if (passport && /^[0-9a-f]{12}$/.test(passport)) return { kind: "passport", id: passport };
   const dl = url.pathname.match(/(?:^|\/)01\/(\d{8,14})(?:\/|$)/);
   if (dl) {
@@ -128,10 +132,18 @@ export function parseScannedCode(raw: string): ScannedCode | null {
   return null;
 }
 
-/** Adresse encodée dans le QR code du passeport (GS1 Digital Link quand le produit a un code-barres). */
+/**
+ * Adresse encodée dans le QR code du passeport : GS1 Digital Link quand le produit a un code-barres (format des
+ * futurs passeports européens ; le site sert aussi l'aperçu de partage sur cette adresse), sinon l'adresse propre.
+ */
 export function passportLink(p: Pick<Passport, "id" | "gtin">, origin = window.location.origin): string {
   if (p.gtin) return `${origin}/01/${p.gtin.padStart(14, "0")}?passeport=${p.id}`;
-  return `${origin}/#/passeport/${p.id}`;
+  return passportShareLink(p, origin);
+}
+
+/** Adresse à partager (WhatsApp, e-mail…) : le site y sert un aperçu (titre, coût, image) puis la page du passeport. */
+export function passportShareLink(p: Pick<Passport, "id">, origin = window.location.origin): string {
+  return `${origin}/passeport/${p.id}`;
 }
 
 /** Données du passeport, structurées comme les champs attendus du passeport numérique européen. */
