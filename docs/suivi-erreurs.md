@@ -26,6 +26,9 @@ Conservation : 30 jours (offre gratuite de Sentry ; 90 jours au plus sur une off
   `{"action":"diagnostic_sentry"}` (3 fois par jour au plus) → erreur « Test Sentry VeriTrace … (serveur) ».
 - **App** : à l'accueil, appui long sur le nom « VeriTrace » → message « Rapport de test envoyé » et erreur
   « Test Sentry VeriTrace … (app) ». Rien n'est envoyé dans une version de développement.
+  Sans téléphone Android : GitHub → Actions → « Vérification Sentry (app Android sur émulateur) » → Run workflow.
+  Le dernier APK publié est installé sur un émulateur et l'appui long est fait automatiquement (captures d'écran
+  en artefact).
 - **Site** : pas de déclencheur ; toute vraie erreur du site publié arrive dans `veritrace-web`.
 
 Après une vérification, marquer l'erreur de test « résolue » dans Sentry.
