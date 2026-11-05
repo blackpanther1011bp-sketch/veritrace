@@ -7,6 +7,12 @@
 --   A = les 10 % les mieux placés, B = jusqu'à 30 %, C = jusqu'à 60 %, D = jusqu'à 80 %, E = les 20 % restants.
 -- Recalcul chaque mois, le lendemain de l'import du registre. Un type avec moins de 500 vêtements garde ses seuils.
 
+-- Copie des seuils v1, pour pouvoir revenir en arrière si besoin (accès serveur uniquement)
+create table if not exists public.grade_thresholds_v1 as table public.grade_thresholds;
+alter table public.grade_thresholds_v1 enable row level security;
+revoke all on public.grade_thresholds_v1 from anon, authenticated;
+comment on table public.grade_thresholds_v1 is 'Seuils A–E v1 (avant recalibrage du 5 novembre 2026). Sauvegarde, accès serveur uniquement.';
+
 create or replace function public.recalibrate_grade_thresholds()
 returns integer
 language plpgsql
