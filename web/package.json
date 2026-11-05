@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@fontsource/dm-sans": "5.3.0",
@@ -23,11 +24,13 @@
     "zxing-wasm": "3.1.6"
   },
   "devDependencies": {
+    "@playwright/test": "1.63.0",
     "@types/qrcode": "1.5.6",
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@types/three": "0.183.1",
     "@vitejs/plugin-react": "6.1.2",
+    "axe-core": "4.14.0",
     "typescript": "7.0.2",
     "vite": "8.3.5"
   },

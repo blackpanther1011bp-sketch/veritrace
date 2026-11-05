@@ -10,7 +10,8 @@ export function GradeBadge({ grade, size = 44, round = false }: { grade: Grade |
         height: size,
         borderRadius: round ? "50%" : Math.round(size * 0.28),
         background: grade ? GRADE_COLOR[grade] : "#DDE3DE",
-        fontSize: Math.round(size * 0.46),
+        // 13 px minimum, même dans les petites pastilles
+        fontSize: Math.max(13, Math.round(size * 0.46)),
       }}
       aria-label={grade ? `Note ${grade}` : "Pas de note"}
     >
