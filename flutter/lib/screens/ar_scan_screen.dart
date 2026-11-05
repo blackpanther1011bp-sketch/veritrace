@@ -163,7 +163,7 @@ class _ArScanScreenState extends State<ArScanScreen> {
     HapticFeedback.mediumImpact();
     Api.instance.track('passport_view');
     await _controller.stop();
-    await launchUrl(Uri.parse('${AppConfig.siteUrl}/#/passeport/$id'), mode: LaunchMode.externalApplication);
+    await launchUrl(Uri.parse('${AppConfig.siteUrl}/passeport/$id'), mode: LaunchMode.externalApplication);
     _openingPassport = false;
     if (mounted) unawaited(_controller.start());
   }

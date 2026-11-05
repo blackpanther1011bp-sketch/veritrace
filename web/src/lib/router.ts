@@ -2,9 +2,15 @@ import { useEffect, useState } from "react";
 
 const EVENT = "vt:navigate";
 
+// Adresses propres servies par le site (lien de partage d'un passeport, avec aperçu) : comprises comme leur
+// équivalent avec # ; le reste de la navigation se fait avec # (site statique).
+const CLEAN_PATH = /^\/passeport\/[0-9a-f]{12}$/;
+
 function currentPath(): string {
   const hash = window.location.hash.replace(/^#/, "");
-  return hash.length > 0 ? hash : "/";
+  if (hash.length > 0) return hash;
+  const clean = window.location.pathname.replace(/\/$/, "");
+  return CLEAN_PATH.test(clean) ? clean : "/";
 }
 
 export function useRoute(): string {
@@ -24,7 +30,8 @@ export function useRoute(): string {
 }
 
 export function navigate(path: string, options: { replace?: boolean } = {}): void {
-  const url = `#${path}`;
+  // depuis une adresse propre (/passeport/…), on revient à la racine du site pour la navigation avec #
+  const url = window.location.pathname === "/" ? `#${path}` : `/#${path}`;
   if (options.replace) {
     window.history.replaceState(window.history.state, "", url);
   } else {
