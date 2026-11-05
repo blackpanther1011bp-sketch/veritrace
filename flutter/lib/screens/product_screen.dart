@@ -6,6 +6,7 @@ import '../barcode.dart';
 import '../config.dart';
 import '../models.dart';
 import '../reliability.dart';
+import '../social.dart';
 import '../sources_card.dart';
 import '../storage.dart';
 import '../theme.dart';
@@ -81,9 +82,14 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
   }
 
   String _socialSummary(Product p) {
-    if (p.socialGrade == null) return 'Pas encore évaluée pour cette marque';
-    for (final c in p.brand.socialChecks) {
-      if (c.status == 'non' || c.status == 'non_communique') {
+    final checks = p.brand.socialChecks;
+    if (p.socialGrade == null) {
+      return isSourcedChecks(checks) ? 'Évaluation incomplète : non notée' : 'Non évaluée : aucune source publique vérifiable';
+    }
+    final score = socialScore(checks);
+    if (score != null) return '${score.points} points sur $socialMaxPoints · sources publiques';
+    for (final c in checks) {
+      if (c.status == 'non' || c.status == 'non_communique' || c.status == 'non_demontre') {
         return '${c.label} : ${statusLabel[c.status]!.toLowerCase()}';
       }
     }
@@ -165,6 +171,11 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
                     Text(verdict.$1, style: const TextStyle(fontFamily: 'Space Grotesk', fontSize: 20, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
                     Text(verdict.$2, style: const TextStyle(fontSize: 15, color: VT.muted, height: 1.4)),
+                    if (p.socialGrade == null) ...[
+                      const SizedBox(height: 6),
+                      const Text('Note environnement seule : note sociale non évaluée.',
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: VT.muted)),
+                    ],
                   ],
                 ),
               ),
