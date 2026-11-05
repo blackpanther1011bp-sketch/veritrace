@@ -3,7 +3,8 @@ import { defineConfig, devices } from "@playwright/test";
 // Tests de parcours du site (dossier e2e) : le site construit (npm run build) est servi par `vite preview`, avec les
 // mêmes en-têtes de sécurité qu'en production. Supabase est simulé dans chaque test (e2e/supabase.ts) : aucun test
 // n'écrit dans la vraie base, et les résultats ne dépendent pas des données du moment.
-const PORT = 4173;
+// E2E_PORT : pour lancer plusieurs copies du projet en même temps sur une même machine
+const PORT = Number(process.env.E2E_PORT ?? 4173);
 
 export default defineConfig({
   testDir: "e2e",
