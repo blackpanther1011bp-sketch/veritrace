@@ -7,6 +7,7 @@
 // qui a dépassé la durée de conservation, et il est limité à 4 passages par jour.
 
 import postgres from "npm:postgres@3.4.5";
+import { reportError, reportWarning } from "./suivi.ts";
 
 const BUCKET = "etiquettes";
 const RETENTION = "12 months";
@@ -47,6 +48,7 @@ Deno.serve(async (req) => {
       });
       if (!res.ok) {
         console.error(`Storage HTTP ${res.status} :`, (await res.text()).slice(0, 300));
+        await reportWarning(`Suppression des photos refusée par Storage (HTTP ${res.status})`, "menage-photos");
         break;
       }
       const out = (await res.json()) as { name?: string }[];
@@ -61,6 +63,7 @@ Deno.serve(async (req) => {
     return reply(200, { ok: true, trouvees: names.length, supprimees: deleted.length, encore: names.length === MAX_PER_RUN });
   } catch (e) {
     console.error("Ménage des photos :", e);
+    await reportError(e, "menage-photos");
     return reply(500, { ok: false, error: "erreur" });
   }
 });

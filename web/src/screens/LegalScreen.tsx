@@ -113,6 +113,14 @@ function Privacy() {
             <td>Vous répondre</td>
             <td>12 mois</td>
           </tr>
+          <tr>
+            <td>
+              Rapports d'erreur techniques : message d'erreur, écran concerné, navigateur ou modèle de téléphone, version de l'application. Sans adresse IP,
+              sans identité, sans capture ni enregistrement d'écran
+            </td>
+            <td>Détecter et corriger les pannes</td>
+            <td>30 jours (90 jours au plus selon l'offre Sentry)</td>
+          </tr>
         </tbody>
       </table>
       <p>
@@ -129,6 +137,7 @@ function Privacy() {
         <li>Supabase (base de données et stockage), serveurs à Paris (France).</li>
         <li>Vercel (hébergement du site), réseau mondial.</li>
         <li>GitHub (téléchargement de l'application Android).</li>
+        <li>Sentry (Functional Software, Inc.) : suivi des erreurs techniques, données hébergées en Allemagne (Union européenne).</li>
         <li>
           Le cas échéant, Anthropic (États-Unis) : lecture par IA de la photo d'une étiquette, quand le texte n'a pas pu être lu sur votre appareil.
         </li>

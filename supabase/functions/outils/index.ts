@@ -26,6 +26,7 @@ import {
 } from "./label.ts";
 import { isValidGtin, passportId, passportQuery, stagesFromLifeCycle, validatePassport } from "./passport.ts";
 import { clientIp, ipSource } from "./reseau.ts";
+import { reportError, reportWarning } from "./suivi.ts";
 
 // Adresses modifiables pour les tests locaux uniquement (faux serveurs)
 const ECOBALYSE = Deno.env.get("ECOBALYSE_API_URL") ?? "https://ecobalyse.beta.gouv.fr/api";
@@ -383,15 +384,22 @@ Deno.serve(async (req) => {
         return await createPassport(body, req);
       case "etat":
         return await quotaCheck(req);
+      case "diagnostic_sentry":
+        // Vérification du suivi des erreurs : une vraie erreur, 3 fois par jour au plus
+        if (!(await takeQuota("diagnostic_sentry", 3))) return reply(429, { ok: false, error: "quota" });
+        throw new Error("Test Sentry VeriTrace : vérification de l'installation (serveur)");
       default:
         return reply(400, { ok: false, error: "action", message: "Action inconnue." });
     }
   } catch (e) {
     if (e instanceof LabelError) {
       const status = e.code === "quota" ? 429 : e.code.endsWith("indisponible") ? 503 : 422;
+      // service externe indisponible (Ecobalyse, IA) : à surveiller ; les erreurs de saisie ne sont pas envoyées
+      if (status === 503) await reportWarning(`Service indisponible : ${e.code}`, "outils");
       return reply(status, { ok: false, error: e.code, message: e.message });
     }
     console.error("Erreur inattendue :", e);
+    await reportError(e, "outils");
     return reply(500, { ok: false, error: "erreur", message: "Erreur inattendue : réessayez dans un instant." });
   }
 });

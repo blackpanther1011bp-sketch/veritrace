@@ -35,6 +35,7 @@ Pas de prospection, pas de profilage, pas de décision automatisée sur les pers
 | Fabricants | Entreprise, ville, produit, étapes de fabrication | Jusqu'à demande de suppression |
 | Toute connexion aux fonctions serveur | Empreinte HMAC secrète de l'adresse IP, renouvelée chaque jour (l'adresse elle-même n'est pas stockée) | 30 jours |
 | Personnes qui écrivent | Objet, message, e-mail de réponse (facultatif) | 12 mois |
+| Tout utilisateur, en cas d'erreur technique | Message d'erreur, écran, navigateur ou modèle de téléphone, version ; sans IP ni identité | 30 jours (90 au plus) |
 
 Aucune donnée sensible au sens de la loi 09-08 (santé, opinions, origine, etc.) n'est demandée. Pas de compte, pas de
 nom ni d'e-mail obligatoire, pas de cookie de suivi. L'historique des scans reste sur l'appareil.
@@ -50,6 +51,7 @@ légitime (mesure d'usage minimale, sécurité du service).
 | Vercel, Inc. (États-Unis) | Hébergement du site web | Réseau mondial ; journaux techniques (adresse IP) |
 | GitHub, Inc. (États-Unis) | Téléchargement de l'application Android | Journaux techniques |
 | Ecobalyse (ministère français de la Transition écologique) | Calcul du coût environnemental | Ne reçoit que la composition et les pays du vêtement, aucune donnée personnelle |
+| Functional Software, Inc. (Sentry, États-Unis) | Suivi des erreurs techniques (site, app, fonctions serveur), sans adresse IP ni identité | Serveurs en Allemagne (Union européenne) |
 | Anthropic, PBC (États-Unis), facultatif | Lecture par IA de la photo d'une étiquette, seulement si la clé est configurée et que le texte n'a pas pu être lu sur l'appareil | Photo d'étiquette |
 
 ## 5. Transferts hors du Maroc

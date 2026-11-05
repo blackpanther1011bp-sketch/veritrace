@@ -3,6 +3,7 @@
 - nom affiché « VeriTrace », accès Internet ;
 - retrait des permissions ajoutées par les modules caméra et photo mais inutiles (micro, stockage) ;
 - signature de publication lue dans android/key.properties (écrit par le workflow) ;
+- Android 8.0 (API 26) au minimum, exigé par Sentry ;
 - icône, icône adaptative et écran de démarrage VeriTrace (dossier branding/android/res) ;
 - règles R8 pour les modules ML Kit non inclus.
 
@@ -82,6 +83,10 @@ def patch_gradle() -> None:
         1,
     )
     g = g.replace(old_signing, 'signingConfig = signingConfigs.getByName("release")', 1)
+    # Android 8.0 (API 26) au minimum : exigé par le SDK de suivi des erreurs (Sentry 10)
+    if "minSdk = flutter.minSdkVersion" not in g:
+        fail("« minSdk = flutter.minSdkVersion » introuvable dans app/build.gradle.kts")
+    g = g.replace("minSdk = flutter.minSdkVersion", "minSdk = 26", 1)
     GRADLE.write_text(g, encoding="utf-8")
 
 
