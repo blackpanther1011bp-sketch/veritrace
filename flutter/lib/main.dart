@@ -31,17 +31,28 @@ Future<void> main() async {
       options.attachViewHierarchy = false;
       options.enableAutoSessionTracking = false;
       // Android ajoute de lui-même un identifiant d'installation tiré au hasard : retiré de chaque rapport
-      options.beforeSend = (event, hint) {
-        event.user = null;
-        return event;
-      };
-      options.beforeSendTransaction = (transaction, hint) {
-        transaction.user = null;
-        return transaction;
-      };
+      options.beforeSend = (event, hint) => _anonymize(event);
+      options.beforeSendTransaction = (transaction, hint) => _anonymize(transaction);
     },
     appRunner: () => runApp(const VeriTraceApp()),
   );
+}
+
+/// Retire d'un rapport Sentry tout identifiant de l'utilisateur ou de l'installation (utilisateur, identifiant
+/// d'appareil ajouté par Android). Le reste du rapport (erreur, modèle de téléphone, version) est gardé.
+T _anonymize<T extends SentryEvent>(T event) {
+  event.user = null;
+  final device = event.contexts.device;
+  if (device != null) {
+    device.deviceUniqueIdentifier = null;
+    try {
+      device.unknown?.remove('id');
+    } catch (_) {
+      // table non modifiable : on remplace le contexte sans les champs inconnus
+      event.contexts.device = SentryDevice.fromJson(device.toJson()..remove('id'));
+    }
+  }
+  return event;
 }
 
 class VeriTraceApp extends StatelessWidget {

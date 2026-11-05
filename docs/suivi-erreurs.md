@@ -37,8 +37,9 @@ Après une vérification, marquer l'erreur de test « résolue » dans Sentry.
 
 1. **Sentry → Settings → Security & Privacy** (organisation) :
    - activer « Prevent Storing of IP Addresses » (double sécurité : aucune IP gardée, même par erreur) ;
-   - dans « Advanced Data Scrubbing », ajouter la règle : *Remove* · *Anything* · `$user.id` (retire aussi
-     l'identifiant d'installation qu'Android ajoute aux plantages natifs, rares).
+   - dans « Advanced Data Scrubbing », ajouter deux règles : *Remove* · *Anything* · `$user.id`, puis *Remove* ·
+     *Anything* · `contexts.device.id` (retirent aussi l'identifiant d'installation qu'Android ajoute aux plantages
+     natifs, rares ; l'app le retire déjà de ses propres rapports).
 2. **Erreurs du site lisibles** (cartes de code) : créer un jeton d'organisation dans Sentry (Settings → Auth
    Tokens), l'ajouter dans Vercel (projet `veritrace` → Settings → Environment Variables) sous le nom
    `SENTRY_AUTH_TOKEN`, environnement Production, puis republier le site. Les cartes sont envoyées à Sentry pendant

@@ -21,6 +21,8 @@ try:
     root = ET.parse(sys.argv[1]).getroot()
 except Exception:
     sys.exit(0)
+# Seulement un élément qui ne contient que ce texte : Flutter regroupe parfois tout l'en-tête (nom, langue, « Démo »)
+# en un seul élément, dont le centre tomberait sur le choix de la langue ; la position calculée prend alors le relais
 best = None
 for n in root.iter("node"):
     if sys.argv[2] in (n.get("text", "").strip(), n.get("content-desc", "").strip()):
