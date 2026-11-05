@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api.dart';
 import '../config.dart';
+import '../l10n.dart';
 import '../models.dart';
 import '../navigation.dart';
 import '../storage.dart';
@@ -66,11 +67,11 @@ class _AlternativesScreenState extends State<AlternativesScreen> {
   List<String> _tags(Product p) {
     final t = <String>[];
     final comp = p.composition.toLowerCase();
-    if (p.brand.kind == 'seconde_main') t.add('Seconde main');
-    if (comp.contains('bio')) t.add('Coton bio');
-    if (comp.contains('recyclé')) t.add('Fibres recyclées');
-    if (comp.contains('lin')) t.add('Lin');
-    if (p.originCountry == 'Maroc' && p.brand.kind != 'seconde_main') t.add('Fabriqué au Maroc');
+    if (p.brand.kind == 'seconde_main') t.add(tr('Seconde main'));
+    if (comp.contains('bio')) t.add(tr('Coton bio'));
+    if (comp.contains('recyclé')) t.add(tr('Fibres recyclées'));
+    if (comp.contains('lin')) t.add(tr('Lin'));
+    if (p.originCountry == 'Maroc' && p.brand.kind != 'seconde_main') t.add(tr('Fabriqué au Maroc'));
     return t.take(3).toList();
   }
 
@@ -78,7 +79,7 @@ class _AlternativesScreenState extends State<AlternativesScreen> {
   Widget build(BuildContext context) {
     final list = _list;
     return Scaffold(
-      appBar: AppBar(title: const Text('Alternatives')),
+      appBar: AppBar(title: Text(tr('Alternatives'))),
       body: list == null
           ? (_failed ? ErrorView(onRetry: _load) : const Center(child: CircularProgressIndicator()))
           : ListView(
@@ -92,7 +93,9 @@ class _AlternativesScreenState extends State<AlternativesScreen> {
                       GradeBadge(grade: widget.product.globalGrade, size: 28),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text('Au lieu de : ${widget.product.name} · ${widget.product.brand.name}',
+                        child: Text(
+                            tr('Au lieu de : {name} · {brand}',
+                                {'name': widget.product.name, 'brand': widget.product.brand.name}),
                             style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                       ),
                     ],
@@ -100,16 +103,16 @@ class _AlternativesScreenState extends State<AlternativesScreen> {
                 ),
                 const SizedBox(height: 14),
                 if (list.isEmpty)
-                  const CardBox(
-                    padding: EdgeInsets.all(28),
-                    child: Text('Déjà parmi les meilleurs : aucune alternative mieux notée dans cette catégorie.',
-                        textAlign: TextAlign.center, style: TextStyle(color: VT.muted, fontSize: 15)),
+                  CardBox(
+                    padding: const EdgeInsets.all(28),
+                    child: Text(tr('Déjà parmi les meilleurs : aucune alternative mieux notée dans cette catégorie.'),
+                        textAlign: TextAlign.center, style: const TextStyle(color: VT.muted, fontSize: 15)),
                   )
                 else ..._items(list),
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
-                  child: const Text('Scanner un autre article'),
+                  child: Text(tr('Scanner un autre article')),
                 ),
               ],
             ),
@@ -120,7 +123,7 @@ class _AlternativesScreenState extends State<AlternativesScreen> {
     final visible = _premium ? list : list.take(AppConfig.freeAlternatives).toList();
     final locked = _premium ? 0 : list.length - visible.length;
     return [
-      const Text('Même usage, meilleur impact.', style: TextStyle(fontSize: 15, color: VT.muted)),
+      Text(tr('Même usage, meilleur impact.'), style: const TextStyle(fontSize: 15, color: VT.muted)),
       const SizedBox(height: 12),
       for (final p in visible)
         Padding(
@@ -135,9 +138,9 @@ class _AlternativesScreenState extends State<AlternativesScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                      Text(db(p.name), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
                       Text(
-                        '${p.brand.name} · ${p.brand.kind == 'seconde_main' ? 'Friperie solidaire' : p.isRegistry ? 'Registre officiel' : 'Fabriqué : ${p.originCountry}'}',
+                        '${db(p.brand.name)} · ${p.brand.kind == 'seconde_main' ? tr('Friperie solidaire') : p.isRegistry ? tr('Registre officiel') : tr('Fabriqué : {country}', {'country': p.originCountry})}',
                         style: const TextStyle(fontSize: 13, color: VT.muted2),
                       ),
                       const SizedBox(height: 6),
@@ -166,17 +169,18 @@ class _AlternativesScreenState extends State<AlternativesScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(color: VT.mintTint, borderRadius: BorderRadius.circular(14)),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.check, color: VT.green),
-              SizedBox(width: 10),
-              Text('Premium activé (simulation de démo)', style: TextStyle(color: VT.green, fontWeight: FontWeight.w500)),
+              const Icon(Icons.check, color: VT.green),
+              const SizedBox(width: 10),
+              Text(tr('Premium activé (simulation de démo)'),
+                  style: const TextStyle(color: VT.green, fontWeight: FontWeight.w500)),
             ],
           ),
         ),
       if (locked > 0)
         Container(
-          margin: const EdgeInsets.only(top: 4),
+          margin: const EdgeInsetsDirectional.only(top: 4),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(color: VT.ink, borderRadius: BorderRadius.circular(20)),
           child: Column(
@@ -186,19 +190,19 @@ class _AlternativesScreenState extends State<AlternativesScreen> {
                 children: [
                   const Icon(Icons.lock_outline, color: VT.mint),
                   const SizedBox(width: 10),
-                  Text('$locked autre${locked > 1 ? 's' : ''} alternative${locked > 1 ? 's' : ''}',
+                  Text(tn(locked, '{n} autre alternative', '{n} autres alternatives'),
                       style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
                 ],
               ),
               const SizedBox(height: 12),
-              const Text('Comparez toutes les options mieux notées, en ligne et près de chez vous.',
-                  style: TextStyle(color: Color(0xFFC9D4CD), fontSize: 15, height: 1.45)),
+              Text(tr('Comparez toutes les options mieux notées, en ligne et près de chez vous.'),
+                  style: const TextStyle(color: Color(0xFFC9D4CD), fontSize: 15, height: 1.45)),
               const SizedBox(height: 12),
               FilledButton(
                 onPressed: _openPaywall,
                 style: FilledButton.styleFrom(
                     backgroundColor: VT.mint, foregroundColor: VT.ink, minimumSize: const Size.fromHeight(48)),
-                child: const Text('Débloquer avec Premium'),
+                child: Text(tr('Débloquer avec Premium')),
               ),
             ],
           ),
@@ -212,10 +216,10 @@ class _PaywallSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const benefits = [
-      'Toutes les alternatives pour chaque article',
-      'Historique complet de vos scans',
-      'Alertes sur vos marques préférées',
+    final benefits = [
+      tr('Toutes les alternatives pour chaque article'),
+      tr('Historique complet de vos scans'),
+      tr('Alertes sur vos marques préférées'),
     ];
     return SafeArea(
       child: Padding(
@@ -237,15 +241,15 @@ class _PaywallSheet extends StatelessWidget {
                   ],
                 ),
               ),
-            const Text(AppConfig.premiumPriceLabel, style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
+            Text(AppConfig.premiumPriceLabel, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
             const SizedBox(height: 14),
             FilledButton(
               onPressed: () => Navigator.of(context).pop(true),
-              child: const Text("Commencer l'essai gratuit"),
+              child: Text(tr("Commencer l'essai gratuit")),
             ),
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Plus tard')),
-            const Text("Démo : aucun paiement n'est demandé.",
-                textAlign: TextAlign.center, style: TextStyle(fontSize: 13, color: VT.muted2)),
+            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(tr('Plus tard'))),
+            Text(tr("Démo : aucun paiement n'est demandé."),
+                textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: VT.muted2)),
           ],
         ),
       ),

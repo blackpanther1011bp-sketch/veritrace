@@ -1,3 +1,4 @@
+import 'l10n.dart';
 import 'models.dart';
 
 /// Comparateur en rayon : classement des vêtements scannés pendant la visite, du mieux au moins bien noté
@@ -38,11 +39,13 @@ Comparison? compareProducts(Iterable<Product> products) {
   final muchLess = cost(best).isFinite && cost(worst).isFinite && cost(worst) > cost(best) * 1.15;
   final String summary;
   if (sameType && muchLess) {
-    summary = "${_fr(cost(worst) / cost(best))} fois moins d'impact que le moins bon (${worst.globalGrade.name})";
+    summary = tr("{ratio} fois moins d'impact que le moins bon ({grade})",
+        {'ratio': _fr(cost(worst) / cost(best)), 'grade': worst.globalGrade.name});
   } else if (best.globalGrade == worst.globalGrade) {
-    summary = 'Notes proches : tous notés ${best.globalGrade.name}';
+    summary = tr('Notes proches : tous notés {grade}', {'grade': best.globalGrade.name});
   } else {
-    summary = 'Note ${best.globalGrade.name}, contre ${worst.globalGrade.name} pour le moins bon';
+    summary = tr('Note {best}, contre {worst} pour le moins bon',
+        {'best': best.globalGrade.name, 'worst': worst.globalGrade.name});
   }
   return Comparison(unique, summary);
 }

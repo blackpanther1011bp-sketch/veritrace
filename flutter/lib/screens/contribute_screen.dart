@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../api.dart';
 import '../barcode.dart';
 import '../contribute.dart';
+import '../l10n.dart';
 import '../theme.dart';
 import '../widgets.dart';
 
@@ -67,7 +68,7 @@ class _ContributeScreenState extends State<ContributeScreen> {
       final bytes = await shot.readAsBytes();
       if (mounted) setState(() => _photo = bytes);
     } catch (_) {
-      if (mounted) setState(() => _photoError = "La photo n'a pas pu être prise. Réessayez.");
+      if (mounted) setState(() => _photoError = tr("La photo n'a pas pu être prise. Réessayez."));
     }
   }
 
@@ -106,7 +107,7 @@ class _ContributeScreenState extends State<ContributeScreen> {
       );
 
   Widget _label(String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsetsDirectional.only(bottom: 6),
         child: Text(text, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
       );
 
@@ -125,21 +126,22 @@ class _ContributeScreenState extends State<ContributeScreen> {
     if (_status == _Status.sent) return _sent(context);
     final compositionError = _compositionError;
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajouter ce vêtement')),
+      appBar: AppBar(title: Text(tr('Ajouter ce vêtement'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
         children: [
-          const Text(
-            "Recopiez l'étiquette cousue à l'intérieur du vêtement. Nous vérifions chaque ajout avant de le noter.",
-            style: TextStyle(fontSize: 15, color: VT.muted, height: 1.45),
+          Text(
+            tr("Recopiez l'étiquette cousue à l'intérieur du vêtement. Nous vérifions chaque ajout avant de le noter."),
+            style: const TextStyle(fontSize: 15, color: VT.muted, height: 1.45),
           ),
           const SizedBox(height: 10),
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(color: VT.line, borderRadius: BorderRadius.circular(999)),
-              child: Text('EAN ${formatEan(widget.ean)}', style: const TextStyle(fontSize: 13, color: VT.muted)),
+              child: Text(tr('EAN {code}', {'code': formatEan(widget.ean)}),
+                  style: const TextStyle(fontSize: 13, color: VT.muted)),
             ),
           ),
           const SizedBox(height: 14),
@@ -147,25 +149,25 @@ class _ContributeScreenState extends State<ContributeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _label('Marque'),
+                _label(tr('Marque')),
                 TextField(
                   controller: _brand,
                   maxLength: 80,
                   textCapitalization: TextCapitalization.words,
-                  decoration: _decoration('Ex. Defacto, Zara, Marwa…', error: _touched && _brandMissing),
+                  decoration: _decoration(tr('Ex. Defacto, Zara, Marwa…'), error: _touched && _brandMissing),
                 ),
-                if (_touched && _brandMissing) _error('Indiquez la marque.'),
+                if (_touched && _brandMissing) _error(tr('Indiquez la marque.')),
                 const SizedBox(height: 16),
-                _label('Nom du vêtement'),
+                _label(tr('Nom du vêtement')),
                 TextField(
                   controller: _name,
                   maxLength: 120,
                   textCapitalization: TextCapitalization.sentences,
-                  decoration: _decoration('Ex. T-shirt col rond noir', error: _touched && _nameMissing),
+                  decoration: _decoration(tr('Ex. T-shirt col rond noir'), error: _touched && _nameMissing),
                 ),
-                if (_touched && _nameMissing) _error('Donnez un nom au vêtement.'),
+                if (_touched && _nameMissing) _error(tr('Donnez un nom au vêtement.')),
                 const SizedBox(height: 16),
-                _label('Catégorie'),
+                _label(tr('Catégorie')),
                 InputDecorator(
                   decoration: _decoration('', error: _touched && _categoryMissing)
                       .copyWith(contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4)),
@@ -173,33 +175,38 @@ class _ContributeScreenState extends State<ContributeScreen> {
                     child: DropdownButton<String>(
                       value: _category,
                       isExpanded: true,
-                      hint: const Text('Choisir…'),
+                      hint: Text(tr('Choisir…')),
+                      // valeur envoyée en français, libellé dans la langue choisie
                       items: [
-                        for (final c in contributionCategories) DropdownMenuItem(value: c, child: Text(c)),
+                        for (final c in contributionCategories) DropdownMenuItem(value: c, child: Text(tv(c))),
                       ],
                       onChanged: (v) => setState(() => _category = v),
                     ),
                   ),
                 ),
-                if (_touched && _categoryMissing) _error('Choisissez une catégorie.'),
+                if (_touched && _categoryMissing) _error(tr('Choisissez une catégorie.')),
                 const SizedBox(height: 16),
-                _label('Composition'),
+                _label(tr('Composition')),
                 TextField(
                   controller: _composition,
                   maxLength: 300,
-                  decoration: _decoration('Ex. 60 % coton, 40 % polyester', error: _touched && compositionError != null),
+                  // recopiée de l'étiquette (lettres latines) : de gauche à droite, même dans l'interface arabe
+                  textDirection: TextDirection.ltr,
+                  decoration:
+                      _decoration(tr('Ex. 60 % coton, 40 % polyester'), error: _touched && compositionError != null),
                 ),
                 if (_touched && compositionError != null)
                   _error(compositionError)
                 else
-                  _help("Telle qu'écrite sur l'étiquette, avec les pourcentages."),
+                  _help(tr("Telle qu'écrite sur l'étiquette, avec les pourcentages.")),
                 const SizedBox(height: 16),
-                _label('Fabriqué en (facultatif)'),
+                _label(tr('Fabriqué en (facultatif)')),
                 Autocomplete<String>(
+                  // pays proposés en français (valeur enregistrée) ; on peut aussi commencer à le taper en arabe
                   optionsBuilder: (value) {
                     final q = value.text.trim().toLowerCase();
                     if (q.isEmpty) return const Iterable<String>.empty();
-                    return contributionCountries.where((c) => c.toLowerCase().startsWith(q));
+                    return contributionCountries.where((c) => c.toLowerCase().startsWith(q) || tv(c).startsWith(q));
                   },
                   onSelected: (v) => _country.text = v,
                   fieldViewBuilder: (context, controller, focusNode, onSubmit) {
@@ -209,12 +216,12 @@ class _ContributeScreenState extends State<ContributeScreen> {
                       onChanged: (v) => _country.text = v,
                       maxLength: 40,
                       textCapitalization: TextCapitalization.words,
-                      decoration: _decoration('Ex. Maroc, Turquie, Bangladesh…'),
+                      decoration: _decoration(tr('Ex. Maroc, Turquie, Bangladesh…')),
                     );
                   },
                 ),
                 const SizedBox(height: 16),
-                _label("Photo de l'étiquette (facultatif)"),
+                _label(tr("Photo de l'étiquette (facultatif)")),
                 if (_photo != null)
                   Row(
                     children: [
@@ -223,20 +230,20 @@ class _ContributeScreenState extends State<ContributeScreen> {
                         child: Image.memory(_photo!, width: 96, height: 96, fit: BoxFit.cover),
                       ),
                       const SizedBox(width: 12),
-                      TextButton(onPressed: _takePhoto, child: const Text('Reprendre')),
+                      TextButton(onPressed: _takePhoto, child: Text(tr('Reprendre'))),
                     ],
                   )
                 else
                   OutlinedButton.icon(
                     onPressed: _takePhoto,
                     icon: const Icon(Icons.photo_camera_outlined),
-                    label: const Text("Prendre l'étiquette en photo"),
+                    label: Text(tr("Prendre l'étiquette en photo")),
                   ),
-                _photoError != null ? _error(_photoError!) : _help('Elle sert uniquement à vérifier votre saisie.'),
+                _photoError != null ? _error(_photoError!) : _help(tr('Elle sert uniquement à vérifier votre saisie.')),
                 if (_status == _Status.error) ...[
                   const SizedBox(height: 12),
-                  const Text("L'envoi a échoué. Vérifiez votre connexion puis réessayez.",
-                      style: TextStyle(color: VT.danger)),
+                  Text(tr("L'envoi a échoué. Vérifiez votre connexion puis réessayez."),
+                      style: const TextStyle(color: VT.danger)),
                 ],
               ],
             ),
@@ -248,7 +255,7 @@ class _ContributeScreenState extends State<ContributeScreen> {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
           child: FilledButton(
             onPressed: _status == _Status.sending ? null : _submit,
-            child: Text(_status == _Status.sending ? 'Envoi…' : 'Envoyer pour vérification'),
+            child: Text(_status == _Status.sending ? tr('Envoi…') : tr('Envoyer pour vérification')),
           ),
         ),
       ),
@@ -257,28 +264,28 @@ class _ContributeScreenState extends State<ContributeScreen> {
 
   Widget _sent(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajouter ce vêtement')),
+      appBar: AppBar(title: Text(tr('Ajouter ce vêtement'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
         children: [
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(color: VT.mintTint, borderRadius: BorderRadius.circular(14)),
-            child: const Row(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(radius: 18, backgroundColor: VT.green, child: Icon(Icons.check, color: Colors.white, size: 20)),
-                SizedBox(width: 12),
+                const CircleAvatar(
+                    radius: 18, backgroundColor: VT.green, child: Icon(Icons.check, color: Colors.white, size: 20)),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Merci, c'est envoyé !", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                      SizedBox(height: 4),
+                      Text(tr("Merci, c'est envoyé !"), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                      const SizedBox(height: 4),
                       Text(
-                        "L'équipe VeriTrace vérifie votre ajout, puis le vêtement est noté avec Ecobalyse, "
-                        'la méthode officielle française.',
-                        style: TextStyle(color: Color(0xFF1E4A35)),
+                        tr("L'équipe VeriTrace vérifie votre ajout, puis le vêtement est noté avec Ecobalyse, la méthode officielle française."),
+                        style: const TextStyle(color: Color(0xFF1E4A35)),
                       ),
                     ],
                   ),
@@ -293,7 +300,7 @@ class _ContributeScreenState extends State<ContributeScreen> {
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
           child: FilledButton(
             onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
-            child: const Text('Scanner un autre article'),
+            child: Text(tr('Scanner un autre article')),
           ),
         ),
       ),

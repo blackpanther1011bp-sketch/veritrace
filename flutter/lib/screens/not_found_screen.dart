@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../api.dart';
 import '../barcode.dart';
+import '../l10n.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'contribute_screen.dart';
@@ -42,7 +43,7 @@ class _NotFoundScreenState extends State<NotFoundScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Résultat du scan')),
+      appBar: AppBar(title: Text(tr('Résultat du scan'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
         children: [
@@ -52,21 +53,21 @@ class _NotFoundScreenState extends State<NotFoundScreen> {
             child: Icon(Icons.help_outline, size: 40, color: VT.muted),
           ),
           const SizedBox(height: 14),
-          const Text('Article pas encore référencé',
-              textAlign: TextAlign.center, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+          Text(tr('Article pas encore référencé'),
+              textAlign: TextAlign.center, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
           const SizedBox(height: 10),
-          const Text(
-            "Ce code-barres n'est pas encore dans notre base. Photographiez l'étiquette cousue du vêtement : "
-            'sa note est calculée tout de suite.',
+          Text(
+            tr("Ce code-barres n'est pas encore dans notre base. Photographiez l'étiquette cousue du vêtement : sa note est calculée tout de suite."),
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 15, color: VT.muted, height: 1.45),
+            style: const TextStyle(fontSize: 15, color: VT.muted, height: 1.45),
           ),
           const SizedBox(height: 12),
           Center(
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(color: VT.line, borderRadius: BorderRadius.circular(999)),
-              child: Text('EAN ${formatEan(widget.ean)}', style: const TextStyle(fontSize: 13, color: VT.muted)),
+              child: Text(tr('EAN {code}', {'code': formatEan(widget.ean)}),
+                  style: const TextStyle(fontSize: 13, color: VT.muted)),
             ),
           ),
           const SizedBox(height: 18),
@@ -74,36 +75,37 @@ class _NotFoundScreenState extends State<NotFoundScreen> {
             onPressed: () => Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => LabelLiveScreen(ean: widget.ean))),
             icon: const Icon(Icons.photo_camera_outlined),
-            label: const Text("Viser l'étiquette : note en direct"),
+            label: Text(tr("Viser l'étiquette : note en direct")),
           ),
           TextButton(
             onPressed: () => Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => LabelScanScreen(ean: widget.ean))),
-            child: const Text("Ou prendre une photo de l'étiquette"),
+            child: Text(tr("Ou prendre une photo de l'étiquette")),
           ),
           TextButton(
             onPressed: () => Navigator.of(context)
                 .push(MaterialPageRoute(builder: (_) => ContributeScreen(ean: widget.ean))),
-            child: const Text("Ou saisir l'étiquette à la main"),
+            child: Text(tr("Ou saisir l'étiquette à la main")),
           ),
           const SizedBox(height: 14),
           if (_status == _Status.sent)
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(color: VT.mintTint, borderRadius: BorderRadius.circular(14)),
-              child: const Row(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(radius: 18, backgroundColor: VT.green, child: Icon(Icons.check, color: Colors.white, size: 20)),
-                  SizedBox(width: 12),
+                  const CircleAvatar(
+                      radius: 18, backgroundColor: VT.green, child: Icon(Icons.check, color: Colors.white, size: 20)),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Merci, c'est envoyé !", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-                        SizedBox(height: 4),
-                        Text('Cet article rejoint la liste des produits à analyser.',
-                            style: TextStyle(color: Color(0xFF1E4A35))),
+                        Text(tr("Merci, c'est envoyé !"), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                        const SizedBox(height: 4),
+                        Text(tr('Cet article rejoint la liste des produits à analyser.'),
+                            style: const TextStyle(color: Color(0xFF1E4A35))),
                       ],
                     ),
                   ),
@@ -116,30 +118,30 @@ class _NotFoundScreenState extends State<NotFoundScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Pas le temps ? Signalez-le simplement.',
-                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                  Text(tr('Pas le temps ? Signalez-le simplement.'),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 10),
-                  const Text('Marque (facultatif)', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
+                  Text(tr('Marque (facultatif)'), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700)),
                   const SizedBox(height: 6),
                   TextField(
                     controller: _brand,
                     maxLength: 80,
                     decoration: InputDecoration(
-                      hintText: "Celle écrite sur l'étiquette",
+                      hintText: tr("Celle écrite sur l'étiquette"),
                       counterText: '',
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                   ),
                   if (_status == _Status.error)
-                    const Padding(
-                      padding: EdgeInsets.only(top: 10),
-                      child: Text("L'envoi a échoué. Vérifiez votre connexion puis réessayez.",
-                          style: TextStyle(color: VT.danger)),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: Text(tr("L'envoi a échoué. Vérifiez votre connexion puis réessayez."),
+                          style: const TextStyle(color: VT.danger)),
                     ),
                   const SizedBox(height: 16),
                   OutlinedButton(
                     onPressed: _status == _Status.sending ? null : _submit,
-                    child: Text(_status == _Status.sending ? 'Envoi…' : 'Signaler cet article'),
+                    child: Text(_status == _Status.sending ? tr('Envoi…') : tr('Signaler cet article')),
                   ),
                 ],
               ),
@@ -147,7 +149,7 @@ class _NotFoundScreenState extends State<NotFoundScreen> {
           const SizedBox(height: 16),
           OutlinedButton(
             onPressed: () => Navigator.of(context).popUntil((r) => r.isFirst),
-            child: const Text('Scanner un autre article'),
+            child: Text(tr('Scanner un autre article')),
           ),
         ],
       ),

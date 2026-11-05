@@ -8,10 +8,19 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.fonts.Font;
+import android.graphics.fonts.FontFamily;
+import android.os.Build;
 import android.text.Layout;
 import android.text.StaticLayout;
+import android.text.TextDirectionHeuristics;
 import android.text.TextPaint;
 import android.text.TextUtils;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 /** Dessin des panneaux 3D (image appliquée sur un rectangle dans l'espace), aux couleurs de l'app. */
 final class PanelPainter {
@@ -36,18 +45,67 @@ final class PanelPainter {
     private static Typeface regular = Typeface.DEFAULT;
     private static Typeface bold = Typeface.DEFAULT_BOLD;
     private static Typeface display = Typeface.DEFAULT_BOLD;
+    // Lettres arabes : Noto Sans Arabic de l'app Flutter (chemins dans ses ressources), sinon police du système
+    private static String arabicRegular;
+    private static String arabicBold;
+
+    /** Chemins de la police arabe de l'app (null : police arabe du système). */
+    static void arabicFonts(String regularPath, String boldPath) {
+        arabicRegular = regularPath;
+        arabicBold = boldPath;
+    }
 
     /** À appeler une fois (thread principal) avant de dessiner les panneaux. */
     static void loadFonts(AssetManager assets) {
         try {
-            regular = Typeface.createFromAsset(assets, "fonts/DMSans-Regular.ttf");
-            bold = Typeface.createFromAsset(assets, "fonts/DMSans-Bold.ttf");
-            display = Typeface.createFromAsset(assets, "fonts/SpaceGrotesk-Bold.ttf");
+            regular = withArabic(assets, "fonts/DMSans-Regular.ttf", arabicRegular);
+            bold = withArabic(assets, "fonts/DMSans-Bold.ttf", arabicBold);
+            display = withArabic(assets, "fonts/SpaceGrotesk-Bold.ttf", arabicBold);
         } catch (RuntimeException e) {
             regular = Typeface.DEFAULT;
             bold = Typeface.DEFAULT_BOLD;
             display = Typeface.DEFAULT_BOLD;
         }
+    }
+
+    /** Police latine de la marque, puis Noto Sans Arabic pour les lettres arabes (Android 10 et plus récent ;
+     *  avant : police arabe du système). */
+    private static Typeface withArabic(AssetManager assets, String latin, String arabic) {
+        if (Build.VERSION.SDK_INT >= 29 && arabic != null) {
+            try {
+                FontFamily main = new FontFamily.Builder(new Font.Builder(read(assets, latin)).build()).build();
+                FontFamily ar = new FontFamily.Builder(new Font.Builder(read(assets, arabic)).build()).build();
+                return new Typeface.CustomFallbackBuilder(main).addCustomFallback(ar).setSystemFallback("sans-serif").build();
+            } catch (IOException | RuntimeException e) {
+                // police arabe illisible : police du système pour les lettres arabes
+            }
+        }
+        return Typeface.createFromAsset(assets, latin);
+    }
+
+    private static ByteBuffer read(AssetManager assets, String path) throws IOException {
+        try (InputStream in = assets.open(path)) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] chunk = new byte[16384];
+            int n;
+            while ((n = in.read(chunk)) > 0) out.write(chunk, 0, n);
+            byte[] bytes = out.toByteArray();
+            ByteBuffer buffer = ByteBuffer.allocateDirect(bytes.length);
+            buffer.put(bytes);
+            buffer.flip();
+            return buffer;
+        }
+    }
+
+    /** Abscisse retournée dans l'interface en arabe (panneau en miroir). */
+    private static float x(float v) {
+        return Texts.rtl() ? WIDTH - v : v;
+    }
+
+    /** Alignement « début de ligne » d'un texte (à droite en arabe), quel que soit son propre sens de lecture. */
+    private static Layout.Alignment start(String s) {
+        boolean textRtl = TextDirectionHeuristics.FIRSTSTRONG_LTR.isRtl(s, 0, s.length());
+        return textRtl == Texts.rtl() ? Layout.Alignment.ALIGN_NORMAL : Layout.Alignment.ALIGN_OPPOSITE;
     }
 
     private static final float CARD_LEFT = 12f;
@@ -77,11 +135,14 @@ final class PanelPainter {
 
         boolean found = d.state == PanelData.State.FOUND;
         int g = found ? d.gradeIndex() : -1;
+        // interface en arabe : panneau en miroir (note à droite, textes alignés à droite)
+        boolean rtl = Texts.rtl();
+        Paint.Align startAlign = rtl ? Paint.Align.RIGHT : Paint.Align.LEFT;
 
         // Pastille de la note
         float left = CARD_LEFT + PAD;
         float top = CARD_TOP + PAD;
-        float cx = left + CIRCLE / 2f;
+        float cx = x(left + CIRCLE / 2f);
         float cy = top + CIRCLE / 2f;
         canvas.drawCircle(cx, cy, CIRCLE / 2f, fill(g >= 0 ? GRADE_COLOR[g] : NO_GRADE));
         String letter = found ? d.grade : d.state == PanelData.State.LOADING ? "…" : d.state == PanelData.State.UNKNOWN ? "?" : "!";
@@ -94,44 +155,52 @@ final class PanelPainter {
         // Marque et nom
         float textLeft = left + CIRCLE + 28f;
         float textWidth = CARD_RIGHT - PAD - textLeft;
+        float textStart = x(textLeft);
+        String code = Texts.get("code", "Code") + " " + Texts.ltr(PanelData.formatEan(d.ean));
         String overline;
         String title;
         switch (d.state) {
             case FOUND:
-                overline = (d.brand == null ? "Marque non indiquée" : d.brand) + (d.sample ? " · fictif" : "");
-                title = d.name == null ? "Vêtement" : d.name;
+                overline = (d.brand == null ? Texts.get("noBrand", "Marque non indiquée") : d.brand)
+                        + (d.sample ? " · " + Texts.get("sample", "fictif") : "");
+                title = d.name == null ? Texts.get("garment", "Vêtement") : d.name;
                 break;
             case LOADING:
-                overline = "Recherche…";
-                title = "Code " + PanelData.formatEan(d.ean);
+                overline = Texts.get("searching", "Recherche…");
+                title = code;
                 break;
             case UNKNOWN:
-                overline = "Nouveau vêtement";
-                title = "Code " + PanelData.formatEan(d.ean);
+                overline = Texts.get("newGarment", "Nouveau vêtement");
+                title = code;
                 break;
             default:
-                overline = "Connexion impossible";
-                title = "Code " + PanelData.formatEan(d.ean);
+                overline = Texts.get("noConnection", "Connexion impossible");
+                title = code;
                 break;
         }
         TextPaint over = text(24f, MUTED2, true);
-        over.setLetterSpacing(0.06f);
-        canvas.drawText(ellipsize(overline.toUpperCase(java.util.Locale.FRANCE), over, textWidth), textLeft, top + 26f, over);
+        // l'arabe est une écriture liée : pas d'espacement entre les lettres ; ligne lue de droite à gauche
+        over.setLetterSpacing(rtl ? 0f : 0.06f);
+        over.setTextAlign(startAlign);
+        String overText = ellipsize(overline.toUpperCase(java.util.Locale.FRANCE), over, textWidth);
+        canvas.drawText(rtl ? "\u200F" + overText : overText, textStart, top + 26f, over);
         StaticLayout name = StaticLayout.Builder
                 .obtain(title, 0, title.length(), text(32f, INK, true), (int) textWidth)
                 .setMaxLines(2)
                 .setEllipsize(TextUtils.TruncateAt.END)
-                .setAlignment(Layout.Alignment.ALIGN_NORMAL)
+                .setAlignment(start(title))
                 .build();
         canvas.save();
-        canvas.translate(textLeft, top + 40f);
+        canvas.translate(rtl ? textStart - textWidth : textLeft, top + 40f);
         name.draw(canvas);
         canvas.restore();
         if (found && best) {
             TextPaint pill = text(20f, GREEN, true);
-            String label = "Le mieux noté ici";
+            String label = Texts.get("bestHere", "Le mieux noté ici");
             float pillTop = Math.min(top + 46f + name.getHeight(), 192f);
-            RectF r = new RectF(textLeft, pillTop, textLeft + pill.measureText(label) + 28f, pillTop + 32f);
+            float pillWidth = pill.measureText(label) + 28f;
+            float pillLeft = rtl ? textStart - pillWidth : textLeft;
+            RectF r = new RectF(pillLeft, pillTop, pillLeft + pillWidth, pillTop + 32f);
             canvas.drawRoundRect(r, 16f, 16f, fill(MINT_TINT));
             canvas.drawText(label, r.left + 14f, r.bottom - 9f, pill);
         }
@@ -140,23 +209,25 @@ final class PanelPainter {
         String verdict;
         switch (d.state) {
             case FOUND:
-                verdict = d.verdict == null ? "Note " + d.grade : d.verdict;
+                verdict = d.verdict == null ? Texts.format("grade", "Note {grade}", "grade", d.grade) : d.verdict;
                 break;
             case LOADING:
-                verdict = "Recherche de la fiche…";
+                verdict = Texts.get("loadingSheet", "Recherche de la fiche…");
                 break;
             case UNKNOWN:
-                verdict = "Pas encore noté";
+                verdict = Texts.get("notRated", "Pas encore noté");
                 break;
             default:
-                verdict = "Fiche non chargée";
+                verdict = Texts.get("notLoaded", "Fiche non chargée");
                 break;
         }
         RectF banner = new RectF(left, 232f, CARD_RIGHT - PAD, 296f);
         canvas.drawRoundRect(banner, 18f, 18f, fill(g >= 0 ? GRADE_TINT[g] : LINE));
         TextPaint vp = text(30f, INK, true);
         vp.setTypeface(display);
-        canvas.drawText(ellipsize(verdict, vp, banner.width() - 40f), banner.left + 20f, banner.bottom - 21f, vp);
+        vp.setTextAlign(startAlign);
+        canvas.drawText(ellipsize(verdict, vp, banner.width() - 40f), rtl ? banner.right - 20f : banner.left + 20f,
+                banner.bottom - 21f, vp);
 
         // Chiffres (ou consigne)
         float boxTop = 312f;
@@ -167,23 +238,26 @@ final class PanelPainter {
             String l2;
             String v2;
             if (d.ecoCost != null) {
-                l1 = "Coût environnemental";
+                l1 = Texts.get("cost", "Coût environnemental");
                 v1 = PanelData.points(d.ecoCost);
-                l2 = "Climat";
+                l2 = Texts.get("climate", "Climat");
                 v2 = d.climateKg == null ? "—" : PanelData.climate(d.climateKg);
             } else {
-                l1 = "Carbone";
+                l1 = Texts.get("carbon", "Carbone");
                 v1 = d.carbonGrade == null ? "—" : d.carbonGrade;
-                l2 = "Social";
-                v2 = d.socialGrade == null ? "Non évalué" : d.socialGrade;
+                l2 = Texts.get("social", "Social");
+                v2 = d.socialGrade == null ? Texts.get("notEvaluated", "Non évalué") : d.socialGrade;
             }
             float mid = (left + CARD_RIGHT - PAD) / 2f;
-            drawMetric(canvas, new RectF(left, boxTop, mid - 8f, boxBottom), l1, v1);
-            drawMetric(canvas, new RectF(mid + 8f, boxTop, CARD_RIGHT - PAD, boxBottom), l2, v2);
+            RectF first = new RectF(left, boxTop, mid - 8f, boxBottom);
+            RectF second = new RectF(mid + 8f, boxTop, CARD_RIGHT - PAD, boxBottom);
+            // en arabe, le premier chiffre est à droite
+            drawMetric(canvas, rtl ? second : first, l1, v1);
+            drawMetric(canvas, rtl ? first : second, l2, v2);
         } else if (d.state != PanelData.State.LOADING) {
             String body = d.state == PanelData.State.UNKNOWN
-                    ? "Lisez son étiquette pour obtenir sa note."
-                    : "Vérifiez la connexion Internet.";
+                    ? Texts.get("readLabel", "Lisez son étiquette pour obtenir sa note.")
+                    : Texts.get("checkInternet", "Vérifiez la connexion Internet.");
             TextPaint bp = text(26f, MUTED, false);
             StaticLayout layout = StaticLayout.Builder
                     .obtain(body, 0, body.length(), bp, (int) (CARD_RIGHT - PAD - left))
@@ -197,9 +271,10 @@ final class PanelPainter {
         }
 
         // Action au toucher
-        String footer = found ? "Touchez pour la fiche  ›"
-                : d.state == PanelData.State.UNKNOWN ? "Touchez pour continuer  ›"
-                : d.state == PanelData.State.ERROR ? "Touchez pour réessayer  ›" : null;
+        // « › » est retourné automatiquement dans une phrase arabe
+        String footer = found ? Texts.get("tapSheet", "Touchez pour la fiche") + "  ›"
+                : d.state == PanelData.State.UNKNOWN ? Texts.get("tapContinue", "Touchez pour continuer") + "  ›"
+                : d.state == PanelData.State.ERROR ? Texts.get("tapRetry", "Touchez pour réessayer") + "  ›" : null;
         if (footer != null) {
             TextPaint fp = text(25f, GREEN, true);
             fp.setTextAlign(Paint.Align.CENTER);
@@ -225,8 +300,12 @@ final class PanelPainter {
         canvas.drawRoundRect(r, 18f, 18f, fill(GROUND));
         TextPaint lp = text(21f, MUTED, false);
         TextPaint vp = text(32f, INK, true);
-        canvas.drawText(ellipsize(label, lp, r.width() - 32f), r.left + 16f, r.top + 34f, lp);
-        canvas.drawText(ellipsize(value, vp, r.width() - 32f), r.left + 16f, r.top + 76f, vp);
+        boolean rtl = Texts.rtl();
+        lp.setTextAlign(rtl ? Paint.Align.RIGHT : Paint.Align.LEFT);
+        vp.setTextAlign(rtl ? Paint.Align.RIGHT : Paint.Align.LEFT);
+        float tx = rtl ? r.right - 16f : r.left + 16f;
+        canvas.drawText(ellipsize(label, lp, r.width() - 32f), tx, r.top + 34f, lp);
+        canvas.drawText(ellipsize(value, vp, r.width() - 32f), tx, r.top + 76f, vp);
     }
 
     private static void drawCrown(Canvas canvas, float cx, float bottom) {

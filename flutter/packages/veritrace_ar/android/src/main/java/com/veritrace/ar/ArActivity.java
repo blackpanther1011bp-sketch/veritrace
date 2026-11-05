@@ -175,7 +175,7 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
         surface.setEGLConfigChooser(8, 8, 8, 8, 16, 0);
         surface.setRenderer(this);
         surface.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-        surface.setContentDescription("Caméra : la note des vêtements s'affiche en 3D sur leur code-barres");
+        surface.setContentDescription(Texts.get("camera", "Caméra : la note des vêtements s'affiche en 3D sur leur code-barres"));
         GestureDetector gestures = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onDown(MotionEvent e) {
@@ -198,6 +198,8 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
         // Barre du haut : fermer, titre
         bar = new LinearLayout(this);
         bar.setOrientation(LinearLayout.HORIZONTAL);
+        // arabe : bouton fermer à droite, comme dans le reste de l'app
+        bar.setLayoutDirection(Texts.rtl() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
         bar.setGravity(Gravity.CENTER_VERTICAL);
         TextView close = new TextView(this);
         close.setText("✕");
@@ -205,11 +207,11 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
         close.setTextSize(20f);
         close.setGravity(Gravity.CENTER);
         close.setBackground(round(0x66000000, -1));
-        close.setContentDescription("Fermer la réalité augmentée");
+        close.setContentDescription(Texts.get("close", "Fermer la réalité augmentée"));
         close.setOnClickListener(v -> finish());
         bar.addView(close, new LinearLayout.LayoutParams(dp(44), dp(44)));
         TextView title = new TextView(this);
-        title.setText("Réalité augmentée 3D");
+        title.setText(Texts.get("title", "Réalité augmentée 3D"));
         title.setTextColor(Color.WHITE);
         title.setTextSize(17f);
         title.setTypeface(Typeface.DEFAULT_BOLD);
@@ -222,7 +224,7 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
 
         // Consigne du bas
         hint = new TextView(this);
-        hint.setText("Démarrage de la réalité augmentée…");
+        hint.setText(Texts.get("starting", "Démarrage de la réalité augmentée…"));
         hint.setTextColor(Color.WHITE);
         hint.setTextSize(15f);
         hint.setGravity(Gravity.CENTER);
@@ -293,18 +295,18 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
                 Log.e(TAG, "Démarrage d'ARCore", e);
                 if (s != null) s.close();
                 if (e instanceof UnavailableDeviceNotCompatibleException) {
-                    finishWith("unsupported", null,
-                            "Ce téléphone n'est pas compatible avec la réalité augmentée 3D. Le scanner classique reste disponible.");
+                    finishWith("unsupported", null, Texts.get("unsupported",
+                            "Ce téléphone n'est pas compatible avec la réalité augmentée 3D. Le scanner classique reste disponible."));
                 } else if (e instanceof UnavailableUserDeclinedInstallationException) {
-                    finishWith("error", null,
-                            "La réalité augmentée 3D a besoin de « Services Google Play pour la RA » (gratuit, sur le Play Store).");
+                    finishWith("error", null, Texts.get("needServices",
+                            "La réalité augmentée 3D a besoin de « Services Google Play pour la RA » (gratuit, sur le Play Store)."));
                 } else if (e instanceof UnavailableArcoreNotInstalledException || e instanceof UnavailableApkTooOldException) {
-                    finishWith("error", null,
-                            "Installez ou mettez à jour « Services Google Play pour la RA » depuis le Play Store, puis réessayez.");
+                    finishWith("error", null, Texts.get("installServices",
+                            "Installez ou mettez à jour « Services Google Play pour la RA » depuis le Play Store, puis réessayez."));
                 } else if (e instanceof UnavailableSdkTooOldException) {
-                    finishWith("error", null, "Mettez à jour VeriTrace pour utiliser la réalité augmentée 3D.");
+                    finishWith("error", null, Texts.get("updateApp", "Mettez à jour VeriTrace pour utiliser la réalité augmentée 3D."));
                 } else {
-                    finishWith("error", null, "La réalité augmentée 3D n'a pas pu démarrer sur ce téléphone.");
+                    finishWith("error", null, Texts.get("startFailed", "La réalité augmentée 3D n'a pas pu démarrer sur ce téléphone."));
                 }
                 return;
             }
@@ -314,7 +316,7 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
         } catch (Exception e) {
             Log.e(TAG, "Reprise d'ARCore", e);
             if (session == null) s.close();
-            finishWith("error", null, "La caméra est occupée ou indisponible : réessayez dans un instant.");
+            finishWith("error", null, Texts.get("cameraBusy", "La caméra est occupée ou indisponible : réessayez dans un instant."));
             return;
         }
         // Le rendu n'utilise la session qu'une fois reprise
@@ -347,7 +349,7 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode != CAMERA_REQUEST) return;
         if (grantResults.length == 0 || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-            finishWith("error", null, "Autorisez l'accès à la caméra pour utiliser la réalité augmentée.");
+            finishWith("error", null, Texts.get("cameraPermission", "Autorisez l'accès à la caméra pour utiliser la réalité augmentée."));
         }
     }
 
@@ -465,7 +467,7 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
             frame = s.update();
         } catch (Exception e) {
             if (e instanceof CameraNotAvailableException) {
-                showHint("Caméra indisponible : fermez puis rouvrez la réalité augmentée.");
+                showHint(Texts.get("cameraUnavailable", "Caméra indisponible : fermez puis rouvrez la réalité augmentée."));
             } else {
                 Log.w(TAG, "Image ARCore", e);
             }
@@ -693,21 +695,21 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
         if (!tracking) {
             switch (camera.getTrackingFailureReason()) {
                 case INSUFFICIENT_LIGHT:
-                    return "Pas assez de lumière : rapprochez-vous d'un éclairage.";
+                    return Texts.get("lowLight", "Pas assez de lumière : rapprochez-vous d'un éclairage.");
                 case EXCESSIVE_MOTION:
-                    return "Bougez le téléphone plus lentement.";
+                    return Texts.get("slower", "Bougez le téléphone plus lentement.");
                 case INSUFFICIENT_FEATURES:
-                    return "Visez des vêtements ou des étiquettes, pas un mur uni.";
+                    return Texts.get("noFeatures", "Visez des vêtements ou des étiquettes, pas un mur uni.");
                 case CAMERA_UNAVAILABLE:
-                    return "Caméra indisponible : fermez puis rouvrez la réalité augmentée.";
+                    return Texts.get("cameraUnavailable", "Caméra indisponible : fermez puis rouvrez la réalité augmentée.");
                 default:
-                    return "Bougez doucement le téléphone de gauche à droite pour démarrer.";
+                    return Texts.get("moveToStart", "Bougez doucement le téléphone de gauche à droite pour démarrer.");
             }
         }
-        if (placedCount == 0) return "Visez le code-barres d'un vêtement : sa note se pose dessus en 3D.";
+        if (placedCount == 0) return Texts.get("aimBarcode", "Visez le code-barres d'un vêtement : sa note se pose dessus en 3D.");
         String ranking = rankingHint;
-        if (ranking != null) return ranking + " Touchez une note pour ouvrir la fiche.";
-        return "Touchez une note pour ouvrir la fiche. Tournez autour : elle reste en place.";
+        if (ranking != null) return ranking + " " + Texts.get("tapToOpen", "Touchez une note pour ouvrir la fiche.");
+        return Texts.get("tapHint", "Touchez une note pour ouvrir la fiche. Tournez autour : elle reste en place.");
     }
 
     private void showHint(String text) {
@@ -786,7 +788,8 @@ public final class ArActivity extends Activity implements GLSurfaceView.Renderer
         for (Item it : list) panels.add(it.data);
         PanelData.Ranking ranking = PanelData.rank(panels);
         String best = ranking == null ? null : ranking.bestCode;
-        rankingHint = ranking == null ? null : "Couronne : le mieux noté ici. " + ranking.summary + ".";
+        rankingHint = ranking == null ? null
+                : Texts.get("crown", "Couronne : le mieux noté ici.") + " " + ranking.summary + ".";
         if (!Objects.equals(best, bestCode)) {
             String previous = bestCode;
             bestCode = best;

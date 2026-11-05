@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import 'l10n.dart';
 import 'models.dart';
 
 /// Accès au catalogue, aux alternatives, aux signalements et aux événements d'usage.
@@ -70,13 +71,14 @@ class Api {
       _alternatives.remove(product.ean);
       return product;
     } on TimeoutException {
-      throw const ServiceError('delai', 'Le calcul prend trop de temps : réessayez dans un instant.');
+      throw ServiceError('delai', tr('Le calcul prend trop de temps : réessayez dans un instant.'));
     } on FunctionException catch (e) {
       final d = e.details;
       if (d is Map && d['message'] is String) {
-        throw ServiceError((d['error'] ?? 'serveur').toString(), d['message'] as String);
+        final code = (d['error'] ?? 'serveur').toString();
+        throw ServiceError(code, serverMessage(code, d['message'] as String));
       }
-      throw const ServiceError('serveur', 'Le service ne répond pas correctement : réessayez dans un instant.');
+      throw ServiceError('serveur', tr('Le service ne répond pas correctement : réessayez dans un instant.'));
     }
   }
 
@@ -133,7 +135,8 @@ class Api {
   }
 }
 
-/// Erreur expliquée par le serveur (message en français, prêt à afficher).
+/// Erreur expliquée par le serveur (message prêt à afficher : celui du serveur en français, traduit d'après son
+/// code dans l'interface arabe).
 class ServiceError implements Exception {
   final String code;
   final String message;

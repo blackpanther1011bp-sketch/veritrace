@@ -1,3 +1,5 @@
+import 'l10n.dart';
+
 /// Configuration du projet Supabase « veritrace ».
 ///
 /// La clé publishable est publique par conception : la sécurité repose sur
@@ -20,5 +22,5 @@ class AppConfig {
   static const freeAlternatives = 1;
 
   /// Libellé du tarif Premium, à remplacer par le vrai prix.
-  static const premiumPriceLabel = 'Tarif à définir';
+  static String get premiumPriceLabel => tr('Tarif à définir');
 }

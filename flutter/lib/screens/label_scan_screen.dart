@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import '../api.dart';
 import '../barcode.dart';
 import '../contribute.dart';
+import '../l10n.dart';
 import '../label_reader.dart';
 import '../theme.dart';
 import '../widgets.dart';
@@ -61,7 +62,7 @@ class _LabelScanScreenState extends State<LabelScanScreen> {
         });
       }
     } catch (_) {
-      if (mounted) setState(() => _error = "La photo n'a pas pu être prise. Réessayez.");
+      if (mounted) setState(() => _error = tr("La photo n'a pas pu être prise. Réessayez."));
     }
   }
 
@@ -81,7 +82,7 @@ class _LabelScanScreenState extends State<LabelScanScreen> {
     try {
       text = await readLabelTextFromFile(path);
     } catch (_) {
-      _fail('ocr', 'La lecture du texte a échoué : reprenez la photo.');
+      _fail('ocr', tr('La lecture du texte a échoué : reprenez la photo.'));
       return;
     }
     if (!mounted) return;
@@ -94,7 +95,7 @@ class _LabelScanScreenState extends State<LabelScanScreen> {
     } on ServiceError catch (e) {
       _fail(e.code, e.message);
     } catch (_) {
-      _fail('reseau', 'Pas de connexion : vérifiez Internet puis réessayez.');
+      _fail('reseau', tr('Pas de connexion : vérifiez Internet puis réessayez.'));
     }
   }
 
@@ -123,24 +124,22 @@ class _LabelScanScreenState extends State<LabelScanScreen> {
     final ean = widget.ean;
     final manual = ean != null && const ['illisible', 'composition_introuvable', 'composition_incomplete', 'ocr'].contains(_errorCode);
     return Scaffold(
-      appBar: AppBar(title: const Text("Lire l'étiquette")),
+      appBar: AppBar(title: Text(tr("Lire l'étiquette"))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
         children: [
-          const Text(
-            "Photographiez l'étiquette cousue à l'intérieur du vêtement : celle qui indique la composition "
-            '(ex. « 100 % coton ») et le pays de fabrication. Le texte est lu sur votre téléphone, puis la note '
-            'est calculée avec la méthode officielle Ecobalyse.',
-            style: TextStyle(fontSize: 15, color: VT.muted, height: 1.45),
+          Text(
+            tr("Photographiez l'étiquette cousue à l'intérieur du vêtement : celle qui indique la composition (ex. « 100 % coton ») et le pays de fabrication. Le texte est lu sur votre téléphone, puis la note est calculée avec la méthode officielle Ecobalyse."),
+            style: const TextStyle(fontSize: 15, color: VT.muted, height: 1.45),
           ),
           if (ean != null) ...[
             const SizedBox(height: 10),
             Align(
-              alignment: Alignment.centerLeft,
+              alignment: AlignmentDirectional.centerStart,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(color: VT.line, borderRadius: BorderRadius.circular(999)),
-                child: Text('EAN ${formatEan(ean)}', style: const TextStyle(fontSize: 13, color: VT.muted)),
+                child: Text(tr('EAN {code}', {'code': formatEan(ean)}), style: const TextStyle(fontSize: 13, color: VT.muted)),
               ),
             ),
           ],
@@ -150,32 +149,32 @@ class _LabelScanScreenState extends State<LabelScanScreen> {
                 ? null
                 : () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => LabelLiveScreen(ean: widget.ean))),
             icon: const Icon(Icons.center_focus_strong_outlined),
-            label: const Text("Viser l'étiquette en direct (sans photo)"),
+            label: Text(tr("Viser l'étiquette en direct (sans photo)")),
           ),
           const SizedBox(height: 14),
           CardBox(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _label("Photo de l'étiquette"),
+                _label(tr("Photo de l'étiquette")),
                 if (_photo != null) ...[
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
                     child: Image.memory(_photo!, height: 220, fit: BoxFit.contain),
                   ),
                   Align(
-                    alignment: Alignment.centerLeft,
-                    child: TextButton(onPressed: _busy ? null : _takePhoto, child: const Text('Reprendre la photo')),
+                    alignment: AlignmentDirectional.centerStart,
+                    child: TextButton(onPressed: _busy ? null : _takePhoto, child: Text(tr('Reprendre la photo'))),
                   ),
                 ] else
                   FilledButton.icon(
                     onPressed: _takePhoto,
                     icon: const Icon(Icons.photo_camera_outlined),
-                    label: const Text('Prendre la photo'),
+                    label: Text(tr('Prendre la photo')),
                   ),
-                if (_touched && _photo == null) _errorText("Ajoutez la photo de l'étiquette."),
+                if (_touched && _photo == null) _errorText(tr("Ajoutez la photo de l'étiquette.")),
                 const SizedBox(height: 16),
-                _label('Type de vêtement'),
+                _label(tr('Type de vêtement')),
                 InputDecorator(
                   decoration: InputDecoration(
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -185,21 +184,22 @@ class _LabelScanScreenState extends State<LabelScanScreen> {
                     child: DropdownButton<String>(
                       value: _category,
                       isExpanded: true,
-                      hint: const Text('Choisir…'),
-                      items: [for (final c in contributionCategories) DropdownMenuItem(value: c, child: Text(c))],
+                      hint: Text(tr('Choisir…')),
+                      // valeur envoyée en français, libellé dans la langue choisie
+                      items: [for (final c in contributionCategories) DropdownMenuItem(value: c, child: Text(tv(c)))],
                       onChanged: _busy ? null : (v) => setState(() => _category = v),
                     ),
                   ),
                 ),
-                if (_touched && _category == null) _errorText('Choisissez le type de vêtement.'),
+                if (_touched && _category == null) _errorText(tr('Choisissez le type de vêtement.')),
                 const SizedBox(height: 16),
-                _label('Marque (facultatif)'),
+                _label(tr('Marque (facultatif)')),
                 TextField(
                   controller: _brand,
                   maxLength: 80,
                   textCapitalization: TextCapitalization.words,
                   decoration: InputDecoration(
-                    hintText: 'Ex. Defacto, LC Waikiki, Marwa…',
+                    hintText: tr('Ex. Defacto, LC Waikiki, Marwa…'),
                     counterText: '',
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
@@ -209,11 +209,11 @@ class _LabelScanScreenState extends State<LabelScanScreen> {
                   Text(_error!, style: const TextStyle(color: VT.danger, height: 1.35)),
                   if (manual)
                     Align(
-                      alignment: Alignment.centerLeft,
+                      alignment: AlignmentDirectional.centerStart,
                       child: TextButton(
                         onPressed: () => Navigator.of(context)
                             .pushReplacement(MaterialPageRoute(builder: (_) => ContributeScreen(ean: ean))),
-                        child: const Text('Saisir la composition à la main'),
+                        child: Text(tr('Saisir la composition à la main')),
                       ),
                     ),
                 ],
@@ -221,9 +221,8 @@ class _LabelScanScreenState extends State<LabelScanScreen> {
             ),
           ),
           const SizedBox(height: 14),
-          const MethodNote(
-            text: 'Conseils : étiquette bien à plat, sans reflet, texte net. Le résultat est une estimation : poids et '
-                "lieux de tissage ou de teinture ne sont pas écrits sur l'étiquette, Ecobalyse applique alors ses valeurs par défaut.",
+          MethodNote(
+            text: tr("Conseils : étiquette bien à plat, sans reflet, texte net. Le résultat est une estimation : poids et lieux de tissage ou de teinture ne sont pas écrits sur l'étiquette, Ecobalyse applique alors ses valeurs par défaut."),
           ),
         ],
       ),
@@ -237,9 +236,9 @@ class _LabelScanScreenState extends State<LabelScanScreen> {
               FilledButton(
                 onPressed: _busy ? null : _submit,
                 child: Text(switch (_status) {
-                  _Status.reading => "Lecture de l'étiquette…",
-                  _Status.sending => 'Calcul de la note…',
-                  _ => 'Calculer la note',
+                  _Status.reading => tr("Lecture de l'étiquette…"),
+                  _Status.sending => tr('Calcul de la note…'),
+                  _ => tr('Calculer la note'),
                 }),
               ),
             ],

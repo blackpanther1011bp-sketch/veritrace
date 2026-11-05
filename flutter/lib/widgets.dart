@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'l10n.dart';
 import 'models.dart';
 import 'theme.dart';
 
@@ -14,7 +15,7 @@ class GradeBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final g = grade;
     return Semantics(
-      label: g == null ? 'Pas de note' : 'Note ${g.name}',
+      label: g == null ? tr('Pas de note') : tr('Note {grade}', {'grade': g.name}),
       excludeSemantics: true,
       child: Container(
         width: size,
@@ -40,7 +41,7 @@ class GradeScale extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: grade == null ? 'Pas encore de note' : 'Note ${grade!.name} sur une échelle de A à E',
+      label: grade == null ? tr('Pas encore de note') : tr('Note {grade} sur une échelle de A à E', {'grade': grade!.name}),
       excludeSemantics: true,
       child: Row(
         children: [
@@ -114,10 +115,10 @@ class SampleTag extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(right: 16),
+      margin: const EdgeInsetsDirectional.only(end: 16),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(color: VT.line, borderRadius: BorderRadius.circular(999)),
-      child: const Text('Exemple', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: VT.muted)),
+      child: Text(tr('Exemple'), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: VT.muted)),
     );
   }
 }
@@ -134,12 +135,12 @@ class ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Connexion impossible', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+            Text(tr('Connexion impossible'), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
             const SizedBox(height: 12),
-            const Text('Vérifiez votre connexion internet, puis réessayez.',
-                textAlign: TextAlign.center, style: TextStyle(color: VT.muted)),
+            Text(tr('Vérifiez votre connexion internet, puis réessayez.'),
+                textAlign: TextAlign.center, style: const TextStyle(color: VT.muted)),
             const SizedBox(height: 20),
-            FilledButton(onPressed: onRetry, child: const Text('Réessayer')),
+            FilledButton(onPressed: onRetry, child: Text(tr('Réessayer'))),
           ],
         ),
       ),

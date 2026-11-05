@@ -10,6 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  # Interface en français et en arabe (de droite à gauche) : textes de Material et sens de lecture
+  flutter_localizations:
+    sdk: flutter
   # Scan caméra des codes-barres (EAN-13, EAN-8, UPC-A)
   # 7.4 : coins des codes-barres + ScanWindowUtils pour la réalité augmentée légère
   mobile_scanner: ^7.4.0
@@ -45,6 +48,13 @@ flutter:
         - asset: fonts/DMSans-Medium.ttf
           weight: 500
         - asset: fonts/DMSans-Bold.ttf
+          weight: 700
+    # Police arabe (interface en arabe, lettres arabes seulement ; les lettres latines restent en DM Sans) :
+    # Noto Sans Arabic 2.012 (même fichier que le site, @fontsource/noto-sans-arabic 5.3.0), licence SIL OFL 1.1
+    - family: Noto Sans Arabic
+      fonts:
+        - asset: fonts/NotoSansArabic-Regular.ttf
+        - asset: fonts/NotoSansArabic-Bold.ttf
           weight: 700
     - family: Space Grotesk
       fonts:
