@@ -470,6 +470,11 @@ export const fr = {
   "contact.thanksNoEmail": "Merci. Sans adresse e-mail, nous ne pourrons pas vous répondre directement.",
 
   "scan.illustration": "Étiquette de vêtement avec son code-barres",
+  "passport.shareAria": "Partager le passeport",
+  "passport.shareTitle": "Lien à partager",
+  "passport.share": "Partager le lien",
+  "passport.copied": "Lien copié : collez-le dans WhatsApp, un e-mail…",
+  "passport.copyFailed": "Copie impossible : sélectionnez le lien ci-dessus.",
   // Erreurs renvoyées par le serveur (codes stables) : en français, le message du serveur est affiché tel quel
   "server.reseau": "Pas de connexion : vérifiez Internet puis réessayez.",
   "server.serveur": "Le service ne répond pas correctement : réessayez dans un instant.",

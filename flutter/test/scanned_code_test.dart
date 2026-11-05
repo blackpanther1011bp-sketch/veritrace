@@ -17,6 +17,9 @@ void main() {
   test('QR code d’un passeport VeriTrace', () {
     expect(parseScannedCode('https://veritrace-wine.vercel.app/01/06111234567871?passeport=a1b2c3d4e5f6')?.passportId, 'a1b2c3d4e5f6');
     expect(parseScannedCode('https://veritrace-wine.vercel.app/#/passeport/a1b2c3d4e5f6')?.passportId, 'a1b2c3d4e5f6');
+    expect(parseScannedCode('https://veritrace-wine.vercel.app/passeport/a1b2c3d4e5f6')?.passportId, 'a1b2c3d4e5f6');
+    expect(parseScannedCode('https://veritrace-wine.vercel.app/passeport/a1b2c3d4e5f6/')?.passportId, 'a1b2c3d4e5f6');
+    expect(parseScannedCode('https://veritrace-wine.vercel.app/passeport/A1B2'), isNull);
     expect(parseScannedCode('texte quelconque'), isNull);
   });
 }

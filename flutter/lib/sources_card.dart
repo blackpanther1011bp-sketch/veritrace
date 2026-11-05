@@ -133,7 +133,7 @@ class SourcesCard extends StatelessWidget {
         if (p.passportId != null) ...[
           const SizedBox(height: 14),
           OutlinedButton(
-            onPressed: () => _open(context, '${AppConfig.siteUrl}/#/passeport/${p.passportId}'),
+            onPressed: () => _open(context, '${AppConfig.siteUrl}/passeport/${p.passportId}'),
             child: const Text('Voir le passeport numérique'),
           ),
         ],

@@ -30,7 +30,9 @@ ScannedCode? parseScannedCode(String raw) {
   if (uri == null || !uri.hasScheme) return null;
   final fromQuery = uri.queryParameters['passeport'];
   final fromHash = RegExp(r'^/passeport/([0-9a-f]{12})').firstMatch(uri.fragment)?.group(1);
-  final passport = fromQuery ?? fromHash;
+  // adresse propre du lien de partage : https://…/passeport/<id>
+  final fromPath = RegExp(r'^/passeport/([0-9a-f]{12})/?$').firstMatch(uri.path)?.group(1);
+  final passport = fromQuery ?? fromHash ?? fromPath;
   if (passport != null && _passportId.hasMatch(passport)) return ScannedCode.passport(passport);
   final dl = RegExp(r'(?:^|/)01/(\d{8,14})(?:/|$)').firstMatch(uri.path);
   if (dl != null) {

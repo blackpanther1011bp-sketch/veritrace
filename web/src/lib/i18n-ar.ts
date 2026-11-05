@@ -477,6 +477,11 @@ export const ar: Dict = {
   "contact.thanksNoEmail": "شكرًا. بدون بريد إلكتروني، لن نتمكّن من الردّ عليك مباشرةً.",
 
   "scan.illustration": "ملصق قطعة ملابس مع رمزها الشريطي",
+  "passport.shareAria": "مشاركة الجواز",
+  "passport.shareTitle": "رابط للمشاركة",
+  "passport.share": "مشاركة الرابط",
+  "passport.copied": "تمّ نسخ الرابط: الصقه في واتساب أو في بريد إلكتروني…",
+  "passport.copyFailed": "تعذّر النسخ: حدِّد الرابط أعلاه.",
   "server.reseau": "لا يوجد اتصال: تحقّق من الإنترنت ثم أعد المحاولة.",
   "server.serveur": "الخدمة لا تستجيب بشكل صحيح: أعد المحاولة بعد لحظات.",
 };
