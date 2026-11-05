@@ -144,7 +144,8 @@ test("fonction Vercel api/passeport.js : HTML du déploiement + passeport lu dan
   globalThis.fetch = (async (input: string | URL | Request) => {
     const url = String(input);
     calls.push(url);
-    if (url === "https://veritrace-abc123.vercel.app/index.html") return new Response(TEMPLATE, { status: 200 });
+    // le domaine public répond en premier ; l'adresse du déploiement ne sert qu'en secours
+    if (url === "https://veritrace-wine.vercel.app/index.html") return new Response(TEMPLATE, { status: 200 });
     if (url.includes("/rest/v1/passports")) return new Response(JSON.stringify(url.includes("id=eq.a1b2c3d4e5f6") ? [PASSPORT] : []), { status: 200 });
     return new Response("inattendu", { status: 500 });
   }) as typeof fetch;

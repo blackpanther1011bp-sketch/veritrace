@@ -3,7 +3,8 @@
 // passeport ; un visiteur reçoit la même page, qui démarre l'app normalement.
 //
 // D'où vient le HTML de l'app : celui du déploiement en cours (index.html du build, avec ses fichiers aux noms
-// hachés), récupéré sur l'adresse propre au déploiement (VERCEL_URL) puis gardé en mémoire. On ne l'inclut pas dans
+// hachés), récupéré d'abord sur l'adresse que le visiteur a ouverte (domaine public : jamais protégé par
+// mot de passe), sinon sur l'adresse propre au déploiement (VERCEL_URL), puis gardé en mémoire. On ne l'inclut pas dans
 // le paquet de la fonction (includeFiles) : la doc Vercel ne garantit pas que la sortie du build (dist/) existe au
 // moment où les fonctions sont empaquetées. Si cette récupération échoue (déploiement protégé par mot de passe…),
 // une page de secours garde les balises d'aperçu et renvoie vers l'app (/#/passeport/<id>).
@@ -17,16 +18,21 @@ const SUPABASE_KEY = process.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? "sb_publishabl
 
 let template = null;
 
-async function loadTemplate() {
+async function loadTemplate(origins) {
   if (template) return template;
-  const host = process.env.VERCEL_URL;
-  if (!host) return null;
-  const res = await fetch(`https://${host}/index.html`, { signal: AbortSignal.timeout(3000) });
-  if (!res.ok) return null;
-  const html = await res.text();
-  if (!html.includes('id="root"')) return null;
-  template = html;
-  return template;
+  for (const origin of origins) {
+    try {
+      const res = await fetch(`${origin}/index.html`, { signal: AbortSignal.timeout(3000) });
+      if (!res.ok) continue;
+      const html = await res.text();
+      if (!html.includes('id="root"')) continue;
+      template = html;
+      return template;
+    } catch {
+      // adresse injoignable : on essaie la suivante
+    }
+  }
+  return null;
 }
 
 async function fetchPassport(id) {
@@ -48,7 +54,9 @@ function siteOrigin(request) {
 }
 
 export async function GET(request) {
-  const id = new URL(request.url).searchParams.get("id");
-  const page = await renderPassportPage({ id, origin: siteOrigin(request), fetchPassport, loadTemplate });
+  const url = new URL(request.url);
+  const id = url.searchParams.get("id");
+  const origins = [url.origin, process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null].filter(Boolean);
+  const page = await renderPassportPage({ id, origin: siteOrigin(request), fetchPassport, loadTemplate: () => loadTemplate(origins) });
   return new Response(page.body, { status: page.status, headers: page.headers });
 }
