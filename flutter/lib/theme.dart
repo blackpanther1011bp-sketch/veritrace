@@ -45,12 +45,19 @@ const levelLabel = {'faible': 'Faible', 'moyen': 'Moyen', 'fort': 'Fort'};
 const levelColor = {'faible': Color(0xFF4FB37A), 'moyen': Color(0xFFF2C94C), 'fort': Color(0xFFE0614B)};
 const levelText = {'faible': Color(0xFF1F6B4A), 'moyen': Color(0xFF7A5B00), 'fort': Color(0xFFA3361F)};
 
-const statusLabel = {'oui': 'Oui', 'partiel': 'Partielle', 'non': 'Non', 'non_communique': 'Non communiqué'};
+const statusLabel = {
+  'oui': 'Oui',
+  'partiel': 'Partielle',
+  'non': 'Non',
+  'non_communique': 'Non communiqué',
+  'non_demontre': 'Non démontré',
+};
 const statusStyle = {
   'oui': (Color(0xFF1F6B4A), Color(0xFFDDF2E5)),
   'partiel': (Color(0xFF7A5B00), Color(0xFFFCF1CF)),
   'non': (Color(0xFFA3361F), Color(0xFFFCE6E1)),
   'non_communique': (Color(0xFF4A5A50), Color(0xFFE3E8E4)),
+  'non_demontre': (Color(0xFF4A5A50), Color(0xFFE3E8E4)),
 };
 
 ThemeData buildTheme() {

@@ -62,6 +62,11 @@ export function dateLocale(): string {
   return current === "ar" ? "ar-MA-u-nu-latn" : "fr-FR";
 }
 
+/** Noms des mois (janvier… / يناير…, appellations en usage au Maroc), pour formatPeriod (lib/social.ts). */
+export function monthNames(): string[] {
+  return t("time.months").split(",");
+}
+
 function applyToDocument(lang: Lang): void {
   const root = document.documentElement;
   root.lang = lang;

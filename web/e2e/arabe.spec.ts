@@ -3,7 +3,7 @@ import { createRequire } from "node:module";
 import { expect, test, type Page } from "@playwright/test";
 import { ar } from "../src/lib/i18n-ar";
 import { fr } from "../src/lib/i18n-fr";
-import { ecritureDans, EAN, EAN_INCONNU, simulerSupabase } from "./supabase";
+import { ecritureDans, EAN, EAN_INCONNU, PRODUIT_SOCIAL_SOURCE, simulerSupabase } from "./supabase";
 
 // Interface en arabe : bascule de langue, lecture de droite à gauche, accessibilité, aucun débordement à 390 px.
 
@@ -85,6 +85,39 @@ test.describe("Parcours en arabe", () => {
     await expect(page.getByText(ar["contact.sent"])).toBeVisible();
     const message = await ecritureDans(page, ecritures, "contact_messages");
     expect(message).toMatchObject({ subject: "Erreur sur un vêtement" });
+  });
+});
+
+test.describe("Note sociale sourcée en arabe", () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+  test("critères traduits, sources gardées, mois en arabe, accessibilité", async ({ page }) => {
+    await enArabe(page);
+    await simulerSupabase(page, { produit: PRODUIT_SOCIAL_SOURCE });
+    await page.goto(`/#/p/${PRODUIT_SOCIAL_SOURCE.ean}/details?onglet=social`);
+    const liste = page.getByRole("list", { name: ar["details.socialChecksAria"] });
+    await expect(liste.getByRole("listitem")).toHaveCount(3);
+    await expect(liste).toContainText(ar["status.non_demontre"]);
+    await expect(liste).toContainText("(غشت 2022)");
+    await expect(liste).toContainText("تم التحقق في 5 نونبر 2026");
+    // le titre de la source (donnée de la base) reste tel quel, le lien aussi
+    await expect(liste.getByRole("link", { name: "Fair Wear – fiche de la marque ARMEDANGELS" })).toHaveAttribute(
+      "href",
+      "https://www.fairwear.org/brands/armedangels/",
+    );
+    await expect(page.getByText("4 من 5", { exact: false })).toBeVisible();
+
+    await page.evaluate(axeSource);
+    const violations = await page.evaluate(async () => {
+      const axe = (window as unknown as { axe: { run: (ctx: Document, opts: unknown) => Promise<{ violations: { id: string }[] }> } }).axe;
+      const res = await axe.run(document, { runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"] } });
+      return res.violations.map((v) => v.id);
+    });
+    expect(violations).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)).toBeLessThanOrEqual(0);
+
+    // la fiche résume la note sociale en arabe
+    await page.goto(`/#/p/${PRODUIT_SOCIAL_SOURCE.ean}`);
+    await expect(page.getByText("النقاط: 4 من 5", { exact: false })).toBeVisible();
   });
 });
 

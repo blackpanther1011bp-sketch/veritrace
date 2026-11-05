@@ -3,21 +3,25 @@ import { Header } from "../components/Header";
 import { IconArrow, IconInfo } from "../components/Icons";
 import { SourcesCard } from "../components/Sources";
 import { LEVEL_COLOR, LEVEL_LABEL, LEVEL_TEXT, STATUS_LABEL, STATUS_STYLE } from "../lib/grades";
-import { t } from "../lib/i18n";
+import { monthNames, t } from "../lib/i18n";
 import { navigate } from "../lib/router";
+import { formatPeriod, isSourced, SOCIAL_MAX_POINTS, socialScore } from "../lib/social";
 import { track } from "../lib/track";
 import type { Product } from "../lib/types";
 import { useProduct } from "./ProductScreen";
 import { ErrorState, LoadingState } from "./States";
 
 function socialNote(product: Product): string {
+  const checks = product.brand.social_checks;
   if (product.social_grade === null) {
-    return product.data_source === "registre" ? t("details.socialNoneRegistry") : t("details.socialNoneBrand");
+    if (isSourced(checks)) return t("details.socialIncomplete");
+    return t("details.socialNone");
   }
-  if (product.data_source === "demo") {
-    return t("details.socialDemo");
-  }
-  return t("details.socialBrand");
+  if (!isSourced(checks)) return t("details.socialDemo");
+  const score = socialScore(checks);
+  return t("details.socialScore", {
+    score: score ? t("details.socialPoints", { points: score.points, max: SOCIAL_MAX_POINTS }) : t("details.socialScale"),
+  });
 }
 
 export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "carbone" | "social" }) {
@@ -94,21 +98,54 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
         ) : (
           <>
             <p className="lead">{t("details.socialLead", { brand: product.brand.name })}</p>
-            {product.brand.social_checks.length > 0 && (
-              <section className="card info-list">
-                {product.brand.social_checks.map((check) => (
-                  <div key={check.label} className="info-row">
-                    <span className="info-label">{check.label}</span>
-                    <span className="status-pill" style={STATUS_STYLE[check.status]}>
-                      {STATUS_LABEL[check.status]}
-                    </span>
-                  </div>
-                ))}
-              </section>
+            {isSourced(product.brand.social_checks) ? (
+              <ul className="card social-checks" aria-label={t("details.socialChecksAria")}>
+                {product.brand.social_checks.map((check) => {
+                  const period = formatPeriod(check.source_period, monthNames());
+                  const checked = formatPeriod(check.checked_at, monthNames());
+                  return (
+                    <li key={check.label} className="social-check">
+                      <div className="split">
+                        <span className="info-label">{check.label}</span>
+                        <span className="status-pill" style={STATUS_STYLE[check.status]}>
+                          {STATUS_LABEL[check.status]}
+                        </span>
+                      </div>
+                      {check.detail && <p className="muted-sm social-detail">{check.detail}</p>}
+                      <p className="muted-sm">
+                        {t("details.source")}{" "}
+                        <a href={check.source_url} target="_blank" rel="noopener noreferrer">
+                          {check.source_title ?? t("details.seeSource")}
+                        </a>
+                        {period ? ` (${period})` : ""}
+                        {checked ? ` · ${t("details.checkedOn", { date: checked })}` : ""}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              product.brand.social_checks.length > 0 && (
+                <section className="card info-list">
+                  {product.brand.social_checks.map((check) => (
+                    <div key={check.label} className="info-row">
+                      <span className="info-label">{check.label}</span>
+                      <span className="status-pill" style={STATUS_STYLE[check.status]}>
+                        {STATUS_LABEL[check.status]}
+                      </span>
+                    </div>
+                  ))}
+                </section>
+              )
             )}
             <aside className="note">
               <IconInfo size={20} />
-              <p>{socialNote(product)}</p>
+              <p>
+                {socialNote(product)}{" "}
+                {product.data_source !== "demo" && (
+                  <a href="#/confidentialite?contact=1">{t("details.proofMissing")}</a>
+                )}
+              </p>
             </aside>
           </>
         )}

@@ -100,6 +100,7 @@ export const ar: Dict = {
   "status.partiel": "جزئيًا",
   "status.non": "لا",
   "status.non_communique": "غير مُصرَّح به",
+  "status.non_demontre": "غير مُثبَت",
 
   // Fiabilité et sources
   "source.demo": "بيانات وهمية (عرض توضيحي)",
@@ -144,6 +145,7 @@ export const ar: Dict = {
   "time.hours": "منذ {n} ساعة",
   "time.yesterday": "أمس",
   "time.days": "منذ {n} أيام",
+  "time.months": "يناير,فبراير,مارس,أبريل,ماي,يونيو,يوليوز,غشت,شتنبر,أكتوبر,نونبر,دجنبر",
 
   // Accueil
   "scan.demo": "عرض توضيحي",
@@ -178,7 +180,10 @@ export const ar: Dict = {
   "product.arTitle": "العرض بالواقع المعزز",
   "product.arSub": "ضع لوحة التقييم ثلاثية الأبعاد في الغرفة",
   "product.country": "بلد الصنع",
-  "product.socialNone": "لم يُقيَّم بعد لهذه العلامة التجارية",
+  "product.socialNone": "غير مُقيَّم: لا يوجد مصدر عمومي يمكن التحقق منه",
+  "product.socialIncomplete": "تقييم غير مكتمل: بدون تقييم",
+  "product.socialPoints": "النقاط: {points} من {max} · مصادر عمومية",
+  "product.socialScope": "التقييم البيئي فقط: الجانب الاجتماعي غير مُقيَّم.",
   "product.socialPartial": "{label}: جزئيًا",
   "product.socialVerified": "التزامات اجتماعية مُتحقَّق منها",
   "product.alternatives_one": "عرض البدائل الأفضل تقييمًا ({n})",
@@ -194,12 +199,20 @@ export const ar: Dict = {
   "details.leadDemo": "من أين يأتي الأثر المناخي لهذه القطعة:",
   "details.leadComputed": "من أين يأتي الأثر المناخي لهذه القطعة (حساب Ecobalyse):",
   "details.socialLead": "الالتزامات الاجتماعية للعلامة التجارية {brand}:",
-  "details.socialNoneRegistry":
-    "لا يوجد تقييم اجتماعي بعد: السجل الرسمي لا يغطي إلا الجانب البيئي. لذلك يعكس التقييم العام الجانب البيئي فقط.",
-  "details.socialNoneBrand":
-    "لا يوجد تقييم اجتماعي بعد: لم تقيّم VeriTrace بعدُ الالتزامات الاجتماعية لهذه العلامة التجارية. لذلك يعكس التقييم العام الجانب البيئي فقط.",
-  "details.socialDemo": "بيانات للتوضيح. مصادر يجب إدماجها قبل الإطلاق: تقارير التدقيق، تصريحات العلامات التجارية، قواعد البيانات العمومية.",
-  "details.socialBrand": "تقييم اجتماعي منحته VeriTrace انطلاقًا من الالتزامات العلنية للعلامة التجارية (عمليات التدقيق، الأجور، لائحة المصانع).",
+  "details.socialIncomplete":
+    "تقييم غير مكتمل: لم يُتحقَّق بعدُ من كل المعايير، لذلك لا يُمنح التقييم الاجتماعي. التقييم العام يعكس الجانب البيئي فقط.",
+  "details.socialNone":
+    "التقييم الاجتماعي غير مُنجَز: لا يوجد مصدر عمومي يمكن التحقق منه لهذه العلامة التجارية. لذلك يعكس التقييم العام الجانب البيئي فقط.",
+  "details.socialDemo": "بيانات مثال، وهمية وبدون مصدر: لا تتبع منهجية التقييم الاجتماعي المستند إلى المصادر.",
+  "details.socialScore":
+    "تقييم VeriTrace الاجتماعي: {score} بناءً على الأدلة العمومية أعلاه. يقيس ما تجعله العلامة التجارية عموميًا وقابلًا للتحقق (المصانع، المراقبة، الشهادات)، وليس ظروف العمل في كل مصنع. « غير مُثبَت »: لم تجد VeriTrace أي دليل.",
+  "details.socialPoints": "{points} من {max}",
+  "details.socialScale": "سُلَّم التنقيط",
+  "details.socialChecksAria": "معايير التقييم الاجتماعي ومصادرها",
+  "details.source": "المصدر:",
+  "details.seeSource": "عرض المصدر",
+  "details.checkedOn": "تم التحقق في {date}",
+  "details.proofMissing": "هل ينقص دليل؟ راسلونا.",
   "details.seeAlternatives": "عرض البدائل",
 
   // Alternatives

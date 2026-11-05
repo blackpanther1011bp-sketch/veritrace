@@ -1,6 +1,7 @@
 export type Grade = "A" | "B" | "C" | "D" | "E";
 export type Level = "faible" | "moyen" | "fort";
-export type CheckStatus = "oui" | "partiel" | "non" | "non_communique";
+/** non_demontre : aucune preuve publique trouvée par VeriTrace (note sociale sourcée, méthode v1) */
+export type CheckStatus = "oui" | "partiel" | "non" | "non_communique" | "non_demontre";
 /** non_classee : marque du registre officiel, pas encore évaluée par VeriTrace */
 export type BrandKind = "fast_fashion" | "responsable" | "seconde_main" | "non_classee";
 
@@ -14,6 +15,14 @@ export interface BreakdownItem {
 export interface SocialCheck {
   label: string;
   status: CheckStatus;
+  // Note sociale sourcée (marques du registre évaluées par VeriTrace) ; absents des données de démonstration
+  detail?: string;
+  source_url?: string;
+  source_title?: string;
+  /** date du document source : « 2025 », « 2025-11 » ou « 2025-11-05 » ; null si la page n'est pas datée */
+  source_period?: string | null;
+  /** date de vérification par VeriTrace (AAAA-MM-JJ) */
+  checked_at?: string;
 }
 
 export interface Brand {
@@ -39,7 +48,7 @@ export interface Product {
   composition: string;
   transport: string;
   carbon_grade: Grade;
-  /** null : note sociale pas encore évaluée (produits du registre officiel) */
+  /** null : note sociale non évaluée (aucune source publique vérifiée) ; la note globale est alors l'environnement seul */
   social_grade: Grade | null;
   global_grade: Grade;
   carbon_breakdown: BreakdownItem[];

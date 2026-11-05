@@ -88,6 +88,7 @@ export const fr = {
   "status.partiel": "Partielle",
   "status.non": "Non",
   "status.non_communique": "Non communiqué",
+  "status.non_demontre": "Non démontré",
 
   // Fiabilité et sources
   "source.demo": "Données fictives (démo)",
@@ -133,6 +134,7 @@ export const fr = {
   "time.hours": "il y a {n} h",
   "time.yesterday": "hier",
   "time.days": "il y a {n} jours",
+  "time.months": "janvier,février,mars,avril,mai,juin,juillet,août,septembre,octobre,novembre,décembre",
 
   // Accueil
   "scan.demo": "Démo",
@@ -168,7 +170,10 @@ export const fr = {
   "product.arTitle": "Voir en réalité augmentée",
   "product.arSub": "Posez le panneau 3D de la note dans la pièce",
   "product.country": "Pays de fabrication",
-  "product.socialNone": "Pas encore évaluée pour cette marque",
+  "product.socialNone": "Non évaluée : aucune source publique vérifiable",
+  "product.socialIncomplete": "Évaluation incomplète : non notée",
+  "product.socialPoints": "{points} points sur {max} · sources publiques",
+  "product.socialScope": "Note environnement seule : note sociale non évaluée.",
   "product.socialPartial": "{label} : partielle",
   "product.socialVerified": "Engagements sociaux vérifiés",
   "product.alternatives_one": "Voir {n} alternative mieux notée",
@@ -184,14 +189,21 @@ export const fr = {
   "details.leadDemo": "D'où vient l'impact climat de ce vêtement :",
   "details.leadComputed": "D'où vient l'impact climat de ce vêtement (calcul Ecobalyse) :",
   "details.socialLead": "Engagements sociaux de la marque {brand} :",
-  "details.socialNoneRegistry":
-    "Pas encore d'évaluation sociale : le registre officiel ne couvre que l'environnement. La note globale reflète donc uniquement l'environnement.",
-  "details.socialNoneBrand":
-    "Pas encore d'évaluation sociale : VeriTrace n'a pas encore évalué les engagements sociaux de cette marque. La note globale reflète donc uniquement l'environnement.",
+  "details.socialIncomplete":
+    "Évaluation incomplète : tous les critères n'ont pas encore été vérifiés, la note sociale n'est donc pas attribuée. La note globale reflète uniquement l'environnement.",
+  "details.socialNone":
+    "Note sociale non évaluée : aucune source publique vérifiable pour cette marque. La note globale reflète donc uniquement l'environnement.",
   "details.socialDemo":
-    "Données d'exemple. Sources à intégrer avant lancement : rapports d'audit, déclarations des marques, bases de données publiques.",
-  "details.socialBrand":
-    "Note sociale attribuée par VeriTrace à partir des engagements publics de la marque (audits, salaires, liste des usines).",
+    "Données d'exemple, fictives et sans source : elles ne suivent pas la méthode de la note sociale sourcée.",
+  "details.socialScore":
+    "Note sociale VeriTrace : {score} d'après les preuves publiques ci-dessus. Elle mesure ce que la marque rend public et vérifiable (usines, contrôles, certification), pas les conditions de travail dans chaque usine. « Non démontré » : aucune preuve trouvée par VeriTrace.",
+  "details.socialPoints": "{points} points sur {max}",
+  "details.socialScale": "barème",
+  "details.socialChecksAria": "Critères de la note sociale et leurs sources",
+  "details.source": "Source :",
+  "details.seeSource": "voir la source",
+  "details.checkedOn": "vérifié le {date}",
+  "details.proofMissing": "Une preuve manque ? Écrivez-nous.",
   "details.seeAlternatives": "Voir les alternatives",
 
   // Alternatives

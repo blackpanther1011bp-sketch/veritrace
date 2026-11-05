@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../api.dart';
+import '../config.dart';
 import '../models.dart';
+import '../social.dart';
 import '../sources_card.dart';
 import '../theme.dart';
 import '../widgets.dart';
@@ -109,51 +112,130 @@ class _DetailsScreenState extends State<DetailsScreen> {
       ];
 
   String _socialNote(Product p) {
+    final checks = p.brand.socialChecks;
     if (p.socialGrade == null) {
-      final why = p.isRegistry
-          ? "le registre officiel ne couvre que l'environnement"
-          : "VeriTrace n'a pas encore évalué les engagements sociaux de cette marque";
-      return "Pas encore d'évaluation sociale : $why. La note globale reflète donc uniquement l'environnement.";
+      if (isSourcedChecks(checks)) {
+        return "Évaluation incomplète : tous les critères n'ont pas encore été vérifiés, la note sociale n'est donc "
+            "pas attribuée. La note globale reflète uniquement l'environnement.";
+      }
+      return 'Note sociale non évaluée : aucune source publique vérifiable pour cette marque. '
+          "La note globale reflète donc uniquement l'environnement.";
     }
-    if (p.isDemo) {
-      return "Données d'exemple. Sources à intégrer avant lancement : rapports d'audit, déclarations des marques, "
-          'bases de données publiques.';
+    if (!isSourcedChecks(checks)) {
+      return "Données d'exemple, fictives et sans source : elles ne suivent pas la méthode de la note sociale sourcée.";
     }
-    return 'Note sociale attribuée par VeriTrace à partir des engagements publics de la marque '
-        '(audits, salaires, liste des usines).';
+    final score = socialScore(checks);
+    final total = score == null ? 'barème' : '${score.points} points sur $socialMaxPoints';
+    return "Note sociale VeriTrace : $total d'après les preuves publiques ci-dessus. Elle mesure ce que la marque "
+        'rend public et vérifiable (usines, contrôles, certification), pas les conditions de travail dans chaque '
+        'usine. « Non démontré » : aucune preuve trouvée par VeriTrace.';
   }
 
-  List<Widget> _social(Product p) => [
-        Text('Engagements sociaux de la marque ${p.brand.name} :', style: const TextStyle(fontSize: 15, color: VT.muted)),
-        const SizedBox(height: 14),
-        if (p.brand.socialChecks.isNotEmpty) ...[
+  Future<void> _open(String url) async {
+    final ok = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Impossible d'ouvrir le lien")));
+    }
+  }
+
+  Widget _pill(SocialCheck c) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: (statusStyle[c.status] ?? statusStyle['non_communique']!).$2,
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(statusLabel[c.status] ?? c.status,
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: (statusStyle[c.status] ?? statusStyle['non_communique']!).$1)),
+      );
+
+  /// Un critère sourcé : statut, détail, source cliquable, date du document et date de vérification.
+  Widget _sourcedCheck(SocialCheck c) {
+    final period = formatPeriod(c.sourcePeriod);
+    final checked = formatPeriod(c.checkedAt);
+    final dates = [if (period != null) period, if (checked != null) 'vérifié le $checked'].join(' · ');
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 13),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(child: Text(c.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
+              const SizedBox(width: 8),
+              _pill(c),
+            ],
+          ),
+          if (c.detail != null) ...[
+            const SizedBox(height: 6),
+            Text(c.detail!, style: const TextStyle(fontSize: 13, color: VT.muted2, height: 1.35)),
+          ],
+          const SizedBox(height: 4),
+          Semantics(
+            link: true,
+            child: InkWell(
+              onTap: () => _open(c.sourceUrl!),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Text.rich(
+                  TextSpan(children: [
+                    const TextSpan(text: 'Source : '),
+                    TextSpan(
+                      text: c.sourceTitle ?? 'voir la source',
+                      style: const TextStyle(color: VT.green, fontWeight: FontWeight.w500, decoration: TextDecoration.underline),
+                    ),
+                    if (dates.isNotEmpty) TextSpan(text: ' ($dates)'),
+                  ]),
+                  style: const TextStyle(fontSize: 13, color: VT.muted2, height: 1.35),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _social(Product p) {
+    final checks = p.brand.socialChecks;
+    final sourced = isSourcedChecks(checks);
+    return [
+      Text('Engagements sociaux de la marque ${p.brand.name} :', style: const TextStyle(fontSize: 15, color: VT.muted)),
+      const SizedBox(height: 14),
+      if (checks.isNotEmpty) ...[
         CardBox(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Column(
             children: [
-              for (final c in p.brand.socialChecks)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 13),
-                  child: Row(
-                    children: [
-                      Expanded(child: Text(c.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: statusStyle[c.status]!.$2,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(statusLabel[c.status] ?? c.status,
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: statusStyle[c.status]!.$1)),
-                      ),
-                    ],
+              for (final c in checks)
+                if (sourced)
+                  _sourcedCheck(c)
+                else
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 13),
+                    child: Row(
+                      children: [
+                        Expanded(child: Text(c.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
+                        _pill(c),
+                      ],
+                    ),
                   ),
-                ),
             ],
           ),
         ),
         const SizedBox(height: 14),
-        ],
-        MethodNote(text: _socialNote(p)),
-      ];
+      ],
+      MethodNote(text: _socialNote(p)),
+      if (!p.isDemo)
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            onPressed: () => _open('${AppConfig.siteUrl}/#/confidentialite?contact=1'),
+            child: const Text('Une preuve manque ? Écrivez-nous'),
+          ),
+        ),
+    ];
+  }
 }

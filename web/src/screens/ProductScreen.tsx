@@ -8,6 +8,7 @@ import { formatEan } from "../lib/barcode";
 import { carbonSummary, GRADE_TINT, isBadGrade, STATUS_LABEL, VERDICT } from "../lib/grades";
 import { t, tn } from "../lib/i18n";
 import { formatNumber } from "../lib/reliability";
+import { isSourced, SOCIAL_MAX_POINTS, socialScore } from "../lib/social";
 import { navigate } from "../lib/router";
 import { addToHistory } from "../lib/storage";
 import { track, trackOnExit } from "../lib/track";
@@ -41,10 +42,13 @@ export function useProduct(ean: string) {
 }
 
 function socialSummary(product: Product): string {
-  if (product.social_grade === null) return t("product.socialNone");
-  const weak = product.brand.social_checks.find((c) => c.status === "non" || c.status === "non_communique");
+  const checks = product.brand.social_checks;
+  if (product.social_grade === null) return isSourced(checks) ? t("product.socialIncomplete") : t("product.socialNone");
+  const score = socialScore(checks);
+  if (score) return t("product.socialPoints", { points: score.points, max: SOCIAL_MAX_POINTS });
+  const weak = checks.find((c) => c.status === "non" || c.status === "non_communique" || c.status === "non_demontre");
   if (weak) return `${weak.label} : ${STATUS_LABEL[weak.status].toLowerCase()}`;
-  const partial = product.brand.social_checks.find((c) => c.status === "partiel");
+  const partial = checks.find((c) => c.status === "partiel");
   if (partial) return t("product.socialPartial", { label: partial.label });
   return t("product.socialVerified");
 }
@@ -151,6 +155,7 @@ export function ProductScreen({ ean }: { ean: string }) {
             <p className="verdict-kicker">{t("product.kicker")}</p>
             <p className="verdict-title">{verdict.title}</p>
             <p className="verdict-text">{verdict.text}</p>
+            {product.social_grade === null && <p className="verdict-scope">{t("product.socialScope")}</p>}
           </div>
         </section>
 
