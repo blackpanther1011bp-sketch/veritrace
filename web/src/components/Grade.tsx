@@ -1,4 +1,5 @@
 import { GRADE_COLOR, GRADES } from "../lib/grades";
+import { t } from "../lib/i18n";
 import type { Grade } from "../lib/types";
 
 export function GradeBadge({ grade, size = 44, round = false }: { grade: Grade | null; size?: number; round?: boolean }) {
@@ -13,7 +14,7 @@ export function GradeBadge({ grade, size = 44, round = false }: { grade: Grade |
         // 13 px minimum, même dans les petites pastilles
         fontSize: Math.max(13, Math.round(size * 0.46)),
       }}
-      aria-label={grade ? `Note ${grade}` : "Pas de note"}
+      aria-label={grade ? t("common.noteGrade", { grade }) : t("common.noGrade")}
     >
       {grade ?? "?"}
     </span>
@@ -22,7 +23,7 @@ export function GradeBadge({ grade, size = 44, round = false }: { grade: Grade |
 
 export function GradeScale({ grade }: { grade: Grade | null }) {
   return (
-    <div className="grade-scale" role="img" aria-label={grade ? `Note ${grade} sur une échelle de A à E` : "Pas encore de note"}>
+    <div className="grade-scale" role="img" aria-label={grade ? t("common.gradeScale", { grade }) : t("common.gradeScaleNone")}>
       {GRADES.map((g) => (
         <span
           key={g}

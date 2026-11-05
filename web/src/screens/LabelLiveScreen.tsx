@@ -5,6 +5,7 @@ import { badgeOrigin, mapToView, type Box, type Size } from "../lib/arGeometry";
 import { cameraErrorMessage, openBackCamera, setTorch, torchAvailable } from "../lib/camera";
 import { CATEGORIES } from "../lib/contribute";
 import { VERDICT } from "../lib/grades";
+import { t, tv } from "../lib/i18n";
 import { compositionInText, labelLines, type Rect } from "../lib/labelLive";
 import { createOcrWorker } from "../lib/ocr";
 import { readLabel, ServiceError } from "../lib/outils";
@@ -143,10 +144,10 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
         setPhase("result");
       } catch (err) {
         if (cancelled) return;
-        const e = err instanceof ServiceError ? err : new ServiceError("serveur", "Erreur inattendue : réessayez.");
+        const e = err instanceof ServiceError ? err : new ServiceError("serveur", t("common.unexpected"));
         // texte mal lu : on continue de lire (nouvel essai quand l'image change)
         if (["composition_incomplete", "composition_introuvable", "illisible"].includes(e.code)) {
-          setMessage("Lecture imprécise : rapprochez-vous et gardez l'étiquette bien à plat.");
+          setMessage(t("live.imprecise"));
           setPhase("scanning");
         } else {
           setMessage(e.message);
@@ -203,7 +204,7 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
         return;
       }
       if (cancelled) {
-        stream.getTracks().forEach((t) => t.stop());
+        stream.getTracks().forEach((track) => track.stop());
         return;
       }
       streamRef.current = stream;
@@ -221,7 +222,7 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
         worker = await createOcrWorker();
       } catch {
         if (!cancelled) {
-          setMessage("Le moteur de lecture n'a pas pu se charger : vérifiez la connexion Internet.");
+          setMessage(t("live.engineFailed"));
           setPhase("failed");
         }
         return;
@@ -239,7 +240,7 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
       cancelled = true;
       window.clearTimeout(timer);
       window.removeEventListener("resize", measure);
-      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
       void worker?.terminate();
     };
@@ -278,16 +279,16 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
   const origin = box ? badgeOrigin({ box, view, badge: BADGE, topLimit: TOP_RESERVED, bottomReserved: BOTTOM_RESERVED }) : null;
 
   let hint: string;
-  if (!engineReady) hint = "Préparation de la lecture (environ 5 Mo la première fois)…";
-  else if (phase === "sending") hint = "Composition lue : calcul de la note avec Ecobalyse…";
+  if (!engineReady) hint = t("live.preparing");
+  else if (phase === "sending") hint = t("live.computing");
   else if (message) hint = message;
-  else if (preview && !category) hint = `Composition lue : ${preview}. Choisissez le type de vêtement.`;
-  else if (seen) hint = "Lecture en cours… Rapprochez-vous et gardez l'étiquette nette.";
-  else hint = "Visez l'étiquette de composition (ex. « 100 % coton »). La note s'affiche dessus.";
+  else if (preview && !category) hint = t("live.chooseType", { composition: preview });
+  else if (seen) hint = t("live.readingProgress");
+  else hint = t("live.aim");
 
   return (
     <div className="ar label-live" ref={rootRef}>
-      <video ref={videoRef} className="ar-video" playsInline muted autoPlay aria-label="Image de la caméra" />
+      <video ref={videoRef} className="ar-video" playsInline muted autoPlay aria-label={t("common.cameraImage")} />
 
       <svg className="ar-overlay" width={view.width} height={view.height} aria-hidden="true">
         {box ? (
@@ -320,11 +321,11 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
           className="ar-badge live-badge"
           style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)` }}
           onClick={() => product && navigate(`/p/${product.ean}`)}
-          aria-label={product ? `Note ${product.global_grade} : ${VERDICT[product.global_grade].title}` : "Calcul de la note"}
+          aria-label={product ? t("live.badgeAria", { grade: product.global_grade, title: VERDICT[product.global_grade].title }) : t("live.computingGrade")}
         >
           {product ? <GradeBadge grade={product.global_grade} size={44} round /> : <span className="ar-spinner" aria-hidden="true" />}
           <span className="ar-badge-text">
-            <span className="ar-badge-title">{product ? VERDICT[product.global_grade].title : "Calcul de la note…"}</span>
+            <span className="ar-badge-title">{product ? VERDICT[product.global_grade].title : t("live.computingGradeDots")}</span>
             <span className="ar-badge-sub">{product ? product.composition : preview}</span>
           </span>
           {product && <IconChevron size={20} className="row-chevron" />}
@@ -332,12 +333,12 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
       )}
 
       <div className="ar-top">
-        <button type="button" className="ar-round" aria-label="Retour" onClick={() => goBack(ean ? `/inconnu/${ean}` : "/")}>
+        <button type="button" className="ar-round" aria-label={t("common.back")} onClick={() => goBack(ean ? `/inconnu/${ean}` : "/")}>
           <IconBack />
         </button>
-        <span className="ar-title">Visez l'étiquette cousue</span>
+        <span className="ar-title">{t("live.title")}</span>
         {torch.available ? (
-          <button type="button" className={torch.on ? "ar-round ar-round-on" : "ar-round"} aria-label={torch.on ? "Éteindre la lampe" : "Allumer la lampe"} aria-pressed={torch.on} onClick={toggleTorch}>
+          <button type="button" className={torch.on ? "ar-round ar-round-on" : "ar-round"} aria-label={torch.on ? t("common.torchOff") : t("common.torchOn")} aria-pressed={torch.on} onClick={toggleTorch}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M8 2h8l-1 6H9z" />
               <path d="M9 8h6v12a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z" />
@@ -349,16 +350,16 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
         )}
       </div>
 
-      {camera === "starting" && <p className="ar-status">Ouverture de la caméra…</p>}
+      {camera === "starting" && <p className="ar-status">{t("common.openingCamera")}</p>}
 
       {camera === "error" ? (
         <div className="ar-error" role="alert">
           <p>{cameraError}</p>
           <button type="button" className="btn btn-primary" onClick={() => navigate(ean ? `/etiquette/${ean}` : "/etiquette", { replace: true })}>
-            Prendre une photo à la place
+            {t("common.takePhotoInstead")}
           </button>
           <button type="button" className="btn btn-text ar-error-back" onClick={() => goBack("/")}>
-            Retour
+            {t("common.back")}
           </button>
         </div>
       ) : (
@@ -370,13 +371,13 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
                 <span className="row-text">
                   <span className="row-title">{product.name}</span>
                   <span className="row-sub">
-                    {[product.origin_country !== "Non indiqué" ? product.origin_country : null, "touchez pour voir la fiche"].filter(Boolean).join(" · ")}
+                    {[product.origin_country !== "Non indiqué" ? product.origin_country : null, t("live.tapToOpen")].filter(Boolean).join(" · ")}
                   </span>
                 </span>
                 <IconChevron size={20} className="row-chevron" />
               </button>
               <button type="button" className="btn btn-text live-again" onClick={restart}>
-                Lire une autre étiquette
+                {t("live.another")}
               </button>
             </>
           ) : phase === "failed" ? (
@@ -385,7 +386,7 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
                 {message}
               </p>
               <button type="button" className="btn btn-primary" onClick={restart}>
-                Réessayer
+                {t("common.retry")}
               </button>
             </>
           ) : (
@@ -393,15 +394,15 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
               <p className="ar-hint" aria-live="polite">
                 {hint}
               </p>
-              <div className="live-chips" role="radiogroup" aria-label="Type de vêtement">
+              <div className="live-chips" role="radiogroup" aria-label={t("live.typeGroup")}>
                 {CATEGORIES.map((c) => (
                   <button key={c} type="button" role="radio" aria-checked={c === category} className={c === category ? "chip chip-on" : "chip"} onClick={() => chooseCategory(c)}>
-                    {c}
+                    {tv(c)}
                   </button>
                 ))}
               </div>
               <button type="button" className="btn btn-text live-photo" onClick={() => navigate(ean ? `/etiquette/${ean}` : "/etiquette")}>
-                <IconCamera size={18} /> Prendre une photo à la place
+                <IconCamera size={18} /> {t("common.takePhotoInstead")}
               </button>
             </>
           )}

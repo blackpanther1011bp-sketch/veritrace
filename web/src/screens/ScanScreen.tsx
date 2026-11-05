@@ -4,6 +4,7 @@ import { GradeBadge } from "../components/Grade";
 import { IconCamera, IconChevron, IconKeyboard, IconScan, Logo } from "../components/Icons";
 import { TagIllustration } from "../components/TagIllustration";
 import { digitsOnly, formatEan, isValidGtin, normalizeGtin } from "../lib/barcode";
+import { getLang, setLang, t, type Lang } from "../lib/i18n";
 import { navigate } from "../lib/router";
 import { getHistory, resetDemo, timeAgo, type HistoryEntry } from "../lib/storage";
 import { track } from "../lib/track";
@@ -15,6 +16,27 @@ const EXAMPLES: { ean: string; name: string; brand: string; grade: Grade }[] = [
   { ean: "2004000000044", name: "Robe moulante", brand: "Flashwear", grade: "E" },
   { ean: "2005000000010", name: "T-shirt col V", brand: "Pulse & Co", grade: "B" },
 ];
+
+/** Choix de la langue (mémorisé) : français ou arabe (lecture de droite à gauche). */
+function LangSwitch() {
+  const current = getLang();
+  const [busy, setBusy] = useState(false);
+  const choose = (lang: Lang) => {
+    if (lang === current || busy) return;
+    setBusy(true);
+    setLang(lang).catch(() => setBusy(false));
+  };
+  return (
+    <div className="lang-switch" role="group" aria-label={t("lang.label")}>
+      <button type="button" lang="fr" title="Français" aria-pressed={current === "fr"} onClick={() => choose("fr")}>
+        {t("lang.fr")}
+      </button>
+      <button type="button" lang="ar" aria-pressed={current === "ar"} onClick={() => choose("ar")}>
+        {t("lang.ar")}
+      </button>
+    </div>
+  );
+}
 
 export function ScanScreen() {
   // « ?saisie=1 » : retour depuis la caméra indisponible, on ouvre directement la saisie
@@ -47,7 +69,7 @@ export function ScanScreen() {
     e.preventDefault();
     const code = normalizeGtin(manualCode);
     if (!isValidGtin(code)) {
-      setManualError("Ce code ne ressemble pas à un code-barres valide (8, 12 ou 13 chiffres).");
+      setManualError(t("scan.codeInvalid"));
       return;
     }
     openProduct(code);
@@ -65,7 +87,10 @@ export function ScanScreen() {
           <Logo />
           <h1 className="brand-name">VeriTrace</h1>
         </div>
-        <span className="pill-outline">Démo</span>
+        <div className="brandbar-end">
+          <LangSwitch />
+          <span className="pill-outline">{t("scan.demo")}</span>
+        </div>
       </header>
 
       <main>
@@ -75,30 +100,30 @@ export function ScanScreen() {
           <span className="ar-preview-badge">
             <GradeBadge grade="D" size={34} round />
             <span className="ar-badge-text">
-              <span className="ar-badge-title">Impact élevé</span>
-              <span className="ar-badge-sub">Carbone D · Social E</span>
+              <span className="ar-badge-title">{t("scan.previewTitle")}</span>
+              <span className="ar-badge-sub">{t("scan.previewSub")}</span>
             </span>
           </span>
         </div>
       </div>
 
-      <p className="hint">Visez l'étiquette d'un vêtement : sa note s'affiche directement sur l'image de la caméra.</p>
+      <p className="hint">{t("scan.hint")}</p>
 
       <section className="sheet">
         <button type="button" className="btn btn-primary" onClick={startScan}>
           <IconScan />
-          Scanner l'article
+          {t("scan.start")}
         </button>
 
         <button type="button" className="btn btn-outline" onClick={() => navigate("/etiquette-direct")}>
           <IconCamera size={20} />
-          Pas de code-barres ? Lire l'étiquette
+          {t("scan.noBarcode")}
         </button>
 
         {manualOpen ? (
           <form className="manual" onSubmit={submitManual} noValidate>
             <label htmlFor="code" className="field-label">
-              Code-barres
+              {t("scan.codeLabel")}
             </label>
             <div className="manual-row">
               <input
@@ -106,7 +131,8 @@ export function ScanScreen() {
                 className="input"
                 inputMode="numeric"
                 autoComplete="off"
-                placeholder="Ex. : 2001000000012"
+                dir="ltr"
+                placeholder={t("scan.codePlaceholder")}
                 value={manualCode}
                 onChange={(e) => {
                   setManualCode(digitsOnly(e.target.value).slice(0, 14));
@@ -116,7 +142,7 @@ export function ScanScreen() {
                 aria-describedby={manualError ? "code-error" : undefined}
               />
               <button type="submit" className="btn btn-primary btn-compact">
-                Valider
+                {t("scan.validate")}
               </button>
             </div>
             {manualError && (
@@ -128,20 +154,20 @@ export function ScanScreen() {
         ) : (
           <button type="button" className="btn btn-text" onClick={() => setManualOpen(true)}>
             <IconKeyboard size={20} />
-            Saisir le code à la main
+            {t("scan.enterByHand")}
           </button>
         )}
 
         <div className="list">
-          <h2 className="overline">{history.length > 0 ? "Derniers scans" : "Exemples à tester"}</h2>
+          <h2 className="overline">{history.length > 0 ? t("scan.recent") : t("scan.examples")}</h2>
           {history.length > 0
             ? history.slice(0, 4).map((h) => (
                 <button key={h.ean} type="button" className="row-card" onClick={() => navigate(h.grade ? `/p/${h.ean}` : `/inconnu/${h.ean}`)}>
                   <GradeBadge grade={h.grade} />
                   <span className="row-text">
-                    <span className="row-title">{h.name ?? (h.ean.startsWith("L") ? "Étiquette lue" : `EAN ${formatEan(h.ean)}`)}</span>
+                    <span className="row-title">{h.name ?? (h.ean.startsWith("L") ? t("scan.labelRead") : t("common.ean", { code: formatEan(h.ean) }))}</span>
                     <span className="row-sub">
-                      {h.brand ?? "Non référencé"} · {timeAgo(h.at)}
+                      {h.brand ?? t("scan.notListed")} · {timeAgo(h.at)}
                     </span>
                   </span>
                   <IconChevron size={20} className="row-chevron" />
@@ -152,7 +178,7 @@ export function ScanScreen() {
                   <GradeBadge grade={ex.grade} />
                   <span className="row-text">
                     <span className="row-title">{ex.name}</span>
-                    <span className="row-sub">{ex.brand} · produit fictif</span>
+                    <span className="row-sub">{ex.brand} · {t("scan.fictional")}</span>
                   </span>
                   <IconChevron size={20} className="row-chevron" />
                 </button>
@@ -161,14 +187,14 @@ export function ScanScreen() {
 
         {history.length > 0 && (
           <button type="button" className="btn btn-text btn-small" onClick={reset}>
-            Réinitialiser la démo
+            {t("scan.resetDemo")}
           </button>
         )}
 
         <button type="button" className="row-card maker-link" onClick={() => navigate("/fabricants")}>
           <span className="row-text">
-            <span className="row-title">Vous êtes fabricant ?</span>
-            <span className="row-sub">Créez le passeport numérique de vos vêtements, prêt pour l'Europe</span>
+            <span className="row-title">{t("scan.makerTitle")}</span>
+            <span className="row-sub">{t("scan.makerSub")}</span>
           </span>
           <IconChevron size={20} className="row-chevron" />
         </button>

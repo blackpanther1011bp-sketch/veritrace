@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Header } from "../components/Header";
 import { IconCamera, IconCheck } from "../components/Icons";
 import { formatEan } from "../lib/barcode";
+import { t, tv } from "../lib/i18n";
 import { CATEGORIES, checkComposition, compressPhoto, COUNTRIES, submitContribution, uploadLabelPhoto } from "../lib/contribute";
 import { navigate } from "../lib/router";
 import { track } from "../lib/track";
@@ -46,7 +47,7 @@ export function ContributeScreen({ ean }: { ean: string }) {
     try {
       setPhoto(await compressPhoto(file));
     } catch {
-      setPhotoError("Cette photo n'a pas pu être lue. Réessayez.");
+      setPhotoError(t("contrib.photoError"));
     }
   }
 
@@ -66,7 +67,7 @@ export function ContributeScreen({ ean }: { ean: string }) {
     }
   }
 
-  const header = <Header title="Ajouter ce vêtement" backTo={`/inconnu/${ean}`} backLabel="Retour" />;
+  const header = <Header title={t("contrib.header")} backTo={`/inconnu/${ean}`} backLabel={t("common.back")} />;
 
   if (status === "sent") {
     return (
@@ -78,14 +79,14 @@ export function ContributeScreen({ ean }: { ean: string }) {
               <IconCheck size={20} />
             </span>
             <div className="stack-4">
-              <strong>Merci, c'est envoyé !</strong>
-              <span>L'équipe VeriTrace vérifie votre ajout, puis le vêtement est noté avec Ecobalyse, la méthode officielle française.</span>
+              <strong>{t("common.thanksSent")}</strong>
+              <span>{t("contrib.sentText")}</span>
             </div>
           </section>
         </main>
         <footer className="actions">
           <button type="button" className="btn btn-primary" onClick={() => navigate("/")}>
-            Scanner un autre article
+            {t("common.scanAnother")}
           </button>
         </footer>
       </div>
@@ -96,84 +97,84 @@ export function ContributeScreen({ ean }: { ean: string }) {
     <div className="screen">
       {header}
       <main className="content">
-        <p className="lead">
-          Recopiez l'étiquette cousue à l'intérieur du vêtement. Nous vérifions chaque ajout avant de le noter.
-        </p>
-        <span className="pill-muted contribute-ean">EAN {formatEan(ean)}</span>
+        <p className="lead">{t("contrib.lead")}</p>
+        <span className="pill-muted contribute-ean">
+          <bdi>{t("common.ean", { code: formatEan(ean) })}</bdi>
+        </span>
 
         <form id="contribute" className="card form" onSubmit={submit} noValidate>
           <div className="stack-6">
-            <label htmlFor="c-brand" className="field-label">Marque</label>
-            <input id="c-brand" className="input" maxLength={80} autoComplete="off" placeholder="Ex. Defacto, Zara, Marwa…" value={brand} onChange={(e) => setBrand(e.target.value)} aria-invalid={touched && missing.brand} />
-            {touched && missing.brand && <p className="field-error">Indiquez la marque.</p>}
+            <label htmlFor="c-brand" className="field-label">{t("contrib.brand")}</label>
+            <input id="c-brand" className="input" maxLength={80} autoComplete="off" placeholder={t("contrib.brandPlaceholder")} value={brand} onChange={(e) => setBrand(e.target.value)} aria-invalid={touched && missing.brand} />
+            {touched && missing.brand && <p className="field-error">{t("contrib.brandMissing")}</p>}
           </div>
 
           <div className="stack-6">
-            <label htmlFor="c-name" className="field-label">Nom du vêtement</label>
-            <input id="c-name" className="input" maxLength={120} autoComplete="off" placeholder="Ex. T-shirt col rond noir" value={name} onChange={(e) => setName(e.target.value)} aria-invalid={touched && missing.name} />
-            {touched && missing.name && <p className="field-error">Donnez un nom au vêtement.</p>}
+            <label htmlFor="c-name" className="field-label">{t("contrib.name")}</label>
+            <input id="c-name" className="input" maxLength={120} autoComplete="off" placeholder={t("contrib.namePlaceholder")} value={name} onChange={(e) => setName(e.target.value)} aria-invalid={touched && missing.name} />
+            {touched && missing.name && <p className="field-error">{t("contrib.nameMissing")}</p>}
           </div>
 
           <div className="stack-6">
-            <label htmlFor="c-category" className="field-label">Catégorie</label>
+            <label htmlFor="c-category" className="field-label">{t("contrib.category")}</label>
             <select id="c-category" className="input" value={category} onChange={(e) => setCategory(e.target.value)} aria-invalid={touched && missing.category}>
-              <option value="">Choisir…</option>
+              <option value="">{t("common.choose")}</option>
               {CATEGORIES.map((c) => (
-                <option key={c} value={c}>{c}</option>
+                <option key={c} value={c}>{tv(c)}</option>
               ))}
             </select>
-            {touched && missing.category && <p className="field-error">Choisissez une catégorie.</p>}
+            {touched && missing.category && <p className="field-error">{t("contrib.categoryMissing")}</p>}
           </div>
 
           <div className="stack-6">
-            <label htmlFor="c-composition" className="field-label">Composition</label>
-            <input id="c-composition" className="input" maxLength={300} autoComplete="off" placeholder="Ex. 60 % coton, 40 % polyester" value={composition} onChange={(e) => setComposition(e.target.value)} aria-invalid={touched && !!compositionError} aria-describedby="c-composition-help" />
+            <label htmlFor="c-composition" className="field-label">{t("common.composition")}</label>
+            <input id="c-composition" className="input" maxLength={300} autoComplete="off" dir="auto" placeholder={t("contrib.compositionPlaceholder")} value={composition} onChange={(e) => setComposition(e.target.value)} aria-invalid={touched && !!compositionError} aria-describedby="c-composition-help" />
             {touched && compositionError ? (
               <p className="field-error">{compositionError}</p>
             ) : (
-              <p id="c-composition-help" className="muted-sm">Telle qu'écrite sur l'étiquette, avec les pourcentages.</p>
+              <p id="c-composition-help" className="muted-sm">{t("contrib.compositionHelp")}</p>
             )}
           </div>
 
           <div className="stack-6">
-            <label htmlFor="c-country" className="field-label">Fabriqué en (facultatif)</label>
-            <input id="c-country" className="input" list="c-countries" maxLength={40} autoComplete="off" placeholder="Ex. Maroc, Turquie, Bangladesh…" value={country} onChange={(e) => setCountry(e.target.value)} />
+            <label htmlFor="c-country" className="field-label">{t("contrib.country")}</label>
+            <input id="c-country" className="input" list="c-countries" maxLength={40} autoComplete="off" placeholder={t("contrib.countryPlaceholder")} value={country} onChange={(e) => setCountry(e.target.value)} />
             <datalist id="c-countries">
               {COUNTRIES.map((c) => (
-                <option key={c} value={c} />
+                <option key={c} value={c} label={tv(c)} />
               ))}
             </datalist>
           </div>
 
           <div className="stack-6">
-            <span className="field-label">Photo de l'étiquette (facultatif)</span>
+            <span className="field-label">{t("contrib.photo")}</span>
             <input ref={fileInput} type="file" accept="image/*" capture="environment" hidden onChange={(e) => onPhoto(e.target.files?.[0])} />
             {preview ? (
               <div className="photo-row">
-                <img src={preview} alt="Photo de l'étiquette" className="photo-preview" />
+                <img src={preview} alt={t("contrib.photoAlt")} className="photo-preview" />
                 <button type="button" className="btn btn-text btn-compact" onClick={() => fileInput.current?.click()}>
-                  Reprendre
+                  {t("contrib.retake")}
                 </button>
               </div>
             ) : (
               <button type="button" className="btn btn-outline" onClick={() => fileInput.current?.click()}>
                 <IconCamera size={20} />
-                Prendre l'étiquette en photo
+                {t("contrib.takePhoto")}
               </button>
             )}
-            {photoError ? <p className="field-error">{photoError}</p> : <p className="muted-sm">Elle sert uniquement à vérifier votre saisie.</p>}
+            {photoError ? <p className="field-error">{photoError}</p> : <p className="muted-sm">{t("contrib.photoUse")}</p>}
           </div>
 
           {status === "error" && (
             <p className="field-error" role="alert">
-              L'envoi a échoué. Vérifiez votre connexion puis réessayez.
+              {t("common.sendFailed")}
             </p>
           )}
         </form>
       </main>
       <footer className="actions">
         <button type="submit" form="contribute" className="btn btn-primary" disabled={status === "sending"}>
-          {status === "sending" ? "Envoi…" : "Envoyer pour vérification"}
+          {status === "sending" ? t("common.sending") : t("contrib.submit")}
         </button>
       </footer>
     </div>

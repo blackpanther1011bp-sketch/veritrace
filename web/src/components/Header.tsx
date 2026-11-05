@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { goBack } from "../lib/router";
+import { t } from "../lib/i18n";
 import { IconBack } from "./Icons";
 
 export function Header({ title, backTo, backLabel, right }: { title: string; backTo: string; backLabel: string; right?: ReactNode }) {
@@ -16,8 +17,8 @@ export function Header({ title, backTo, backLabel, right }: { title: string; bac
 
 export function SampleTag() {
   return (
-    <span className="pill-muted" title="Données d'exemple">
-      Exemple
+    <span className="pill-muted" title={t("common.exampleData")}>
+      {t("common.example")}
     </span>
   );
 }

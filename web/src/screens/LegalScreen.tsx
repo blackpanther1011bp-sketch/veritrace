@@ -1,33 +1,33 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { Header } from "../components/Header";
 import { navigate } from "../lib/router";
+import { isRtl, t, tv, type Key } from "../lib/i18n";
 import { supabase } from "../lib/supabase";
 import { sessionId } from "../lib/track";
 
 export type LegalPage = "confidentialite" | "mentions-legales" | "conditions";
 
-const UPDATED = "5 novembre 2026";
-
-const TITLES: Record<LegalPage, string> = {
-  confidentialite: "Confidentialité",
-  "mentions-legales": "Mentions légales",
-  conditions: "Conditions d'utilisation",
+const TITLES: Record<LegalPage, Key> = {
+  confidentialite: "legal.privacy",
+  "mentions-legales": "legal.notice",
+  conditions: "legal.terms",
 };
 
 /** Liens vers les trois pages, en bas de l'accueil et de l'espace fabricants. */
 export function LegalLinks() {
   return (
-    <nav className="legal-links" aria-label="Informations légales">
-      <a href="#/confidentialite">Confidentialité</a>
+    <nav className="legal-links" aria-label={t("legal.navAria")}>
+      <a href="#/confidentialite">{t("legal.privacy")}</a>
       <span aria-hidden="true">·</span>
-      <a href="#/mentions-legales">Mentions légales</a>
+      <a href="#/mentions-legales">{t("legal.notice")}</a>
       <span aria-hidden="true">·</span>
-      <a href="#/conditions">Conditions d'utilisation</a>
+      <a href="#/conditions">{t("legal.terms")}</a>
     </nav>
   );
 }
 
 export function LegalScreen({ page }: { page: LegalPage }) {
+  const rtl = isRtl();
   // Lien « formulaire de contact » : on descend directement au formulaire
   useEffect(() => {
     if (/[?&]contact=1\b/.test(window.location.hash)) document.getElementById("contact")?.scrollIntoView({ block: "start" });
@@ -35,18 +35,23 @@ export function LegalScreen({ page }: { page: LegalPage }) {
 
   return (
     <div className="screen">
-      <Header title={TITLES[page]} backTo="/" backLabel="Retour à l'accueil" />
+      <Header title={t(TITLES[page])} backTo="/" backLabel={t("common.backHome")} />
       <main className="content legal">
-        {page === "confidentialite" && <Privacy />}
-        {page === "mentions-legales" && <Notice />}
-        {page === "conditions" && <Terms />}
-        <p className="muted-sm">Dernière mise à jour : {UPDATED}.</p>
-        <nav className="legal-links" aria-label="Autres informations légales">
+        {/* Texte juridique en français (version qui fait foi) ; en arabe, un paragraphe l'explique en tête */}
+        {rtl && <p className="lead">{t("legal.arNotice")}</p>}
+        <div className="legal-body" lang={rtl ? "fr" : undefined} dir={rtl ? "ltr" : undefined}>
+          {page === "confidentialite" && <Privacy />}
+          {page === "mentions-legales" && <Notice />}
+          {page === "conditions" && <Terms />}
+        </div>
+        {page === "confidentialite" && <ContactForm />}
+        <p className="muted-sm">{t("legal.updated", { date: t("legal.updatedDate") })}</p>
+        <nav className="legal-links" aria-label={t("legal.otherAria")}>
           {(Object.keys(TITLES) as LegalPage[])
             .filter((p) => p !== page)
             .map((p) => (
               <a key={p} href={`#/${p}`}>
-                {TITLES[p]}
+                {t(TITLES[p])}
               </a>
             ))}
         </nav>
@@ -141,8 +146,6 @@ function Privacy() {
         (code-barres, date, code du passeport). Vous pouvez aussi saisir la CNDP (cndp.ma) ou, dans l'Union européenne, votre autorité de protection des
         données.
       </p>
-
-      <ContactForm />
     </>
   );
 }
@@ -236,11 +239,11 @@ function ContactForm() {
     const text = message.trim();
     const mail = email.trim();
     if (text.length < 10) {
-      setError("Écrivez au moins quelques mots (10 caractères).");
+      setError(t("contact.tooShort"));
       return;
     }
     if (mail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mail)) {
-      setError("Adresse e-mail invalide (ou laissez le champ vide).");
+      setError(t("contact.badEmail"));
       return;
     }
     setError(null);
@@ -257,10 +260,10 @@ function ContactForm() {
   if (state === "sent") {
     return (
       <section id="contact" className="card" role="status">
-        <p className="row-title">Message envoyé</p>
-        <p className="muted">Merci. {email.trim() ? "La réponse arrivera à l'adresse indiquée." : "Sans adresse e-mail, nous ne pourrons pas vous répondre directement."}</p>
+        <p className="row-title">{t("contact.sent")}</p>
+        <p className="muted">{email.trim() ? t("contact.thanksEmail") : t("contact.thanksNoEmail")}</p>
         <button type="button" className="btn btn-text" onClick={() => navigate("/")}>
-          Retour à l'accueil
+          {t("common.backHome")}
         </button>
       </section>
     );
@@ -268,19 +271,22 @@ function ContactForm() {
 
   return (
     <form id="contact" className="card stack-8" onSubmit={submit} noValidate>
-      <h2>Nous contacter</h2>
+      <h2>{t("contact.title")}</h2>
       <label className="field-label" htmlFor="contact-subject">
-        Sujet
+        {t("contact.subject")}
       </label>
       <select id="contact-subject" className="input" value={subject} onChange={(e) => setSubject(e.target.value)}>
         {SUBJECTS.map((s) => (
-          <option key={s}>{s}</option>
+          <option key={s} value={s}>
+            {tv(s)}
+          </option>
         ))}
       </select>
       <label className="field-label" htmlFor="contact-message">
-        Message
+        {t("contact.message")}
       </label>
       <textarea
+        dir="auto"
         id="contact-message"
         className="input"
         rows={5}
@@ -291,17 +297,17 @@ function ContactForm() {
         aria-describedby={error ? "contact-error" : undefined}
       />
       <label className="field-label" htmlFor="contact-email">
-        Votre e-mail (facultatif, pour recevoir une réponse)
+        {t("contact.email")}
       </label>
-      <input id="contact-email" className="input" type="email" autoComplete="email" maxLength={120} value={email} onChange={(e) => setEmail(e.target.value)} />
+      <input id="contact-email" dir="ltr" className="input" type="email" autoComplete="email" maxLength={120} value={email} onChange={(e) => setEmail(e.target.value)} />
       {error && (
         <p id="contact-error" className="field-error">
           {error}
         </p>
       )}
-      {state === "error" && <p className="field-error">Envoi impossible pour le moment : réessayez plus tard.</p>}
+      {state === "error" && <p className="field-error">{t("contact.failed")}</p>}
       <button type="submit" className="btn btn-primary" disabled={state === "sending"}>
-        {state === "sending" ? "Envoi…" : "Envoyer"}
+        {state === "sending" ? t("common.sending") : t("contact.send")}
       </button>
     </form>
   );

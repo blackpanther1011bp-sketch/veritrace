@@ -6,6 +6,7 @@ import { ConfidencePill } from "../components/Sources";
 import { fetchAlternatives, fetchProduct, getCachedProduct } from "../lib/api";
 import { formatEan } from "../lib/barcode";
 import { carbonSummary, GRADE_TINT, isBadGrade, STATUS_LABEL, VERDICT } from "../lib/grades";
+import { t, tn } from "../lib/i18n";
 import { formatNumber } from "../lib/reliability";
 import { navigate } from "../lib/router";
 import { addToHistory } from "../lib/storage";
@@ -40,12 +41,12 @@ export function useProduct(ean: string) {
 }
 
 function socialSummary(product: Product): string {
-  if (product.social_grade === null) return "Pas encore évaluée pour cette marque";
+  if (product.social_grade === null) return t("product.socialNone");
   const weak = product.brand.social_checks.find((c) => c.status === "non" || c.status === "non_communique");
   if (weak) return `${weak.label} : ${STATUS_LABEL[weak.status].toLowerCase()}`;
   const partial = product.brand.social_checks.find((c) => c.status === "partiel");
-  if (partial) return `${partial.label} : partielle`;
-  return "Engagements sociaux vérifiés";
+  if (partial) return t("product.socialPartial", { label: partial.label });
+  return t("product.socialVerified");
 }
 
 export function ProductScreen({ ean }: { ean: string }) {
@@ -103,7 +104,7 @@ export function ProductScreen({ ean }: { ean: string }) {
     };
   }, [product]);
 
-  const header = <Header title="Résultat du scan" backTo="/" backLabel="Retour au scan" right={product?.is_sample ? <SampleTag /> : undefined} />;
+  const header = <Header title={t("product.header")} backTo="/" backLabel={t("common.backScan")} right={product?.is_sample ? <SampleTag /> : undefined} />;
 
   if (failed && !product) {
     return (
@@ -138,8 +139,8 @@ export function ProductScreen({ ean }: { ean: string }) {
             <span className="overline-brand">{product.brand.name}</span>
             <span className="product-name">{product.name}</span>
             <span className="muted-sm">
-              {product.reference ? `Réf. ${product.reference} · ` : ""}
-              {product.ean.startsWith("L") ? "Sans code-barres · étiquette lue" : `EAN ${formatEan(product.ean)}`}
+              {product.reference ? `${t("common.ref", { ref: product.reference })} · ` : ""}
+              {product.ean.startsWith("L") ? t("product.noBarcode") : t("common.ean", { code: formatEan(product.ean) })}
             </span>
           </div>
         </section>
@@ -147,22 +148,18 @@ export function ProductScreen({ ean }: { ean: string }) {
         <section className="verdict" style={{ background: GRADE_TINT[product.global_grade] }}>
           <GradeBadge grade={product.global_grade} size={64} round />
           <div className="stack-4">
-            <p className="verdict-kicker">Note VeriTrace</p>
+            <p className="verdict-kicker">{t("product.kicker")}</p>
             <p className="verdict-title">{verdict.title}</p>
             <p className="verdict-text">{verdict.text}</p>
           </div>
         </section>
 
         {cost && (
-          <section className="card cost-card" aria-label="Coût environnemental">
+          <section className="card cost-card" aria-label={t("product.costAria")}>
             <span className="cost-value">
-              {cost} <span className="cost-unit">points d'impact</span>
+              {cost} <span className="cost-unit">{t("product.costUnit")}</span>
             </span>
-            <span className="muted-sm">
-              {product.data_source === "registre"
-                ? "Coût environnemental officiel, déclaré par la marque. La note VeriTrace le compare aux vêtements du même type."
-                : "Coût environnemental estimé par VeriTrace avec Ecobalyse (non déclaré par la marque). La note VeriTrace le compare aux vêtements du même type."}
-            </span>
+            <span className="muted-sm">{product.data_source === "registre" ? t("product.costOfficial") : t("product.costEstimated")}</span>
           </section>
         )}
 
@@ -171,8 +168,8 @@ export function ProductScreen({ ean }: { ean: string }) {
             <IconCube size={24} />
           </span>
           <span className="row-text">
-            <span className="row-title">Voir en réalité augmentée</span>
-            <span className="row-sub">Posez le panneau 3D de la note dans la pièce</span>
+            <span className="row-title">{t("product.arTitle")}</span>
+            <span className="row-sub">{t("product.arSub")}</span>
           </span>
           <IconChevron size={20} className="row-chevron" />
         </button>
@@ -180,7 +177,7 @@ export function ProductScreen({ ean }: { ean: string }) {
         <div className="grid-2">
           <button type="button" className="card tile" onClick={() => navigate(`/p/${product.ean}/details?onglet=carbone`)}>
             <span className="tile-head">
-              <span className="tile-title">Carbone</span>
+              <span className="tile-title">{t("common.carbon")}</span>
               <GradeBadge grade={product.carbon_grade} size={32} />
             </span>
             <GradeScale grade={product.carbon_grade} />
@@ -188,7 +185,7 @@ export function ProductScreen({ ean }: { ean: string }) {
           </button>
           <button type="button" className="card tile" onClick={() => navigate(`/p/${product.ean}/details?onglet=social`)}>
             <span className="tile-head">
-              <span className="tile-title">Social</span>
+              <span className="tile-title">{t("common.social")}</span>
               <GradeBadge grade={product.social_grade} size={32} />
             </span>
             <GradeScale grade={product.social_grade} />
@@ -198,19 +195,19 @@ export function ProductScreen({ ean }: { ean: string }) {
 
         <section className="card info-list">
           <div className="info-row">
-            <span className="muted">Pays de fabrication</span>
+            <span className="muted">{t("product.country")}</span>
             <span className="info-value">{product.origin_country}</span>
           </div>
           <div className="info-row">
-            <span className="muted">Composition</span>
+            <span className="muted">{t("common.composition")}</span>
             <span className="info-value">{product.composition}</span>
           </div>
           <div className="info-row">
-            <span className="muted">Transport</span>
+            <span className="muted">{t("common.transport")}</span>
             <span className="info-value">{product.transport}</span>
           </div>
           <button type="button" className="info-row info-row-btn" onClick={() => navigate(`/p/${product.ean}/details?onglet=carbone`)}>
-            <span className="muted">Fiabilité des données</span>
+            <span className="muted">{t("common.reliability")}</span>
             <ConfidencePill product={product} />
           </button>
         </section>
@@ -219,12 +216,12 @@ export function ProductScreen({ ean }: { ean: string }) {
       <footer className="actions">
         {hasAlternatives && (
           <button type="button" className="btn btn-primary" onClick={() => navigate(`/p/${product.ean}/alternatives`)}>
-            Voir {altCount} alternative{altCount! > 1 ? "s" : ""} mieux notée{altCount! > 1 ? "s" : ""}
+            {tn("product.alternatives", altCount!)}
             <IconArrow size={20} />
           </button>
         )}
         <button type="button" className="btn btn-outline" onClick={() => navigate(`/p/${product.ean}/details`)}>
-          Comprendre la note
+          {t("product.understand")}
         </button>
       </footer>
 
@@ -233,7 +230,7 @@ export function ProductScreen({ ean }: { ean: string }) {
           fallback={
             <div className="scrim">
               <section className="sheet-dialog ar3d-sheet">
-                <p className="ar3d-msg">Chargement de la réalité augmentée…</p>
+                <p className="ar3d-msg">{t("product.arLoading")}</p>
               </section>
             </div>
           }

@@ -1,7 +1,9 @@
+import { t } from "../lib/i18n";
+
 /** Illustration affichée avant l'ouverture de la caméra. */
 export function TagIllustration() {
   return (
-    <svg width="200" height="278" viewBox="0 0 230 320" role="img" aria-label="Étiquette de vêtement avec son code-barres">
+    <svg width="200" height="278" viewBox="0 0 230 320" role="img" aria-label={t("scan.illustration")}>
       <line x1="115" y1="0" x2="115" y2="42" stroke="#6E7F74" strokeWidth="2" />
       <path d="M40 62 L95 30 H135 L190 62 V296 a10 10 0 0 1 -10 10 H50 a10 10 0 0 1 -10 -10 Z" fill="#EDEAE2" />
       <circle cx="115" cy="48" r="7" fill="#1A2A21" />

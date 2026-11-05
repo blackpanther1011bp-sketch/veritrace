@@ -7,6 +7,8 @@ import { formatEan } from "../lib/barcode";
 import { cameraErrorMessage, createDetector, openBackCamera, setTorch, torchAvailable } from "../lib/camera";
 import { compareProducts } from "../lib/compare";
 import { LEVEL_COLOR, VERDICT } from "../lib/grades";
+// « t » désigne ici l'article suivi par la caméra : la traduction s'appelle tr
+import { t as tr } from "../lib/i18n";
 import { formatNumber } from "../lib/reliability";
 import { parseScannedCode } from "../lib/outils";
 import { goBack, navigate } from "../lib/router";
@@ -234,7 +236,7 @@ export default function ArScanScreen() {
 
   return (
     <div className="ar" ref={rootRef}>
-      <video ref={videoRef} className="ar-video" playsInline muted autoPlay aria-label="Image de la caméra" />
+      <video ref={videoRef} className="ar-video" playsInline muted autoPlay aria-label={tr("common.cameraImage")} />
 
       <svg className="ar-overlay" width={view.width} height={view.height} aria-hidden="true">
         {primary && (
@@ -272,15 +274,15 @@ export default function ArScanScreen() {
       )}
 
       <div className="ar-top">
-        <button type="button" className="ar-round" aria-label="Retour" onClick={() => goBack("/")}>
+        <button type="button" className="ar-round" aria-label={tr("common.back")} onClick={() => goBack("/")}>
           <IconBack />
         </button>
-        <span className="ar-title">Visez l'étiquette</span>
+        <span className="ar-title">{tr("ar.aim")}</span>
         {torch.available ? (
           <button
             type="button"
             className={torch.on ? "ar-round ar-round-on" : "ar-round"}
-            aria-label={torch.on ? "Éteindre la lampe" : "Allumer la lampe"}
+            aria-label={torch.on ? tr("common.torchOff") : tr("common.torchOn")}
             aria-pressed={torch.on}
             onClick={toggleTorch}
           >
@@ -295,16 +297,16 @@ export default function ArScanScreen() {
         )}
       </div>
 
-      {status === "starting" && <p className="ar-status">Ouverture de la caméra…</p>}
+      {status === "starting" && <p className="ar-status">{tr("common.openingCamera")}</p>}
 
       {status === "error" ? (
         <div className="ar-error" role="alert">
           <p>{errorMessage}</p>
           <button type="button" className="btn btn-primary" onClick={() => navigate("/?saisie=1", { replace: true })}>
-            Saisir le code à la main
+            {tr("common.enterCodeByHand")}
           </button>
           <button type="button" className="btn btn-text ar-error-back" onClick={() => goBack("/")}>
-            Retour
+            {tr("common.back")}
           </button>
         </div>
       ) : (
@@ -320,18 +322,16 @@ export default function ArScanScreen() {
             >
               <Crown size={22} />
               <span className="row-text">
-                <span className="compare-title">
-                  Le meilleur ici : {comparison.best.name} ({comparison.best.global_grade})
-                </span>
-                <span className="compare-sub">{comparison.summary}</span>
+                <span className="compare-title">{tr("ar.best", { name: comparison.best.name, grade: comparison.best.global_grade })}</span>
+                <span className="compare-sub">{tr(comparison.note.key, comparison.note.vars)}</span>
               </span>
-              <span className="compare-count">Comparer {comparison.ranked.length}</span>
+              <span className="compare-count">{tr("ar.compare", { n: comparison.ranked.length })}</span>
             </button>
           )}
           {focused ? (
             <FocusCard tracked={focused} onOpen={() => open(focused)} />
           ) : (
-            <p className="ar-hint">Visez un ou plusieurs codes-barres : la note apparaît dessus, et le meilleur du rayon reçoit une couronne.</p>
+            <p className="ar-hint">{tr("ar.hint")}</p>
           )}
         </div>
       )}
@@ -341,9 +341,9 @@ export default function ArScanScreen() {
           <section className="sheet-dialog compare-sheet" role="dialog" aria-modal="true" aria-labelledby="compare-title" onClick={(e) => e.stopPropagation()}>
             <span className="handle" aria-hidden="true" />
             <h2 id="compare-title" className="dialog-title">
-              Comparaison du rayon
+              {tr("ar.compareTitle")}
             </h2>
-            <p className="muted-sm">Articles scannés pendant votre visite, du mieux au moins bien noté.</p>
+            <p className="muted-sm">{tr("ar.compareText")}</p>
             <ol className="compare-list">
               {comparison.ranked.map((p, i) => (
                 <li key={p.ean}>
@@ -353,7 +353,7 @@ export default function ArScanScreen() {
                     <span className="row-text">
                       <span className="row-title">{p.name}</span>
                       <span className="row-sub">
-                        {[p.brand.name, formatNumber(p.eco_cost, 0) && `${formatNumber(p.eco_cost, 0)} pts`].filter(Boolean).join(" · ")}
+                        {[p.brand.name, formatNumber(p.eco_cost, 0) && tr("common.pts", { n: formatNumber(p.eco_cost, 0)! })].filter(Boolean).join(" · ")}
                       </span>
                     </span>
                     <IconChevron size={20} className="row-chevron" />
@@ -371,10 +371,10 @@ export default function ArScanScreen() {
                 setCompareOpen(false);
               }}
             >
-              Vider la comparaison
+              {tr("ar.clear")}
             </button>
             <button type="button" className="btn btn-primary" onClick={() => setCompareOpen(false)}>
-              Continuer à scanner
+              {tr("ar.continue")}
             </button>
           </section>
         </div>
@@ -405,22 +405,22 @@ function ArCard({ tracked, best, origin, onClose }: { tracked: Tracked; best: bo
     <section
       className="ar-card"
       style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)` }}
-      aria-label={`Fiche : ${p.name}, note ${p.global_grade}`}
+      aria-label={tr("ar.cardAria", { name: p.name, grade: p.global_grade })}
     >
       <div className="ar-card-head">
         <span className="ar-card-grade">
           <GradeBadge grade={p.global_grade} size={44} round />
           {best && (
-            <span className="ar-crown" title="Le meilleur des articles scannés">
+            <span className="ar-crown" title={tr("ar.bestScanned")}>
               <Crown size={18} />
             </span>
           )}
         </span>
         <span className="ar-badge-text">
           <span className="ar-badge-title">{VERDICT[p.global_grade].title}</span>
-          <span className="ar-badge-sub">{[p.brand.name, cost && `${cost} pts`].filter(Boolean).join(" · ")}</span>
+          <span className="ar-badge-sub">{[p.brand.name, cost && tr("common.pts", { n: cost })].filter(Boolean).join(" · ")}</span>
         </span>
-        <button type="button" className="ar-card-close" aria-label="Fermer la fiche" onClick={onClose}>
+        <button type="button" className="ar-card-close" aria-label={tr("ar.closeCard")} onClick={onClose}>
           ×
         </button>
       </div>
@@ -436,21 +436,23 @@ function ArCard({ tracked, best, origin, onClose }: { tracked: Tracked; best: bo
         ))}
       </div>
       <p className="ar-card-facts">
-        {[p.origin_country && !/^non /i.test(p.origin_country) ? `Fabriqué : ${p.origin_country}` : null, p.composition && !/^non /i.test(p.composition) ? p.composition : null]
+        {[p.origin_country && !/^non /i.test(p.origin_country) ? tr("ar.madeIn", { country: p.origin_country }) : null, p.composition && !/^non /i.test(p.composition) ? p.composition : null]
           .filter(Boolean)
-          .join(" · ") || "Composition et pays non communiqués"}
+          .join(" · ") || tr("ar.noFacts")}
       </p>
       {p.global_grade !== "A" && (
         <button type="button" className="ar-card-alt" onClick={() => navigate(`/p/${p.ean}/alternatives`)} disabled={!alts || alts.length === 0}>
           {alts === undefined || alts === null
-            ? "Recherche d'alternatives…"
+            ? tr("ar.searchingAlt")
             : alts.length === 0
-              ? "Pas d'alternative mieux notée connue"
-              : `Mieux noté : ${alts[0].name} (${alts[0].global_grade})${alts.length > 1 ? ` · ${alts.length} alternatives` : ""}`}
+              ? tr("ar.noAlt")
+              : alts.length > 1
+                ? tr("ar.betterMany", { name: alts[0].name, grade: alts[0].global_grade, n: alts.length })
+                : tr("ar.betterOne", { name: alts[0].name, grade: alts[0].global_grade })}
         </button>
       )}
       <button type="button" className="ar-card-more" onClick={() => navigate(`/p/${p.ean}`)}>
-        Fiche complète <IconChevron size={16} />
+        {tr("ar.fullCard")} <IconChevron size={16} />
       </button>
     </section>
   );
@@ -460,17 +462,20 @@ function describe(t: Tracked): { title: string; subtitle: string } {
   const p = t.product;
   switch (t.lookup) {
     case "loading":
-      return { title: "Analyse…", subtitle: `EAN ${formatEan(t.ean)}` };
+      return { title: tr("ar.analyzing"), subtitle: tr("common.ean", { code: formatEan(t.ean) }) };
     case "found":
       // Coût environnemental (points) affiché avec la note dès qu'il est connu (règles françaises du 1er octobre 2026)
       return {
         title: p!.name,
-        subtitle: p!.eco_cost != null ? `${formatNumber(p!.eco_cost, 0)} pts · note VeriTrace ${p!.global_grade}` : `Carbone ${p!.carbon_grade} · Social ${p!.social_grade ?? "non évaluée"}`,
+        subtitle:
+          p!.eco_cost != null
+            ? tr("ar.costGrade", { n: formatNumber(p!.eco_cost, 0)!, grade: p!.global_grade })
+            : tr("ar.carbonSocial", { carbon: p!.carbon_grade, social: p!.social_grade ?? tr("ar.socialNone") }),
       };
     case "missing":
-      return { title: "Non référencé", subtitle: "Touchez pour le signaler" };
+      return { title: tr("ar.notListed"), subtitle: tr("ar.tapReport") };
     case "error":
-      return { title: "Hors connexion", subtitle: "Touchez pour réessayer" };
+      return { title: tr("ar.offline"), subtitle: tr("ar.tapRetry") };
   }
 }
 
@@ -482,7 +487,7 @@ function ArBadge({ tracked, origin, onOpen, best = false }: { tracked: Tracked; 
       className={best ? "ar-badge ar-best" : "ar-badge"}
       style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)` }}
       onClick={onOpen}
-      aria-label={`${title}. ${subtitle}${best ? ". Le meilleur des articles scannés" : ""}`}
+      aria-label={`${title}. ${subtitle}${best ? `. ${tr("ar.bestScanned")}` : ""}`}
     >
       {best && (
         <span className="ar-crown">
@@ -514,7 +519,7 @@ function ArPill({ tracked, origin, onOpen, best = false }: { tracked: Tracked; o
       className={best ? "ar-pill ar-best" : "ar-pill"}
       style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)` }}
       onClick={onOpen}
-      aria-label={`${title}. ${subtitle}${best ? ". Le meilleur des articles scannés" : ""}`}
+      aria-label={`${title}. ${subtitle}${best ? `. ${tr("ar.bestScanned")}` : ""}`}
     >
       {best && (
         <span className="ar-crown">
@@ -535,10 +540,10 @@ function ArPill({ tracked, origin, onOpen, best = false }: { tracked: Tracked; o
 function FocusCard({ tracked, onOpen }: { tracked: Tracked; onOpen: () => void }) {
   const p = tracked.product;
   const lines: Record<Lookup, { title: string; subtitle: string }> = {
-    loading: { title: "Analyse du code…", subtitle: `EAN ${formatEan(tracked.ean)}` },
-    found: { title: p?.name ?? "", subtitle: `${p?.brand.name ?? ""} · touchez pour voir la fiche` },
-    missing: { title: "Article pas encore référencé", subtitle: "Touchez pour le signaler" },
-    error: { title: "Connexion impossible", subtitle: "Touchez pour réessayer" },
+    loading: { title: tr("ar.analyzingCode"), subtitle: tr("common.ean", { code: formatEan(tracked.ean) }) },
+    found: { title: p?.name ?? "", subtitle: tr("ar.tapOpen", { brand: p?.brand.name ?? "" }) },
+    missing: { title: tr("ar.notListedLong"), subtitle: tr("ar.tapReport") },
+    error: { title: tr("ar.connection"), subtitle: tr("ar.tapRetry") },
   };
   const { title, subtitle } = lines[tracked.lookup];
   return (

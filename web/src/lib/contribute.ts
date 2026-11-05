@@ -1,4 +1,5 @@
 import { supabase, SUPABASE_KEY, SUPABASE_URL } from "./supabase";
+import { t } from "./i18n";
 import { newId, sessionId } from "./track";
 
 /** Catégories proposées (reconnues par le calcul Ecobalyse). */
@@ -49,14 +50,14 @@ export const COUNTRIES = [
  */
 export function checkComposition(text: string): string | null {
   const value = text.trim();
-  if (value.length < 3) return "Recopiez la composition écrite sur l'étiquette.";
-  if (!/[a-zA-ZÀ-ÿ]/.test(value)) return "Indiquez aussi les matières (coton, polyester…).";
+  if (value.length < 3) return t("compo.copy");
+  if (!/[a-zA-ZÀ-ÿ]/.test(value)) return t("compo.materials");
   const percents = [...value.matchAll(/(\d+(?:[.,]\d+)?)\s*%/g)].map((m) => Number(m[1].replace(",", ".")));
   if (percents.length === 0) {
-    return /\d/.test(value) ? "Ajoutez le signe % après chaque pourcentage." : null;
+    return /\d/.test(value) ? t("compo.percent") : null;
   }
   const total = percents.reduce((s, n) => s + n, 0);
-  if (total < 99 || total > 101) return `Les pourcentages font ${Math.round(total * 10) / 10} % au lieu de 100 %.`;
+  if (total < 99 || total > 101) return t("compo.total", { n: String(Math.round(total * 10) / 10).replace(".", ",") });
   return null;
 }
 

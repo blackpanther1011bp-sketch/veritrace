@@ -3,6 +3,7 @@ import { Header } from "../components/Header";
 import { IconArrow, IconInfo } from "../components/Icons";
 import { SourcesCard } from "../components/Sources";
 import { LEVEL_COLOR, LEVEL_LABEL, LEVEL_TEXT, STATUS_LABEL, STATUS_STYLE } from "../lib/grades";
+import { t } from "../lib/i18n";
 import { navigate } from "../lib/router";
 import { track } from "../lib/track";
 import type { Product } from "../lib/types";
@@ -11,16 +12,12 @@ import { ErrorState, LoadingState } from "./States";
 
 function socialNote(product: Product): string {
   if (product.social_grade === null) {
-    const why =
-      product.data_source === "registre"
-        ? "le registre officiel ne couvre que l'environnement"
-        : "VeriTrace n'a pas encore évalué les engagements sociaux de cette marque";
-    return `Pas encore d'évaluation sociale : ${why}. La note globale reflète donc uniquement l'environnement.`;
+    return product.data_source === "registre" ? t("details.socialNoneRegistry") : t("details.socialNoneBrand");
   }
   if (product.data_source === "demo") {
-    return "Données d'exemple. Sources à intégrer avant lancement : rapports d'audit, déclarations des marques, bases de données publiques.";
+    return t("details.socialDemo");
   }
-  return "Note sociale attribuée par VeriTrace à partir des engagements publics de la marque (audits, salaires, liste des usines).";
+  return t("details.socialBrand");
 }
 
 export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "carbone" | "social" }) {
@@ -35,7 +32,7 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
     if (product === null) navigate(`/inconnu/${ean}`, { replace: true });
   }, [product, ean]);
 
-  const header = <Header title="Comprendre la note" backTo={`/p/${ean}`} backLabel="Retour à la fiche produit" />;
+  const header = <Header title={t("title.details")} backTo={`/p/${ean}`} backLabel={t("common.backProduct")} />;
 
   if (failed && !product) {
     return (
@@ -58,12 +55,12 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
     <div className="screen">
       {header}
       <main className="content">
-        <div className="segmented" role="tablist" aria-label="Type de note">
+        <div className="segmented" role="tablist" aria-label={t("details.tabs")}>
           <button type="button" role="tab" aria-selected={tab === "carbone"} className={tab === "carbone" ? "seg seg-on" : "seg"} onClick={() => setTab("carbone")}>
-            Carbone · {product.carbon_grade}
+            {t("details.tabCarbon", { grade: product.carbon_grade })}
           </button>
           <button type="button" role="tab" aria-selected={tab === "social"} className={tab === "social" ? "seg seg-on" : "seg"} onClick={() => setTab("social")}>
-            Social · {product.social_grade ?? "–"}
+            {t("details.tabSocial", { grade: product.social_grade ?? "–" })}
           </button>
         </div>
 
@@ -71,8 +68,10 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
           <>
             <p className="lead">
               {product.data_source === "registre"
-                ? "D'où vient le coût environnemental de ce vêtement (registre officiel) :"
-                : `D'où vient l'impact climat de ce vêtement${product.data_source === "demo" ? "" : " (calcul Ecobalyse)"} :`}
+                ? t("details.leadRegistry")
+                : product.data_source === "demo"
+                  ? t("details.leadDemo")
+                  : t("details.leadComputed")}
             </p>
             <section className="card breakdown">
               {product.carbon_breakdown.map((item) => (
@@ -94,7 +93,7 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
           </>
         ) : (
           <>
-            <p className="lead">Engagements sociaux de la marque {product.brand.name} :</p>
+            <p className="lead">{t("details.socialLead", { brand: product.brand.name })}</p>
             {product.brand.social_checks.length > 0 && (
               <section className="card info-list">
                 {product.brand.social_checks.map((check) => (
@@ -118,7 +117,7 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
       {product.global_grade !== "A" && (
         <footer className="actions">
           <button type="button" className="btn btn-primary" onClick={() => navigate(`/p/${product.ean}/alternatives`)}>
-            Voir les alternatives
+            {t("details.seeAlternatives")}
             <IconArrow size={20} />
           </button>
         </footer>

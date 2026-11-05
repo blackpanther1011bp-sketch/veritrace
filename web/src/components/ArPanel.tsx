@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { buildPanelGlb } from "../lib/ar3d";
+import { t } from "../lib/i18n";
 import { track } from "../lib/track";
 import type { Product } from "../lib/types";
 
@@ -31,7 +32,7 @@ export default function ArPanel({ product, onClose }: { product: Product; onClos
         mv = document.createElement("model-viewer") as ModelViewer;
         const attrs: Record<string, string> = {
           src: url,
-          alt: `Panneau 3D de la note ${product.global_grade} : ${product.name}`,
+          alt: t("ar3d.alt", { grade: product.global_grade, name: product.name }),
           ar: "",
           "ar-modes": "webxr quick-look",
           "ar-placement": "floor",
@@ -98,28 +99,23 @@ export default function ArPanel({ product, onClose }: { product: Product; onClos
       <section className="sheet-dialog ar3d-sheet" role="dialog" aria-modal="true" aria-labelledby="ar3d-title" onClick={(e) => e.stopPropagation()}>
         <span className="handle" aria-hidden="true" />
         <h2 id="ar3d-title" className="dialog-title">
-          Voir en réalité augmentée
+          {t("ar3d.title")}
         </h2>
         <div ref={stage} className="ar3d-stage">
-          {status === "loading" && <p className="ar3d-msg">Préparation du panneau 3D…</p>}
-          {status === "error" && <p className="ar3d-msg">Le panneau 3D n'a pas pu être préparé sur cet appareil.</p>}
+          {status === "loading" && <p className="ar3d-msg">{t("ar3d.preparing")}</p>}
+          {status === "error" && <p className="ar3d-msg">{t("ar3d.failed")}</p>}
         </div>
         {status === "ready" && canAR && (
-          <p className="muted-sm">
-            Visez une surface plane (table, étagère, sol) : le panneau s'y pose. Tournez autour ou reculez, il reste en place, comme un vrai objet.
-          </p>
+          <p className="muted-sm">{t("ar3d.howto")}</p>
         )}
         {status === "ready" && !canAR && (
-          <p className="muted-sm">
-            La réalité augmentée n'est pas disponible sur cet appareil. Elle fonctionne sur iPhone avec Safari et sur Android avec Chrome. Vous pouvez
-            faire tourner le panneau ci-dessus avec le doigt.
-          </p>
+          <p className="muted-sm">{t("ar3d.unavailable")}</p>
         )}
         <button type="button" className="btn btn-primary" disabled={status !== "ready" || !canAR || placing} onClick={place}>
-          {placing ? "Ouverture de la caméra…" : "Placer dans la pièce"}
+          {placing ? t("common.openingCamera") : t("ar3d.place")}
         </button>
         <button type="button" className="btn btn-text" onClick={onClose}>
-          Fermer
+          {t("common.close")}
         </button>
       </section>
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Header } from "../components/Header";
 import { IconCamera, IconInfo } from "../components/Icons";
 import { formatEan } from "../lib/barcode";
+import { t, tv } from "../lib/i18n";
 import { CATEGORIES, compressPhoto } from "../lib/contribute";
 import { readTextFromPhoto } from "../lib/ocr";
 import { readLabel, ServiceError } from "../lib/outils";
@@ -42,7 +43,7 @@ export function LabelScreen({ ean }: { ean: string | null }) {
     try {
       setPhoto(await compressPhoto(file));
     } catch {
-      setError({ code: "image", message: "Cette photo n'a pas pu être lue. Réessayez." });
+      setError({ code: "image", message: t("contrib.photoError") });
     }
   }
 
@@ -58,18 +59,18 @@ export function LabelScreen({ ean }: { ean: string | null }) {
       text = await readTextFromPhoto(photo, setStep);
     } catch {
       track("label_failed", ean ? { ean } : {});
-      setError({ code: "ocr", message: "La lecture de la photo n'a pas pu démarrer : vérifiez la connexion Internet puis réessayez." });
+      setError({ code: "ocr", message: t("label.ocrFailed") });
       setStatus("error");
       return;
     }
     setStatus("sending");
-    setStep("Calcul de la note avec Ecobalyse…");
+    setStep(t("label.ecobalyse"));
     try {
       const r = await readLabel({ photo, text, category, ean, brand });
       track("label_read", { ean: r.product.ean, grade: r.product.global_grade });
       navigate(`/p/${r.product.ean}`, { replace: true });
     } catch (err) {
-      const e2 = err instanceof ServiceError ? err : new ServiceError("serveur", "Erreur inattendue : réessayez.");
+      const e2 = err instanceof ServiceError ? err : new ServiceError("serveur", t("common.unexpected"));
       track("label_failed", ean ? { ean } : {});
       setError({ code: e2.code, message: e2.message });
       setStatus("error");
@@ -82,57 +83,62 @@ export function LabelScreen({ ean }: { ean: string | null }) {
 
   return (
     <div className="screen">
-      <Header title="Lire l'étiquette" backTo={backTo} backLabel="Retour" />
+      <Header title={t("label.header")} backTo={backTo} backLabel={t("common.back")} />
       <main className="content">
         <p className="lead">
-          Photographiez l'<strong>étiquette cousue</strong> à l'intérieur du vêtement : celle qui indique la composition (ex. « 100 % coton ») et le
-          pays de fabrication. VeriTrace lit le texte directement sur votre téléphone, puis calcule la note avec la méthode officielle Ecobalyse.
+          {t("label.leadBefore")}
+          <strong>{t("label.leadStrong")}</strong>
+          {t("label.leadAfter")}
         </p>
-        {ean && <span className="pill-muted contribute-ean">EAN {formatEan(ean)}</span>}
+        {ean && (
+          <span className="pill-muted contribute-ean">
+            <bdi>{t("common.ean", { code: formatEan(ean) })}</bdi>
+          </span>
+        )}
         <button type="button" className="btn btn-outline" onClick={() => navigate(ean ? `/etiquette-direct/${ean}` : "/etiquette-direct", { replace: true })}>
-          Viser l'étiquette en direct (sans photo)
+          {t("label.live")}
         </button>
 
         <form id="label" className="card form" onSubmit={submit} noValidate>
           <div className="stack-6">
-            <span className="field-label">Photo de l'étiquette</span>
+            <span className="field-label">{t("label.photo")}</span>
             <input ref={fileInput} type="file" accept="image/*" capture="environment" hidden onChange={(e) => onPhoto(e.target.files?.[0])} />
             {preview ? (
               <div className="label-photo">
-                <img src={preview} alt="Étiquette photographiée" />
+                <img src={preview} alt={t("label.photoAlt")} />
                 <button type="button" className="btn btn-text btn-compact" onClick={() => fileInput.current?.click()} disabled={sending}>
-                  Reprendre la photo
+                  {t("label.retake")}
                 </button>
               </div>
             ) : (
               <button type="button" className="btn btn-primary" onClick={() => fileInput.current?.click()}>
                 <IconCamera size={20} />
-                Prendre la photo
+                {t("label.take")}
               </button>
             )}
-            {touched && !photo && <p className="field-error">Ajoutez la photo de l'étiquette.</p>}
+            {touched && !photo && <p className="field-error">{t("label.photoMissing")}</p>}
           </div>
 
           <div className="stack-6">
             <label htmlFor="l-category" className="field-label">
-              Type de vêtement
+              {t("label.type")}
             </label>
             <select id="l-category" className="input" value={category} onChange={(e) => setCategory(e.target.value)} aria-invalid={touched && !category}>
-              <option value="">Choisir…</option>
+              <option value="">{t("common.choose")}</option>
               {CATEGORIES.map((c) => (
                 <option key={c} value={c}>
-                  {c}
+                  {tv(c)}
                 </option>
               ))}
             </select>
-            {touched && !category && <p className="field-error">Choisissez le type de vêtement.</p>}
+            {touched && !category && <p className="field-error">{t("label.typeMissing")}</p>}
           </div>
 
           <div className="stack-6">
             <label htmlFor="l-brand" className="field-label">
-              Marque (facultatif)
+              {t("common.brandOptional")}
             </label>
-            <input id="l-brand" className="input" maxLength={80} autoComplete="off" placeholder="Ex. Defacto, LC Waikiki, Marwa…" value={brand} onChange={(e) => setBrand(e.target.value)} />
+            <input id="l-brand" className="input" maxLength={80} autoComplete="off" placeholder={t("label.brandPlaceholder")} value={brand} onChange={(e) => setBrand(e.target.value)} />
           </div>
 
           {error && (
@@ -140,7 +146,7 @@ export function LabelScreen({ ean }: { ean: string | null }) {
               <p>{error.message}</p>
               {ean && ["illisible", "composition_introuvable", "composition_incomplete", "ia_indisponible", "ocr"].includes(error.code) && (
                 <button type="button" className="btn btn-text btn-compact" onClick={() => navigate(`/ajouter/${ean}`)}>
-                  Saisir la composition à la main
+                  {t("label.manual")}
                 </button>
               )}
             </div>
@@ -149,19 +155,16 @@ export function LabelScreen({ ean }: { ean: string | null }) {
 
         <aside className="note">
           <IconInfo size={20} />
-          <p>
-            Conseils : étiquette bien à plat, sans reflet, texte net. Le résultat est une estimation : poids et lieux de tissage ou de teinture ne sont
-            pas écrits sur l'étiquette, Ecobalyse applique alors ses valeurs par défaut.
-          </p>
+          <p>{t("label.tips")}</p>
         </aside>
       </main>
       <footer className="actions">
         <button type="submit" form="label" className="btn btn-primary" disabled={sending}>
-          {sending ? "Lecture et calcul…" : "Calculer la note"}
+          {sending ? t("label.computing") : t("label.compute")}
         </button>
         {sending && (
           <p className="muted-xs" role="status">
-            {step || "Lecture de l'étiquette…"} Comptez 10 à 20 secondes la première fois.
+            {step || t("label.reading")} {t("label.wait")}
           </p>
         )}
       </footer>

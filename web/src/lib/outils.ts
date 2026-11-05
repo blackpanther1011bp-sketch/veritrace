@@ -1,5 +1,6 @@
 import { rememberProduct } from "./api";
 import { normalizeGtin, isValidGtin } from "./barcode";
+import { serverMessage, t } from "./i18n";
 import { supabase, SUPABASE_KEY, SUPABASE_URL } from "./supabase";
 import type { Passport, Product } from "./types";
 
@@ -21,16 +22,18 @@ async function callOutils<T>(body: Record<string, unknown>): Promise<T> {
       body: JSON.stringify(body),
     });
   } catch {
-    throw new ServiceError("reseau", "Pas de connexion : vérifiez Internet puis réessayez.");
+    throw new ServiceError("reseau", t("server.reseau"));
   }
   let data: { ok?: boolean; error?: string; message?: string } & Record<string, unknown>;
   try {
     data = await res.json();
   } catch {
-    throw new ServiceError("serveur", "Le service ne répond pas correctement : réessayez dans un instant.");
+    throw new ServiceError("serveur", t("server.serveur"));
   }
   if (!res.ok || !data.ok) {
-    throw new ServiceError(data.error ?? "serveur", data.message ?? "Erreur inattendue : réessayez dans un instant.");
+    const code = data.error ?? "serveur";
+    // en arabe, message traduit d'après le code ; en français, message du serveur (plus précis)
+    throw new ServiceError(code, serverMessage(code, data.message ?? t("common.unexpected")));
   }
   return data as T;
 }
