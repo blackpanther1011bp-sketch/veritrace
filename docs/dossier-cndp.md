@@ -31,7 +31,7 @@ Pas de prospection, pas de profilage, pas de décision automatisée sur les pers
 | --- | --- | --- |
 | Visiteurs et utilisateurs de l'app | Identifiant de session tiré au hasard à chaque visite, écrans vus, codes-barres scannés, notes affichées | 13 mois |
 | Utilisateurs qui envoient une étiquette | Photo de l'étiquette, texte lu, composition, résultat | Photo : 12 mois au plus ; résultat : durée du service (donnée sur le vêtement) |
-| Contributeurs | Vêtement signalé ou ajouté : code-barres, marque, composition | Durée du service |
+| Contributeurs | Vêtement signalé ou ajouté : code-barres, marque, composition, photo facultative | Durée du service ; photo : 12 mois au plus |
 | Fabricants | Entreprise, ville, produit, étapes de fabrication | Jusqu'à demande de suppression |
 | Toute connexion aux fonctions serveur | Empreinte HMAC secrète de l'adresse IP, renouvelée chaque jour (l'adresse elle-même n'est pas stockée) | 30 jours |
 | Personnes qui écrivent | Objet, message, e-mail de réponse (facultatif) | 12 mois |
@@ -78,6 +78,5 @@ personne indique ce qui permet de retrouver ses données (code-barres, date, cod
 ## 8. Restant à faire avant le dépôt
 
 1. Compléter l'adresse postale du responsable.
-2. Suppression automatique des photos d'étiquettes après 12 mois (aujourd'hui annoncée, à faire à la main tant que la
-   tâche n'est pas en place).
+2. Suppression automatique des photos après 12 mois : fonction `menage-photos`, chaque nuit (migration 016).
 3. Joindre la page Confidentialité du site en annexe.

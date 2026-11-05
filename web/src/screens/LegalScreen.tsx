@@ -89,9 +89,9 @@ function Privacy() {
             <td>Photo : 12 mois au plus. Résultat : tant que le service existe (donnée sur le vêtement, pas sur vous)</td>
           </tr>
           <tr>
-            <td>Vêtements signalés ou ajoutés (code-barres, marque, composition)</td>
+            <td>Vêtements signalés ou ajoutés (code-barres, marque, composition, photo facultative)</td>
             <td>Compléter le catalogue après vérification</td>
-            <td>Tant que le service existe</td>
+            <td>Tant que le service existe ; photo : 12 mois au plus</td>
           </tr>
           <tr>
             <td>Passeports créés par un fabricant (entreprise, ville, produit, chaîne de fabrication)</td>
