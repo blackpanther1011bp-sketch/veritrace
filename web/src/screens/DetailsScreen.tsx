@@ -4,23 +4,25 @@ import { IconArrow, IconInfo } from "../components/Icons";
 import { SourcesCard } from "../components/Sources";
 import { LEVEL_COLOR, LEVEL_LABEL, LEVEL_TEXT, STATUS_LABEL, STATUS_STYLE } from "../lib/grades";
 import { navigate } from "../lib/router";
+import { formatPeriod, isSourced, SOCIAL_MAX_POINTS, socialScore } from "../lib/social";
 import { track } from "../lib/track";
 import type { Product } from "../lib/types";
 import { useProduct } from "./ProductScreen";
 import { ErrorState, LoadingState } from "./States";
 
 function socialNote(product: Product): string {
+  const checks = product.brand.social_checks;
   if (product.social_grade === null) {
-    const why =
-      product.data_source === "registre"
-        ? "le registre officiel ne couvre que l'environnement"
-        : "VeriTrace n'a pas encore évalué les engagements sociaux de cette marque";
-    return `Pas encore d'évaluation sociale : ${why}. La note globale reflète donc uniquement l'environnement.`;
+    if (isSourced(checks)) {
+      return "Évaluation incomplète : tous les critères n'ont pas encore été vérifiés, la note sociale n'est donc pas attribuée. La note globale reflète uniquement l'environnement.";
+    }
+    return "Note sociale non évaluée : aucune source publique vérifiable pour cette marque. La note globale reflète donc uniquement l'environnement.";
   }
-  if (product.data_source === "demo") {
-    return "Données d'exemple. Sources à intégrer avant lancement : rapports d'audit, déclarations des marques, bases de données publiques.";
+  if (!isSourced(checks)) {
+    return "Données d'exemple, fictives et sans source : elles ne suivent pas la méthode de la note sociale sourcée.";
   }
-  return "Note sociale attribuée par VeriTrace à partir des engagements publics de la marque (audits, salaires, liste des usines).";
+  const score = socialScore(checks);
+  return `Note sociale VeriTrace : ${score ? `${score.points} points sur ${SOCIAL_MAX_POINTS}` : "barème"} d'après les preuves publiques ci-dessus. Elle mesure ce que la marque rend public et vérifiable (usines, contrôles, certification), pas les conditions de travail dans chaque usine. « Non démontré » : aucune preuve trouvée par VeriTrace.`;
 }
 
 export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "carbone" | "social" }) {
@@ -95,21 +97,54 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
         ) : (
           <>
             <p className="lead">Engagements sociaux de la marque {product.brand.name} :</p>
-            {product.brand.social_checks.length > 0 && (
-              <section className="card info-list">
-                {product.brand.social_checks.map((check) => (
-                  <div key={check.label} className="info-row">
-                    <span className="info-label">{check.label}</span>
-                    <span className="status-pill" style={STATUS_STYLE[check.status]}>
-                      {STATUS_LABEL[check.status]}
-                    </span>
-                  </div>
-                ))}
-              </section>
+            {isSourced(product.brand.social_checks) ? (
+              <ul className="card social-checks" aria-label="Critères de la note sociale et leurs sources">
+                {product.brand.social_checks.map((check) => {
+                  const period = formatPeriod(check.source_period);
+                  const checked = formatPeriod(check.checked_at);
+                  return (
+                    <li key={check.label} className="social-check">
+                      <div className="split">
+                        <span className="info-label">{check.label}</span>
+                        <span className="status-pill" style={STATUS_STYLE[check.status]}>
+                          {STATUS_LABEL[check.status]}
+                        </span>
+                      </div>
+                      {check.detail && <p className="muted-sm">{check.detail}</p>}
+                      <p className="muted-sm">
+                        Source :{" "}
+                        <a href={check.source_url} target="_blank" rel="noopener noreferrer">
+                          {check.source_title ?? "voir la source"}
+                        </a>
+                        {period ? ` (${period})` : ""}
+                        {checked ? ` · vérifié le ${checked}` : ""}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              product.brand.social_checks.length > 0 && (
+                <section className="card info-list">
+                  {product.brand.social_checks.map((check) => (
+                    <div key={check.label} className="info-row">
+                      <span className="info-label">{check.label}</span>
+                      <span className="status-pill" style={STATUS_STYLE[check.status]}>
+                        {STATUS_LABEL[check.status]}
+                      </span>
+                    </div>
+                  ))}
+                </section>
+              )
             )}
             <aside className="note">
               <IconInfo size={20} />
-              <p>{socialNote(product)}</p>
+              <p>
+                {socialNote(product)}{" "}
+                {product.data_source !== "demo" && (
+                  <a href="#/confidentialite?contact=1">Une preuve manque ? Écrivez-nous.</a>
+                )}
+              </p>
             </aside>
           </>
         )}

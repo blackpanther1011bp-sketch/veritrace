@@ -22,12 +22,35 @@ class BreakdownItem {
 
 class SocialCheck {
   final String label;
-  final String status; // oui | partiel | non | non_communique
+  final String status; // oui | partiel | non | non_communique | non_demontre
+  // Note sociale sourcée (marques du registre évaluées par VeriTrace) ; absents des données de démonstration
+  final String? detail;
+  final String? sourceUrl;
+  final String? sourceTitle;
+  final String? sourcePeriod; // « 2025 », « 2025-11 » ou « 2025-11-05 »
+  final String? checkedAt; // AAAA-MM-JJ
 
-  SocialCheck({required this.label, required this.status});
+  SocialCheck({
+    required this.label,
+    required this.status,
+    this.detail,
+    this.sourceUrl,
+    this.sourceTitle,
+    this.sourcePeriod,
+    this.checkedAt,
+  });
 
-  factory SocialCheck.fromJson(Map<String, dynamic> j) =>
-      SocialCheck(label: j['label'] as String, status: j['status'] as String);
+  bool get isSourced => sourceUrl != null && sourceUrl!.startsWith('https://');
+
+  factory SocialCheck.fromJson(Map<String, dynamic> j) => SocialCheck(
+        label: j['label'] as String,
+        status: j['status'] as String,
+        detail: j['detail'] as String?,
+        sourceUrl: j['source_url'] as String?,
+        sourceTitle: j['source_title'] as String?,
+        sourcePeriod: j['source_period'] as String?,
+        checkedAt: j['checked_at'] as String?,
+      );
 }
 
 class Brand {
