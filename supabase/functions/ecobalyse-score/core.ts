@@ -23,7 +23,7 @@ export const ECO_PRODUCTS = [
 export type EcoProduct = (typeof ECO_PRODUCTS)[number];
 
 /** Version de la méthode de notation VeriTrace (seuils, regroupements, arrondis). */
-export const SCORING_VERSION = "VeriTrace notes v1";
+export const SCORING_VERSION = "VeriTrace notes v2";
 
 export class DraftError extends Error {}
 
