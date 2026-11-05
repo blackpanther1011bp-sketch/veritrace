@@ -1,5 +1,13 @@
 {
-  "rewrites": [{ "source": "/01/:path*", "destination": "/index.html" }],
+  "rewrites": [
+    { "source": "/passeport/:id([0-9a-f]{12})", "destination": "/api/passeport" },
+    {
+      "source": "/01/:path*",
+      "has": [{ "type": "query", "key": "passeport", "value": "(?<id>[0-9a-f]{12})" }],
+      "destination": "/api/passeport?id=:id"
+    },
+    { "source": "/01/:path*", "destination": "/index.html" }
+  ],
   "headers": [
     {
       "source": "/(.*)",
