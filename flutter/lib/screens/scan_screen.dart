@@ -88,16 +88,30 @@ class _ScanScreenState extends State<ScanScreen> {
                   const SizedBox(width: 10),
                   const Text('VeriTrace',
                       style: TextStyle(fontFamily: 'Space Grotesk', color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
-                  const Spacer(),
-                  const _LangSwitch(),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: const Color(0xFF2E4237)),
-                      borderRadius: BorderRadius.circular(999),
+                  const SizedBox(width: 12),
+                  // choix de la langue et mention « Démo » : réduits si l'écran est étroit, sans déborder
+                  Expanded(
+                    child: Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const _LangSwitch(),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: const Color(0xFF2E4237)),
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Text(tr('Démo'), style: const TextStyle(color: Color(0xFFA9B8AE), fontSize: 13)),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    child: Text(tr('Démo'), style: const TextStyle(color: Color(0xFFA9B8AE), fontSize: 13)),
                   ),
                 ],
               ),
@@ -387,7 +401,7 @@ class _LangSwitch extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(minWidth: 48, minHeight: 40),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Center(
                 widthFactor: 1,
                 child: Text(
