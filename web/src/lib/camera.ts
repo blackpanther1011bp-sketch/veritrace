@@ -1,6 +1,7 @@
 import { BarcodeDetector as BarcodeDetectorPonyfill, prepareZXingModule } from "barcode-detector/ponyfill";
 import wasmUrl from "zxing-wasm/reader/zxing_reader.wasm?url";
 import type { Pt } from "./arGeometry";
+import { t } from "./i18n";
 
 // Le décodeur (ZXing, WebAssembly) est servi depuis notre domaine plutôt qu'un CDN.
 const zxingOverrides = {
@@ -57,20 +58,20 @@ export async function openBackCamera(size: { width: number; height: number } = {
 
 export function cameraErrorMessage(error: unknown): string {
   if (error instanceof InsecureContextError) {
-    return "La caméra nécessite une connexion sécurisée (https). Saisissez le code à la main.";
+    return t("camera.insecure");
   }
   const name = error instanceof DOMException ? error.name : "";
   switch (name) {
     case "NotAllowedError":
     case "SecurityError":
-      return "Accès à la caméra refusé. Autorisez-le dans les réglages du navigateur, ou saisissez le code à la main.";
+      return t("camera.denied");
     case "NotFoundError":
     case "OverconstrainedError":
-      return "Aucune caméra disponible sur cet appareil. Saisissez le code à la main.";
+      return t("camera.none");
     case "NotReadableError":
-      return "La caméra est utilisée par une autre application. Fermez-la puis réessayez.";
+      return t("camera.busy");
     default:
-      return "Impossible de démarrer la caméra. Saisissez le code à la main.";
+      return t("camera.failed");
   }
 }
 

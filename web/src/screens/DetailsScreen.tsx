@@ -3,6 +3,7 @@ import { Header } from "../components/Header";
 import { IconArrow, IconInfo } from "../components/Icons";
 import { SourcesCard } from "../components/Sources";
 import { LEVEL_COLOR, LEVEL_LABEL, LEVEL_TEXT, STATUS_LABEL, STATUS_STYLE } from "../lib/grades";
+import { monthNames, t } from "../lib/i18n";
 import { navigate } from "../lib/router";
 import { formatPeriod, isSourced, SOCIAL_MAX_POINTS, socialScore } from "../lib/social";
 import { track } from "../lib/track";
@@ -13,16 +14,14 @@ import { ErrorState, LoadingState } from "./States";
 function socialNote(product: Product): string {
   const checks = product.brand.social_checks;
   if (product.social_grade === null) {
-    if (isSourced(checks)) {
-      return "Évaluation incomplète : tous les critères n'ont pas encore été vérifiés, la note sociale n'est donc pas attribuée. La note globale reflète uniquement l'environnement.";
-    }
-    return "Note sociale non évaluée : aucune source publique vérifiable pour cette marque. La note globale reflète donc uniquement l'environnement.";
+    if (isSourced(checks)) return t("details.socialIncomplete");
+    return t("details.socialNone");
   }
-  if (!isSourced(checks)) {
-    return "Données d'exemple, fictives et sans source : elles ne suivent pas la méthode de la note sociale sourcée.";
-  }
+  if (!isSourced(checks)) return t("details.socialDemo");
   const score = socialScore(checks);
-  return `Note sociale VeriTrace : ${score ? `${score.points} points sur ${SOCIAL_MAX_POINTS}` : "barème"} d'après les preuves publiques ci-dessus. Elle mesure ce que la marque rend public et vérifiable (usines, contrôles, certification), pas les conditions de travail dans chaque usine. « Non démontré » : aucune preuve trouvée par VeriTrace.`;
+  return t("details.socialScore", {
+    score: score ? t("details.socialPoints", { points: score.points, max: SOCIAL_MAX_POINTS }) : t("details.socialScale"),
+  });
 }
 
 export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "carbone" | "social" }) {
@@ -37,7 +36,7 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
     if (product === null) navigate(`/inconnu/${ean}`, { replace: true });
   }, [product, ean]);
 
-  const header = <Header title="Comprendre la note" backTo={`/p/${ean}`} backLabel="Retour à la fiche produit" />;
+  const header = <Header title={t("title.details")} backTo={`/p/${ean}`} backLabel={t("common.backProduct")} />;
 
   if (failed && !product) {
     return (
@@ -60,12 +59,12 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
     <div className="screen">
       {header}
       <main className="content">
-        <div className="segmented" role="tablist" aria-label="Type de note">
+        <div className="segmented" role="tablist" aria-label={t("details.tabs")}>
           <button type="button" role="tab" aria-selected={tab === "carbone"} className={tab === "carbone" ? "seg seg-on" : "seg"} onClick={() => setTab("carbone")}>
-            Carbone · {product.carbon_grade}
+            {t("details.tabCarbon", { grade: product.carbon_grade })}
           </button>
           <button type="button" role="tab" aria-selected={tab === "social"} className={tab === "social" ? "seg seg-on" : "seg"} onClick={() => setTab("social")}>
-            Social · {product.social_grade ?? "–"}
+            {t("details.tabSocial", { grade: product.social_grade ?? "–" })}
           </button>
         </div>
 
@@ -73,8 +72,10 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
           <>
             <p className="lead">
               {product.data_source === "registre"
-                ? "D'où vient le coût environnemental de ce vêtement (registre officiel) :"
-                : `D'où vient l'impact climat de ce vêtement${product.data_source === "demo" ? "" : " (calcul Ecobalyse)"} :`}
+                ? t("details.leadRegistry")
+                : product.data_source === "demo"
+                  ? t("details.leadDemo")
+                  : t("details.leadComputed")}
             </p>
             <section className="card breakdown">
               {product.carbon_breakdown.map((item) => (
@@ -96,12 +97,12 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
           </>
         ) : (
           <>
-            <p className="lead">Engagements sociaux de la marque {product.brand.name} :</p>
+            <p className="lead">{t("details.socialLead", { brand: product.brand.name })}</p>
             {isSourced(product.brand.social_checks) ? (
-              <ul className="card social-checks" aria-label="Critères de la note sociale et leurs sources">
+              <ul className="card social-checks" aria-label={t("details.socialChecksAria")}>
                 {product.brand.social_checks.map((check) => {
-                  const period = formatPeriod(check.source_period);
-                  const checked = formatPeriod(check.checked_at);
+                  const period = formatPeriod(check.source_period, monthNames());
+                  const checked = formatPeriod(check.checked_at, monthNames());
                   return (
                     <li key={check.label} className="social-check">
                       <div className="split">
@@ -110,14 +111,14 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
                           {STATUS_LABEL[check.status]}
                         </span>
                       </div>
-                      {check.detail && <p className="muted-sm">{check.detail}</p>}
+                      {check.detail && <p className="muted-sm social-detail">{check.detail}</p>}
                       <p className="muted-sm">
-                        Source :{" "}
+                        {t("details.source")}{" "}
                         <a href={check.source_url} target="_blank" rel="noopener noreferrer">
-                          {check.source_title ?? "voir la source"}
+                          {check.source_title ?? t("details.seeSource")}
                         </a>
                         {period ? ` (${period})` : ""}
-                        {checked ? ` · vérifié le ${checked}` : ""}
+                        {checked ? ` · ${t("details.checkedOn", { date: checked })}` : ""}
                       </p>
                     </li>
                   );
@@ -142,7 +143,7 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
               <p>
                 {socialNote(product)}{" "}
                 {product.data_source !== "demo" && (
-                  <a href="#/confidentialite?contact=1">Une preuve manque ? Écrivez-nous.</a>
+                  <a href="#/confidentialite?contact=1">{t("details.proofMissing")}</a>
                 )}
               </p>
             </aside>
@@ -153,7 +154,7 @@ export function DetailsScreen({ ean, initialTab }: { ean: string; initialTab: "c
       {product.global_grade !== "A" && (
         <footer className="actions">
           <button type="button" className="btn btn-primary" onClick={() => navigate(`/p/${product.ean}/alternatives`)}>
-            Voir les alternatives
+            {t("details.seeAlternatives")}
             <IconArrow size={20} />
           </button>
         </footer>

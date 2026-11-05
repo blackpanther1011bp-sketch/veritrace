@@ -28,14 +28,15 @@ export function socialScore(checks: SocialCheck[]): { points: number; grade: Gra
 
 const MONTHS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
 
-/** « 2022-08 » → « août 2022 » ; « 2025-11-05 » → « 5 novembre 2025 » ; « 2019 » → « 2019 ». */
-export function formatPeriod(period: string | null | undefined): string | null {
+/** Noms des mois : français par défaut (l'interface arabe passe les siens).
+ *  « 2022-08 » → « août 2022 » ; « 2025-11-05 » → « 5 novembre 2025 » ; « 2019 » → « 2019 ». */
+export function formatPeriod(period: string | null | undefined, months: readonly string[] = MONTHS): string | null {
   if (!period) return null;
   const m = period.match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);
   if (!m) return null;
   const [, year, month, day] = m;
   if (!month) return year;
-  const name = MONTHS[Number(month) - 1];
+  const name = months[Number(month) - 1];
   if (!name) return year;
   return day ? `${Number(day)} ${name} ${year}` : `${name} ${year}`;
 }

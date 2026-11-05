@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../api.dart';
 import '../ar_geometry.dart';
 import '../contribute.dart';
+import '../l10n.dart';
 import '../label_live.dart';
 import '../models.dart';
 import '../navigation.dart';
@@ -117,11 +118,11 @@ class _LabelLiveScreenState extends State<LabelLiveScreen> with WidgetsBindingOb
       if (!mounted) return;
       setState(() {
         _cameraError = e.code.contains('Access')
-            ? "L'accès à la caméra est refusé. Autorisez-le dans les réglages du téléphone, ou prenez une photo de l'étiquette."
-            : "Impossible de démarrer la caméra. Prenez plutôt une photo de l'étiquette.";
+            ? tr("L'accès à la caméra est refusé. Autorisez-le dans les réglages du téléphone, ou prenez une photo de l'étiquette.")
+            : tr("Impossible de démarrer la caméra. Prenez plutôt une photo de l'étiquette.");
       });
     } catch (_) {
-      if (mounted) setState(() => _cameraError = "Aucune caméra disponible. Prenez plutôt une photo de l'étiquette.");
+      if (mounted) setState(() => _cameraError = tr("Aucune caméra disponible. Prenez plutôt une photo de l'étiquette."));
     }
   }
 
@@ -209,13 +210,13 @@ class _LabelLiveScreenState extends State<LabelLiveScreen> with WidgetsBindingOb
       if (!mounted) return;
       final retry = const ['composition_incomplete', 'composition_introuvable', 'illisible'].contains(e.code);
       setState(() {
-        _message = retry ? "Lecture imprécise : rapprochez-vous et gardez l'étiquette bien à plat." : e.message;
+        _message = retry ? tr("Lecture imprécise : rapprochez-vous et gardez l'étiquette bien à plat.") : e.message;
         _phase = retry ? _Phase.scanning : _Phase.failed;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _message = 'Pas de connexion : vérifiez Internet puis réessayez.';
+        _message = tr('Pas de connexion : vérifiez Internet puis réessayez.');
         _phase = _Phase.failed;
       });
     }
@@ -273,12 +274,14 @@ class _LabelLiveScreenState extends State<LabelLiveScreen> with WidgetsBindingOb
   }
 
   String get _hint {
-    if (_phase == _Phase.starting) return 'Ouverture de la caméra…';
-    if (_phase == _Phase.sending) return 'Composition lue : calcul de la note avec Ecobalyse…';
+    if (_phase == _Phase.starting) return tr('Ouverture de la caméra…');
+    if (_phase == _Phase.sending) return tr('Composition lue : calcul de la note avec Ecobalyse…');
     if (_message != null) return _message!;
-    if (_preview != null && _category == null) return 'Composition lue : $_preview. Choisissez le type de vêtement.';
-    if (_seen) return "Lecture en cours… Rapprochez-vous et gardez l'étiquette nette.";
-    return "Visez l'étiquette de composition (ex. « 100 % coton »). La note s'affiche dessus.";
+    if (_preview != null && _category == null) {
+      return tr('Composition lue : {composition}. Choisissez le type de vêtement.', {'composition': _preview});
+    }
+    if (_seen) return tr("Lecture en cours… Rapprochez-vous et gardez l'étiquette nette.");
+    return tr("Visez l'étiquette de composition (ex. « 100 % coton »). La note s'affiche dessus.");
   }
 
   @override
@@ -354,11 +357,11 @@ class _LabelLiveScreenState extends State<LabelLiveScreen> with WidgetsBindingOb
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(p == null ? 'Calcul de la note…' : verdicts[p.globalGrade]!.$1,
+                      Text(p == null ? tr('Calcul de la note…') : verdicts[p.globalGrade]!.$1,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: VT.ink)),
-                      Text(p?.composition ?? _preview ?? '',
+                      Text(db(p?.composition ?? _preview),
                           maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, color: VT.muted)),
                     ],
                   ),
@@ -379,14 +382,15 @@ class _LabelLiveScreenState extends State<LabelLiveScreen> with WidgetsBindingOb
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
         child: Row(
           children: [
-            _Round(icon: Icons.arrow_back, label: 'Retour', onPressed: () => Navigator.of(context).maybePop()),
-            const Expanded(
-              child: Text("Visez l'étiquette cousue",
-                  textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+            _Round(icon: Icons.arrow_back, label: tr('Retour'), onPressed: () => Navigator.of(context).maybePop()),
+            Expanded(
+              child: Text(tr("Visez l'étiquette cousue"),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
             ),
             _Round(
               icon: _torch ? Icons.flashlight_off : Icons.flashlight_on,
-              label: _torch ? 'Éteindre la lampe' : 'Allumer la lampe',
+              label: _torch ? tr('Éteindre la lampe') : tr('Allumer la lampe'),
               onPressed: _toggleTorch,
             ),
           ],
@@ -416,9 +420,12 @@ class _LabelLiveScreenState extends State<LabelLiveScreen> with WidgetsBindingOb
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: VT.ink)),
+                        Text(db(p.name), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: VT.ink)),
                         Text(
-                          [if (!p.originCountry.toLowerCase().startsWith('non ')) p.originCountry, 'touchez pour voir la fiche'].join(' · '),
+                          [
+                            if (!p.originCountry.toLowerCase().startsWith('non ')) bidi(p.originCountry),
+                            tr('touchez pour voir la fiche'),
+                          ].join(' · '),
                           style: const TextStyle(fontSize: 13, color: VT.muted2),
                         ),
                       ],
@@ -433,14 +440,15 @@ class _LabelLiveScreenState extends State<LabelLiveScreen> with WidgetsBindingOb
         TextButton(
           onPressed: _restart,
           style: TextButton.styleFrom(foregroundColor: const Color(0xFFC9D4CD)),
-          child: const Text('Lire une autre étiquette'),
+          child: Text(tr('Lire une autre étiquette')),
         ),
       ];
     } else if (_phase == _Phase.failed) {
       children = [
-        Text(_message ?? 'Erreur inattendue.', textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 15)),
+        Text(_message ?? tr('Erreur inattendue.'),
+            textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 15)),
         const SizedBox(height: 10),
-        FilledButton(onPressed: _restart, child: const Text('Réessayer')),
+        FilledButton(onPressed: _restart, child: Text(tr('Réessayer'))),
       ];
     } else {
       children = [
@@ -456,7 +464,7 @@ class _LabelLiveScreenState extends State<LabelLiveScreen> with WidgetsBindingOb
               final c = contributionCategories[i];
               final on = c == _category;
               return ChoiceChip(
-                label: Text(c),
+                label: Text(tv(c)),
                 selected: on,
                 onSelected: (_) => _chooseCategory(c),
                 selectedColor: VT.mint,
@@ -472,7 +480,7 @@ class _LabelLiveScreenState extends State<LabelLiveScreen> with WidgetsBindingOb
           onPressed: _openPhoto,
           style: TextButton.styleFrom(foregroundColor: const Color(0xFFC9D4CD)),
           icon: const Icon(Icons.photo_camera_outlined, size: 18),
-          label: const Text('Prendre une photo à la place'),
+          label: Text(tr('Prendre une photo à la place')),
         ),
       ];
     }
@@ -564,11 +572,11 @@ class _CameraProblem extends StatelessWidget {
               const SizedBox(height: 16),
               Text(message, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 15)),
               const SizedBox(height: 20),
-              FilledButton(onPressed: onPhoto, child: const Text('Prendre une photo à la place')),
+              FilledButton(onPressed: onPhoto, child: Text(tr('Prendre une photo à la place'))),
               TextButton(
                 onPressed: () => Navigator.of(context).maybePop(),
                 style: TextButton.styleFrom(foregroundColor: Colors.white70),
-                child: const Text('Retour'),
+                child: Text(tr('Retour')),
               ),
             ],
           ),

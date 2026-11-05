@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { t } from "../lib/i18n";
 
 /** Page de secours si un écran plante : plutôt qu'une page blanche, un message et un bouton pour recharger. */
 export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -17,11 +18,11 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: 
     return (
       <div className="screen">
         <main className="content center-state" role="alert">
-          <h1 className="state-title">Un problème est survenu</h1>
-          <p className="muted">Cet écran n'a pas pu s'afficher. Rechargez la page ; si le problème revient, revenez à l'accueil.</p>
+          <h1 className="state-title">{t("error.title")}</h1>
+          <p className="muted">{t("error.text")}</p>
           <div className="stack-8">
             <button type="button" className="btn btn-primary" onClick={() => window.location.reload()}>
-              Recharger
+              {t("error.reload")}
             </button>
             <button
               type="button"
@@ -31,7 +32,7 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, { failed: 
                 window.location.reload();
               }}
             >
-              Retour à l'accueil
+              {t("common.backHome")}
             </button>
           </div>
         </main>

@@ -3,6 +3,7 @@ import { GradeBadge } from "../components/Grade";
 import { Header } from "../components/Header";
 import { IconCheck, IconChevron, IconLock } from "../components/Icons";
 import { fetchAlternatives } from "../lib/api";
+import { t, tn } from "../lib/i18n";
 import { navigate } from "../lib/router";
 import { isPremium, setPremium } from "../lib/storage";
 import { track } from "../lib/track";
@@ -11,18 +12,18 @@ import { useProduct } from "./ProductScreen";
 import { ErrorState } from "./States";
 
 // Affiché sur l'offre Premium : à remplacer par le vrai tarif.
-const PREMIUM_PRICE = "Tarif à définir";
+const premiumPrice = () => t("alt.priceTbd");
 const FREE_ALTERNATIVES = 1;
 
 function tags(p: Product): string[] {
-  const t: string[] = [];
+  const out: string[] = [];
   const comp = p.composition.toLowerCase();
-  if (p.brand.kind === "seconde_main") t.push("Seconde main");
-  if (comp.includes("bio")) t.push("Coton bio");
-  if (comp.includes("recyclé")) t.push("Fibres recyclées");
-  if (comp.includes("lin")) t.push("Lin");
-  if (p.origin_country === "Maroc" && p.brand.kind !== "seconde_main") t.push("Fabriqué au Maroc");
-  return t.slice(0, 3);
+  if (p.brand.kind === "seconde_main") out.push(t("alt.tagSecondHand"));
+  if (comp.includes("bio")) out.push(t("alt.tagOrganic"));
+  if (comp.includes("recyclé")) out.push(t("alt.tagRecycled"));
+  if (comp.includes("lin")) out.push(t("alt.tagLinen"));
+  if (p.origin_country === "Maroc" && p.brand.kind !== "seconde_main") out.push(t("alt.tagMorocco"));
+  return out.slice(0, 3);
 }
 
 function AlternativeCard({ p }: { p: Product }) {
@@ -33,12 +34,12 @@ function AlternativeCard({ p }: { p: Product }) {
         <span className="row-title">{p.name}</span>
         <span className="row-sub">
           {p.brand.name} ·{" "}
-          {p.brand.kind === "seconde_main" ? "Friperie solidaire" : p.data_source === "registre" ? "Registre officiel" : `Fabriqué : ${p.origin_country}`}
+          {p.brand.kind === "seconde_main" ? t("alt.thrift") : p.data_source === "registre" ? t("alt.registry") : t("alt.madeIn", { country: p.origin_country })}
         </span>
         <span className="tags">
-          {tags(p).map((t) => (
-            <span key={t} className="tag">
-              {t}
+          {tags(p).map((tag) => (
+            <span key={tag} className="tag">
+              {tag}
             </span>
           ))}
         </span>
@@ -96,7 +97,7 @@ export function AlternativesScreen({ ean }: { ean: string }) {
     track("premium_start", { ean });
   }
 
-  const header = <Header title="Alternatives" backTo={`/p/${ean}`} backLabel="Retour à la fiche produit" />;
+  const header = <Header title={t("alt.title")} backTo={`/p/${ean}`} backLabel={t("common.backProduct")} />;
 
   if (failed && !list) {
     return (
@@ -119,7 +120,7 @@ export function AlternativesScreen({ ean }: { ean: string }) {
           <div className="context-chip">
             <GradeBadge grade={product.global_grade} size={28} />
             <span>
-              Au lieu de : <strong>{product.name} · {product.brand.name}</strong>
+              {t("alt.insteadOf")} <strong>{product.name} · {product.brand.name}</strong>
             </span>
           </div>
         )}
@@ -131,12 +132,12 @@ export function AlternativesScreen({ ean }: { ean: string }) {
           </>
         ) : list.length === 0 ? (
           <section className="card center-state">
-            <p className="state-title">Déjà parmi les meilleurs</p>
-            <p className="muted">Aucune alternative mieux notée dans cette catégorie pour l'instant.</p>
+            <p className="state-title">{t("alt.bestTitle")}</p>
+            <p className="muted">{t("alt.bestText")}</p>
           </section>
         ) : (
           <>
-            <p className="lead">Même usage, meilleur impact.</p>
+            <p className="lead">{t("alt.lead")}</p>
             {free.map((p) => (
               <AlternativeCard key={p.ean} p={p} />
             ))}
@@ -144,7 +145,7 @@ export function AlternativesScreen({ ean }: { ean: string }) {
             {justUnlocked && (
               <div className="banner-success" role="status">
                 <IconCheck size={20} />
-                Premium activé (simulation de démo)
+                {t("alt.premiumOn")}
               </div>
             )}
 
@@ -163,13 +164,11 @@ export function AlternativesScreen({ ean }: { ean: string }) {
                 <section className="upsell">
                   <div className="upsell-head">
                     <IconLock size={22} />
-                    <span>
-                      {lockedCount} autre{lockedCount > 1 ? "s" : ""} alternative{lockedCount > 1 ? "s" : ""}
-                    </span>
+                    <span>{tn("alt.locked", lockedCount)}</span>
                   </div>
-                  <p>Comparez toutes les options mieux notées, en ligne et près de chez vous.</p>
+                  <p>{t("alt.upsell")}</p>
                   <button type="button" className="btn btn-accent" onClick={openSheet}>
-                    Débloquer avec Premium
+                    {t("alt.unlock")}
                   </button>
                 </section>
               </>
@@ -180,7 +179,7 @@ export function AlternativesScreen({ ean }: { ean: string }) {
 
       <footer className="actions">
         <button type="button" className="btn btn-text" onClick={() => navigate("/")}>
-          Scanner un autre article
+          {t("common.scanAnother")}
         </button>
       </footer>
     </div>
@@ -194,23 +193,23 @@ export function AlternativesScreen({ ean }: { ean: string }) {
             </h2>
             <ul className="benefits">
               <li>
-                <IconCheck size={20} /> Toutes les alternatives pour chaque article
+                <IconCheck size={20} /> {t("alt.benefitAll")}
               </li>
               <li>
-                <IconCheck size={20} /> Historique complet de vos scans
+                <IconCheck size={20} /> {t("alt.benefitHistory")}
               </li>
               <li>
-                <IconCheck size={20} /> Alertes sur vos marques préférées
+                <IconCheck size={20} /> {t("alt.benefitAlerts")}
               </li>
             </ul>
-            <p className="price">{PREMIUM_PRICE}</p>
+            <p className="price">{premiumPrice()}</p>
             <button ref={sheetButton} type="button" className="btn btn-primary" onClick={unlock}>
-              Commencer l'essai gratuit
+              {t("alt.trial")}
             </button>
             <button type="button" className="btn btn-text" onClick={() => setSheetOpen(false)}>
-              Plus tard
+              {t("alt.later")}
             </button>
-            <p className="muted-xs">Démo : aucun paiement n'est demandé.</p>
+            <p className="muted-xs">{t("alt.noPayment")}</p>
           </div>
         </div>
       )}

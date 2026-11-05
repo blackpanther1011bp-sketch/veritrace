@@ -17,14 +17,15 @@ function base({ size = 22, ...rest }: IconProps) {
   };
 }
 
+// data-flip : icônes de direction, retournées en arabe (styles.css)
 export const IconBack = (p: IconProps) => (
-  <svg {...base(p)}><path d="M15 6l-6 6 6 6" /></svg>
+  <svg {...base(p)} data-flip=""><path d="M15 6l-6 6 6 6" /></svg>
 );
 export const IconChevron = (p: IconProps) => (
-  <svg {...base(p)}><path d="M9 6l6 6-6 6" /></svg>
+  <svg {...base(p)} data-flip=""><path d="M9 6l6 6-6 6" /></svg>
 );
 export const IconArrow = (p: IconProps) => (
-  <svg {...base(p)}><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+  <svg {...base(p)} data-flip=""><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 );
 export const IconScan = (p: IconProps) => (
   <svg {...base(p)}><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3M7 12h10" /></svg>

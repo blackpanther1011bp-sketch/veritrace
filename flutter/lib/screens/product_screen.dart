@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../api.dart';
 import '../barcode.dart';
 import '../config.dart';
+import '../l10n.dart';
 import '../models.dart';
 import '../reliability.dart';
 import '../social.dart';
@@ -84,24 +85,28 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
   String _socialSummary(Product p) {
     final checks = p.brand.socialChecks;
     if (p.socialGrade == null) {
-      return isSourcedChecks(checks) ? 'Évaluation incomplète : non notée' : 'Non évaluée : aucune source publique vérifiable';
+      return isSourcedChecks(checks)
+          ? tr('Évaluation incomplète : non notée')
+          : tr('Non évaluée : aucune source publique vérifiable');
     }
     final score = socialScore(checks);
-    if (score != null) return '${score.points} points sur $socialMaxPoints · sources publiques';
+    if (score != null) {
+      return tr('{points} points sur {max} · sources publiques', {'points': score.points, 'max': socialMaxPoints});
+    }
     for (final c in checks) {
       if (c.status == 'non' || c.status == 'non_communique' || c.status == 'non_demontre') {
-        return '${c.label} : ${statusLabel[c.status]!.toLowerCase()}';
+        return tr('{label} : {status}', {'label': c.label, 'status': statusLabel[c.status]!.toLowerCase()});
       }
     }
     for (final c in p.brand.socialChecks) {
-      if (c.status == 'partiel') return '${c.label} : partielle';
+      if (c.status == 'partiel') return tr('{label} : partielle', {'label': c.label});
     }
-    return 'Engagements sociaux vérifiés';
+    return tr('Engagements sociaux vérifiés');
   }
 
   String _carbonSummary(Product p) {
     final sorted = [...p.carbonBreakdown]..sort((a, b) => b.share.compareTo(a.share));
-    return sorted.isEmpty ? '' : sorted.first.detail;
+    return sorted.isEmpty ? '' : db(sorted.first.detail);
   }
 
   void _openDetails(Product p, {String tab = 'carbone'}) => Navigator.of(context)
@@ -112,7 +117,7 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
     final p = _product;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Résultat du scan'),
+        title: Text(tr('Résultat du scan')),
         actions: [if (p != null && p.isSample) const SampleTag()],
       ),
       body: p == null
@@ -141,12 +146,12 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(p.brand.name.toUpperCase(),
+                    Text(db(p.brand.name.toUpperCase()),
                         style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 1.2, color: VT.muted2)),
-                    Text(p.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+                    Text(db(p.name), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                     Text(
-                        '${p.reference != null ? 'Réf. ${p.reference} · ' : ''}'
-                        '${p.hasNoBarcode ? 'Sans code-barres · étiquette lue' : 'EAN ${formatEan(p.ean)}'}',
+                        '${p.reference != null ? '${tr('Réf. {ref}', {'ref': p.reference})} · ' : ''}'
+                        '${p.hasNoBarcode ? tr('Sans code-barres · étiquette lue') : tr('EAN {code}', {'code': formatEan(p.ean)})}',
                         style: const TextStyle(fontSize: 13, color: VT.muted2)),
                   ],
                 ),
@@ -166,15 +171,19 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('NOTE VERITRACE',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, letterSpacing: 0.8, color: VT.muted)),
+                    Text(tr('NOTE VERITRACE'),
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: L10n.isArabic ? 0 : 0.8,
+                            color: VT.muted)),
                     Text(verdict.$1, style: const TextStyle(fontFamily: 'Space Grotesk', fontSize: 20, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
                     Text(verdict.$2, style: const TextStyle(fontSize: 15, color: VT.muted, height: 1.4)),
                     if (p.socialGrade == null) ...[
                       const SizedBox(height: 6),
-                      const Text('Note environnement seule : note sociale non évaluée.',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: VT.muted)),
+                      Text(tr('Note environnement seule : note sociale non évaluée.'),
+                          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: VT.muted)),
                     ],
                   ],
                 ),
@@ -193,13 +202,13 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
                   TextSpan(
                       text: formatPoints(p.ecoCost!),
                       style: const TextStyle(fontFamily: 'Space Grotesk', fontSize: 24, fontWeight: FontWeight.w700)),
-                  const TextSpan(text: '  points d\'impact', style: TextStyle(fontSize: 15, color: VT.muted)),
+                  TextSpan(text: '  ${tr("points d'impact")}', style: const TextStyle(fontSize: 15, color: VT.muted)),
                 ])),
                 const SizedBox(height: 4),
                 Text(
                   p.isRegistry
-                      ? 'Coût environnemental officiel, déclaré par la marque. La note VeriTrace le compare aux vêtements du même type.'
-                      : 'Coût environnemental estimé par VeriTrace avec Ecobalyse (non déclaré par la marque). La note VeriTrace le compare aux vêtements du même type.',
+                      ? tr('Coût environnemental officiel, déclaré par la marque. La note VeriTrace le compare aux vêtements du même type.')
+                      : tr('Coût environnemental estimé par VeriTrace avec Ecobalyse (non déclaré par la marque). La note VeriTrace le compare aux vêtements du même type.'),
                   style: const TextStyle(fontSize: 13, color: VT.muted2, height: 1.35),
                 ),
               ],
@@ -229,14 +238,14 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
                     child: const Icon(Icons.view_in_ar, color: VT.ink),
                   ),
                   const SizedBox(width: 14),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Voir en réalité augmentée',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
-                        Text('Posez le panneau 3D de la note dans la pièce',
-                            style: TextStyle(color: Color(0xFFA9B8AE), fontSize: 13)),
+                        Text(tr('Voir en réalité augmentée'),
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
+                        Text(tr('Posez le panneau 3D de la note dans la pièce'),
+                            style: const TextStyle(color: Color(0xFFA9B8AE), fontSize: 13)),
                       ],
                     ),
                   ),
@@ -250,9 +259,10 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: _tile('Carbone', p.carbonGrade, _carbonSummary(p), () => _openDetails(p))),
+            Expanded(child: _tile(tr('Carbone'), p.carbonGrade, _carbonSummary(p), () => _openDetails(p))),
             const SizedBox(width: 12),
-            Expanded(child: _tile('Social', p.socialGrade, _socialSummary(p), () => _openDetails(p, tab: 'social'))),
+            Expanded(
+                child: _tile(tr('Social'), p.socialGrade, _socialSummary(p), () => _openDetails(p, tab: 'social'))),
           ],
         ),
         const SizedBox(height: 14),
@@ -260,11 +270,11 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
           child: Column(
             children: [
-              _info('Pays de fabrication', p.originCountry),
+              _info(tr('Pays de fabrication'), p.originCountry),
               const Divider(height: 1, color: VT.line),
-              _info('Composition', p.composition),
+              _info(tr('Composition'), p.composition),
               const Divider(height: 1, color: VT.line),
-              _info('Transport', p.transport),
+              _info(tr('Transport'), p.transport),
               const Divider(height: 1, color: VT.line),
               InkWell(
                 onTap: () => _openDetails(p),
@@ -272,7 +282,7 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
                   padding: const EdgeInsets.symmetric(vertical: 13),
                   child: Row(
                     children: [
-                      const Text('Fiabilité des données', style: TextStyle(color: VT.muted, fontSize: 15)),
+                      Text(tr('Fiabilité des données'), style: const TextStyle(color: VT.muted, fontSize: 15)),
                       const Spacer(),
                       ConfidencePill(product: p),
                     ],
@@ -316,8 +326,9 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
           Text(label, style: const TextStyle(color: VT.muted, fontSize: 15)),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(value,
-                textAlign: TextAlign.right, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+            // valeur de la base, en français : garde son sens de lecture, alignée en fin de ligne
+            child: Text(db(value),
+                textAlign: TextAlign.end, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
           ),
         ],
       ),
@@ -337,11 +348,11 @@ class _ProductScreenState extends State<ProductScreen> with WidgetsBindingObserv
               FilledButton(
                 onPressed: () => Navigator.of(context)
                     .push(MaterialPageRoute(builder: (_) => AlternativesScreen(product: p))),
-                child: Text('Voir $n alternative${n > 1 ? 's' : ''} mieux notée${n > 1 ? 's' : ''}'),
+                child: Text(tn(n, 'Voir {n} alternative mieux notée', 'Voir {n} alternatives mieux notées')),
               ),
               const SizedBox(height: 10),
             ],
-            OutlinedButton(onPressed: () => _openDetails(p), child: const Text('Comprendre la note')),
+            OutlinedButton(onPressed: () => _openDetails(p), child: Text(tr('Comprendre la note'))),
           ],
         ),
       ),

@@ -1,7 +1,9 @@
 // Note sociale sourcée (méthode v1, docs/methode-note-sociale.md) : même barème que la fonction SQL registry_social,
 // pour expliquer la note à l'écran (« 4 points sur 5 »). Testé dans test/social_test.dart.
 
+import 'l10n.dart';
 import 'models.dart';
+import 'reliability.dart' show monthsAr;
 
 const socialMaxPoints = 5;
 
@@ -40,7 +42,8 @@ const _months = [
   'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
 ];
 
-/// « 2022-08 » → « août 2022 » ; « 2025-11-05 » → « 5 novembre 2025 » ; « 2019 » → « 2019 ».
+/// « 2022-08 » → « août 2022 » ; « 2025-11-05 » → « 5 novembre 2025 » ; « 2019 » → « 2019 » (mois en arabe
+/// dans l'interface arabe).
 String? formatPeriod(String? period) {
   if (period == null) return null;
   final m = RegExp(r'^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$').firstMatch(period);
@@ -51,5 +54,6 @@ String? formatPeriod(String? period) {
   final i = int.parse(month) - 1;
   if (i < 0 || i > 11) return year;
   final day = m.group(3);
-  return day == null ? '${_months[i]} $year' : '${int.parse(day)} ${_months[i]} $year';
+  final name = (L10n.isArabic ? monthsAr : _months)[i];
+  return day == null ? '$name $year' : '${int.parse(day)} $name $year';
 }

@@ -1,3 +1,4 @@
+import { t } from "./i18n";
 import type { Grade } from "./types";
 
 export interface HistoryEntry {
@@ -58,10 +59,10 @@ export function resetDemo(): void {
 
 export function timeAgo(at: number): string {
   const minutes = Math.round((Date.now() - at) / 60000);
-  if (minutes < 1) return "à l'instant";
-  if (minutes < 60) return `il y a ${minutes} min`;
+  if (minutes < 1) return t("time.now");
+  if (minutes < 60) return t("time.minutes", { n: minutes });
   const hours = Math.round(minutes / 60);
-  if (hours < 24) return `il y a ${hours} h`;
+  if (hours < 24) return t("time.hours", { n: hours });
   const days = Math.round(hours / 24);
-  return days === 1 ? "hier" : `il y a ${days} jours`;
+  return days === 1 ? t("time.yesterday") : t("time.days", { n: days });
 }

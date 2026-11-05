@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'l10n.dart';
 import 'models.dart';
 
 class HistoryEntry {
@@ -61,10 +62,10 @@ class LocalStore {
 
 String timeAgo(DateTime at) {
   final minutes = DateTime.now().difference(at).inMinutes;
-  if (minutes < 1) return "à l'instant";
-  if (minutes < 60) return 'il y a $minutes min';
+  if (minutes < 1) return tr("à l'instant");
+  if (minutes < 60) return tr('il y a {n} min', {'n': minutes});
   final hours = (minutes / 60).round();
-  if (hours < 24) return 'il y a $hours h';
+  if (hours < 24) return tr('il y a {n} h', {'n': hours});
   final days = (hours / 24).round();
-  return days == 1 ? 'hier' : 'il y a $days jours';
+  return days == 1 ? tr('hier') : tr('il y a {n} jours', {'n': days});
 }

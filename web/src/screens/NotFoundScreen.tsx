@@ -3,6 +3,7 @@ import { Header } from "../components/Header";
 import { IconCamera, IconCheck, IconUnknownTag } from "../components/Icons";
 import { reportMissingProduct } from "../lib/api";
 import { formatEan } from "../lib/barcode";
+import { t } from "../lib/i18n";
 import { navigate } from "../lib/router";
 import { track } from "../lib/track";
 
@@ -24,26 +25,28 @@ export function NotFoundScreen({ ean }: { ean: string }) {
 
   return (
     <div className="screen">
-      <Header title="Résultat du scan" backTo="/" backLabel="Retour au scan" />
+      <Header title={t("product.header")} backTo="/" backLabel={t("common.backScan")} />
       <main className="content">
         <div className="empty-hero">
           <div className="empty-icon">
             <IconUnknownTag size={40} />
           </div>
-          <h2 className="state-title">Article pas encore référencé</h2>
-          <p className="muted">Ce code-barres n'est pas encore dans notre base. Photographiez l'étiquette cousue du vêtement : sa note est calculée tout de suite.</p>
-          <span className="pill-muted">EAN {formatEan(ean)}</span>
+          <h2 className="state-title">{t("notFound.title")}</h2>
+          <p className="muted">{t("notFound.text")}</p>
+          <span className="pill-muted">
+            <bdi>{t("common.ean", { code: formatEan(ean) })}</bdi>
+          </span>
         </div>
 
         <button type="button" className="btn btn-primary" onClick={() => navigate(`/etiquette-direct/${ean}`)}>
           <IconCamera size={20} />
-          Viser l'étiquette : note en direct
+          {t("notFound.live")}
         </button>
         <button type="button" className="btn btn-text" onClick={() => navigate(`/etiquette/${ean}`)}>
-          Ou prendre une photo de l'étiquette
+          {t("notFound.photo")}
         </button>
         <button type="button" className="btn btn-text" onClick={() => navigate(`/ajouter/${ean}`)}>
-          Ou saisir l'étiquette à la main
+          {t("notFound.manual")}
         </button>
 
         {status === "sent" ? (
@@ -52,41 +55,41 @@ export function NotFoundScreen({ ean }: { ean: string }) {
               <IconCheck size={20} />
             </span>
             <div className="stack-4">
-              <strong>Merci, c'est envoyé !</strong>
-              <span>Cet article rejoint la liste des produits à analyser.</span>
+              <strong>{t("common.thanksSent")}</strong>
+              <span>{t("notFound.sentText")}</span>
             </div>
           </section>
         ) : (
           <form className="card form" onSubmit={submit}>
-            <p className="field-label not-found-alt">Pas le temps ? Signalez-le simplement.</p>
+            <p className="field-label not-found-alt">{t("notFound.quick")}</p>
             <div className="stack-6">
               <label htmlFor="brand" className="field-label">
-                Marque (facultatif)
+                {t("common.brandOptional")}
               </label>
               <input
                 id="brand"
                 className="input"
                 maxLength={80}
                 autoComplete="off"
-                placeholder="Celle écrite sur l'étiquette"
+                placeholder={t("notFound.brandPlaceholder")}
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
               />
             </div>
             {status === "error" && (
               <p className="field-error" role="alert">
-                L'envoi a échoué. Vérifiez votre connexion puis réessayez.
+                {t("common.sendFailed")}
               </p>
             )}
             <button type="submit" className="btn btn-outline" disabled={status === "sending"}>
-              {status === "sending" ? "Envoi…" : "Signaler cet article"}
+              {status === "sending" ? t("common.sending") : t("notFound.report")}
             </button>
           </form>
         )}
       </main>
       <footer className="actions">
         <button type="button" className="btn btn-outline" onClick={() => navigate("/")}>
-          Scanner un autre article
+          {t("common.scanAnother")}
         </button>
       </footer>
     </div>

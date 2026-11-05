@@ -45,6 +45,10 @@ public final class VeritraceArPlugin
     @Override
     public void onAttachedToEngine(@NonNull FlutterPluginBinding binding) {
         context = binding.getApplicationContext();
+        // police arabe de l'app Flutter (flutter/fonts), pour les panneaux 3D en arabe
+        PanelPainter.arabicFonts(
+                binding.getFlutterAssets().getAssetFilePathByName("fonts/NotoSansArabic-Regular.ttf"),
+                binding.getFlutterAssets().getAssetFilePathByName("fonts/NotoSansArabic-Bold.ttf"));
         channel = new MethodChannel(binding.getBinaryMessenger(), "veritrace_ar");
         channel.setMethodCallHandler(this);
         shared = channel;
@@ -68,6 +72,15 @@ public final class VeritraceArPlugin
                 }
                 break;
             case "open":
+                // textes dans la langue de l'app : {strings: {clé: texte}, rtl: bool}
+                Object args = call.arguments;
+                if (args instanceof Map) {
+                    Map<?, ?> m = (Map<?, ?>) args;
+                    Object strings = m.get("strings");
+                    Texts.set(strings instanceof Map ? (Map<?, ?>) strings : null, Boolean.TRUE.equals(m.get("rtl")));
+                } else {
+                    Texts.set(null, false);
+                }
                 open(result);
                 break;
             default:

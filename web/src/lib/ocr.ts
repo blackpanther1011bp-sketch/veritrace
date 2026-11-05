@@ -2,6 +2,8 @@
 // gratuit, aucune photo n'a besoin d'être analysée sur un serveur. Le moteur et le modèle de langue
 // (~5 Mo, hébergés par le site) sont téléchargés au premier usage puis gardés en cache par le navigateur.
 
+import { t } from "./i18n";
+
 // Un texte d'étiquette exploitable contient au moins un pourcentage et une matière
 const LOOKS_LIKE_LABEL =
   /(\d\s*%|%\s*\d)[\s\S]*?(cot+on|coton|algod|polyest|poliest|elast|viscos|lin\b|linen|wool|laine|lana|nylon|polyam|acryl|modal|lyocell|baumwoll|pamuk)|(cot+on|coton|algod|polyest|poliest|elast|viscos|linen|wool|laine|nylon|polyam|acryl|baumwoll|pamuk)[\s\S]*?\d\s*%/i;
@@ -22,13 +24,13 @@ export async function createOcrWorker() {
  * puis 180°, jusqu'à obtenir un texte d'étiquette. Renvoie le meilleur texte trouvé.
  */
 export async function readTextFromPhoto(photo: Blob, onProgress?: (step: string) => void): Promise<string> {
-  onProgress?.("Préparation de la lecture…");
+  onProgress?.(t("ocr.prepare"));
   const worker = await createOcrWorker();
   try {
     let best = "";
     const angles = [0, Math.PI / 2, -Math.PI / 2, Math.PI];
     for (let i = 0; i < angles.length; i++) {
-      onProgress?.(i === 0 ? "Lecture de l'étiquette…" : `Lecture de l'étiquette (photo tournée, essai ${i + 1}/4)…`);
+      onProgress?.(i === 0 ? t("ocr.reading") : t("ocr.rotated", { n: i + 1 }));
       const options = i === 0 ? { rotateAuto: true } : { rotateRadians: angles[i] };
       const { data } = await worker.recognize(photo, options);
       const text = data.text ?? "";

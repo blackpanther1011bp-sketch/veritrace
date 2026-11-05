@@ -1,4 +1,12 @@
+import { t, type Key } from "./i18n";
 import type { CheckStatus, Grade, Level } from "./types";
+
+/** Objet dont chaque valeur est un texte traduit, relu à chaque accès (langue courante). */
+export function localized<K extends string>(keys: Record<K, Key>): Record<K, string> {
+  const out = {} as Record<K, string>;
+  for (const k of Object.keys(keys) as K[]) Object.defineProperty(out, k, { enumerable: true, get: () => t(keys[k]) });
+  return out;
+}
 
 export const GRADES: Grade[] = ["A", "B", "C", "D", "E"];
 
@@ -18,25 +26,21 @@ export const GRADE_TINT: Record<Grade, string> = {
   E: "#FCE6E1",
 };
 
-export const VERDICT: Record<Grade, { title: string; text: string }> = {
-  A: { title: "Excellent choix", text: "Parmi les mieux notés pour ce type de vêtement." },
-  B: { title: "Bon choix", text: "Impact maîtrisé, avec quelques points à améliorer." },
-  C: { title: "Impact moyen", text: "Correct, mais des options mieux notées existent." },
-  D: { title: "Impact élevé", text: "Des options nettement mieux notées existent pour ce vêtement." },
-  E: { title: "Impact très élevé", text: "À éviter : de bien meilleures options existent." },
-};
+export const VERDICT: Record<Grade, { title: string; text: string }> = Object.fromEntries(
+  GRADES.map((g) => [g, { get title() { return t(`verdict.${g}.title`); }, get text() { return t(`verdict.${g}.text`); } }]),
+) as Record<Grade, { title: string; text: string }>;
 
-export const LEVEL_LABEL: Record<Level, string> = { faible: "Faible", moyen: "Moyen", fort: "Fort" };
+export const LEVEL_LABEL: Record<Level, string> = localized({ faible: "level.faible", moyen: "level.moyen", fort: "level.fort" });
 export const LEVEL_COLOR: Record<Level, string> = { faible: "#4FB37A", moyen: "#F2C94C", fort: "#E0614B" };
 export const LEVEL_TEXT: Record<Level, string> = { faible: "#1F6B4A", moyen: "#7A5B00", fort: "#A3361F" };
 
-export const STATUS_LABEL: Record<CheckStatus, string> = {
-  oui: "Oui",
-  partiel: "Partielle",
-  non: "Non",
-  non_communique: "Non communiqué",
-  non_demontre: "Non démontré",
-};
+export const STATUS_LABEL: Record<CheckStatus, string> = localized({
+  oui: "status.oui",
+  partiel: "status.partiel",
+  non: "status.non",
+  non_communique: "status.non_communique",
+  non_demontre: "status.non_demontre",
+});
 export const STATUS_STYLE: Record<CheckStatus, { color: string; background: string }> = {
   oui: { color: "#1F6B4A", background: "#DDF2E5" },
   partiel: { color: "#7A5B00", background: "#FCF1CF" },

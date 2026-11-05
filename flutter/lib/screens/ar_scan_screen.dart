@@ -10,6 +10,7 @@ import '../ar_geometry.dart';
 import '../barcode.dart';
 import '../compare.dart';
 import '../config.dart';
+import '../l10n.dart';
 import '../models.dart';
 import '../reliability.dart';
 import '../native_ar.dart';
@@ -237,10 +238,11 @@ class _ArScanScreenState extends State<ArScanScreen> {
             shrinkWrap: true,
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
             children: [
-              const Text('Comparaison du rayon', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: VT.ink)),
+              Text(tr('Comparaison du rayon'),
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: VT.ink)),
               const SizedBox(height: 4),
-              const Text('Articles scannés pendant votre visite, du mieux au moins bien noté.',
-                  style: TextStyle(fontSize: 13, color: VT.muted2)),
+              Text(tr('Articles scannés pendant votre visite, du mieux au moins bien noté.'),
+                  style: const TextStyle(fontSize: 13, color: VT.muted2)),
               const SizedBox(height: 12),
               for (final (i, p) in c.ranked.indexed)
                 Padding(
@@ -273,12 +275,15 @@ class _ArScanScreenState extends State<ArScanScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(p.name,
+                                  Text(db(p.name),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: VT.ink)),
                                   Text(
-                                    [p.brand.name, if (p.ecoCost != null) '${formatPoints(p.ecoCost!)} pts'].join(' · '),
+                                    [
+                                      bidi(p.brand.name),
+                                      if (p.ecoCost != null) tr('{n} pts', {'n': formatPoints(p.ecoCost!)}),
+                                    ].join(' · '),
                                     style: const TextStyle(fontSize: 13, color: VT.muted2),
                                   ),
                                 ],
@@ -300,9 +305,9 @@ class _ArScanScreenState extends State<ArScanScreen> {
                     _cardEan = null;
                   });
                 },
-                child: const Text('Vider la comparaison'),
+                child: Text(tr('Vider la comparaison')),
               ),
-              FilledButton(onPressed: () => Navigator.of(sheet).pop(), child: const Text('Continuer à scanner')),
+              FilledButton(onPressed: () => Navigator.of(sheet).pop(), child: Text(tr('Continuer à scanner'))),
             ],
           ),
         ),
@@ -444,14 +449,14 @@ class _ArScanScreenState extends State<ArScanScreen> {
           children: [
             _RoundButton(
               icon: Icons.arrow_back,
-              label: 'Retour',
+              label: tr('Retour'),
               onPressed: () => Navigator.of(context).maybePop(),
             ),
-            const Expanded(
+            Expanded(
               child: Text(
-                "Visez l'étiquette",
+                tr("Visez l'étiquette"),
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
               ),
             ),
             if (_nativeAr) ...[
@@ -465,7 +470,7 @@ class _ArScanScreenState extends State<ArScanScreen> {
                 final on = state.torchState == TorchState.on;
                 return _RoundButton(
                   icon: on ? Icons.flashlight_off : Icons.flashlight_on,
-                  label: on ? 'Éteindre la lampe' : 'Allumer la lampe',
+                  label: on ? tr('Éteindre la lampe') : tr('Allumer la lampe'),
                   onPressed: () => _controller.toggleTorch(),
                 );
               },
@@ -483,18 +488,18 @@ class _ArScanScreenState extends State<ArScanScreen> {
     if (focus == null) {
       content = Text(
         _nativeAr
-            ? 'Visez un ou plusieurs codes-barres : la note apparaît dessus. Bouton 3D : elle reste posée sur le vêtement.'
-            : 'Visez un ou plusieurs codes-barres : la note apparaît dessus, et le meilleur du rayon reçoit une couronne.',
+            ? tr('Visez un ou plusieurs codes-barres : la note apparaît dessus. Bouton 3D : elle reste posée sur le vêtement.')
+            : tr('Visez un ou plusieurs codes-barres : la note apparaît dessus, et le meilleur du rayon reçoit une couronne.'),
         textAlign: TextAlign.center,
         style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.4),
       );
     } else {
       final p = focus.product;
       final (title, subtitle) = switch (focus.lookup) {
-        _Lookup.loading => ('Analyse du code…', 'EAN ${formatEan(focus.ean)}'),
-        _Lookup.found => (p!.name, '${p.brand.name} · touchez pour la fiche enrichie'),
-        _Lookup.missing => ('Article pas encore référencé', 'Touchez pour le signaler'),
-        _Lookup.error => ('Connexion impossible', 'Touchez pour réessayer'),
+        _Lookup.loading => (tr('Analyse du code…'), tr('EAN {code}', {'code': formatEan(focus.ean)})),
+        _Lookup.found => (db(p!.name), tr('{brand} · touchez pour la fiche enrichie', {'brand': p.brand.name})),
+        _Lookup.missing => (tr('Article pas encore référencé'), tr('Touchez pour le signaler')),
+        _Lookup.error => (tr('Connexion impossible'), tr('Touchez pour réessayer')),
       };
       content = Material(
         color: Colors.white,
@@ -598,7 +603,7 @@ class _CompareBar extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Le meilleur ici : ${best.name} (${best.globalGrade.name})',
+                    Text(tr('Le meilleur ici : {name} ({grade})', {'name': best.name, 'grade': best.globalGrade.name}),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15)),
@@ -610,7 +615,7 @@ class _CompareBar extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(color: const Color(0xFFF2C94C), borderRadius: BorderRadius.circular(999)),
-                child: Text('Comparer ${comparison.ranked.length}',
+                child: Text(tr('Comparer {n}', {'n': comparison.ranked.length}),
                     style: const TextStyle(color: VT.ink, fontWeight: FontWeight.w700, fontSize: 13)),
               ),
             ],
@@ -645,22 +650,25 @@ class _ArCard extends StatelessWidget {
     final p = product;
     final bars = [...p.carbonBreakdown]..sort((a, b) => b.share.compareTo(a.share));
     final facts = [
-      if (!p.originCountry.toLowerCase().startsWith('non ')) 'Fabriqué : ${p.originCountry}',
-      if (!p.composition.toLowerCase().startsWith('non ')) p.composition,
+      if (!p.originCountry.toLowerCase().startsWith('non ')) tr('Fabriqué : {country}', {'country': p.originCountry}),
+      if (!p.composition.toLowerCase().startsWith('non ')) bidi(p.composition),
     ].join(' · ');
     final alts = alternatives;
     final altText = alts == null
-        ? "Recherche d'alternatives…"
+        ? tr("Recherche d'alternatives…")
         : alts.isEmpty
-            ? "Pas d'alternative mieux notée connue"
-            : 'Mieux noté : ${alts.first.name} (${alts.first.globalGrade.name})${alts.length > 1 ? ' · ${alts.length} alternatives' : ''}';
+            ? tr("Pas d'alternative mieux notée connue")
+            : [
+                tr('Mieux noté : {name} ({grade})', {'name': alts.first.name, 'grade': alts.first.globalGrade.name}),
+                if (alts.length > 1) tr('{n} alternatives', {'n': alts.length}),
+              ].join(' · ');
     return Material(
       color: Colors.white,
       elevation: 10,
       shadowColor: Colors.black54,
       borderRadius: BorderRadius.circular(20),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 10, 8),
+        padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 10, 8),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -671,7 +679,7 @@ class _ArCard extends StatelessWidget {
                   clipBehavior: Clip.none,
                   children: [
                     GradeBadge(grade: p.globalGrade, size: 44, round: true),
-                    if (best) const Positioned(left: -10, top: -12, child: _Crown(size: 26)),
+                    if (best) const PositionedDirectional(start: -10, top: -12, child: _Crown(size: 26)),
                   ],
                 ),
                 const SizedBox(width: 10),
@@ -682,7 +690,10 @@ class _ArCard extends StatelessWidget {
                       Text(verdicts[p.globalGrade]!.$1,
                           style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: VT.ink)),
                       Text(
-                        [p.brand.name, if (p.ecoCost != null) '${formatPoints(p.ecoCost!)} pts'].join(' · '),
+                        [
+                          bidi(p.brand.name),
+                          if (p.ecoCost != null) tr('{n} pts', {'n': formatPoints(p.ecoCost!)}),
+                        ].join(' · '),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(fontSize: 13, color: VT.muted),
@@ -690,18 +701,18 @@ class _ArCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(tooltip: 'Fermer la fiche', onPressed: onClose, icon: const Icon(Icons.close, color: VT.ink)),
+                IconButton(tooltip: tr('Fermer la fiche'), onPressed: onClose, icon: const Icon(Icons.close, color: VT.ink)),
               ],
             ),
             const SizedBox(height: 6),
             for (final b in bars.take(3))
               Padding(
-                padding: const EdgeInsets.only(bottom: 6, right: 4),
+                padding: const EdgeInsetsDirectional.only(bottom: 6, end: 4),
                 child: Row(
                   children: [
                     SizedBox(
                       width: 110,
-                      child: Text(b.label,
+                      child: Text(db(b.label),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontSize: 13, color: VT.muted)),
@@ -719,19 +730,20 @@ class _ArCard extends StatelessWidget {
                     ),
                     SizedBox(
                       width: 40,
-                      child: Text('${b.share} %', textAlign: TextAlign.right, style: const TextStyle(fontSize: 13, color: VT.muted2)),
+                      child: Text(bidi('${b.share} %'),
+                          textAlign: TextAlign.end, style: const TextStyle(fontSize: 13, color: VT.muted2)),
                     ),
                   ],
                 ),
               ),
             Padding(
-              padding: const EdgeInsets.only(right: 4, bottom: 8),
-              child: Text(facts.isEmpty ? 'Composition et pays non communiqués' : facts,
+              padding: const EdgeInsetsDirectional.only(end: 4, bottom: 8),
+              child: Text(facts.isEmpty ? tr('Composition et pays non communiqués') : facts,
                   style: const TextStyle(fontSize: 13, color: VT.muted, height: 1.35)),
             ),
             if (p.globalGrade != Grade.A)
               Padding(
-                padding: const EdgeInsets.only(right: 4),
+                padding: const EdgeInsetsDirectional.only(end: 4),
                 child: Material(
                   color: (alts?.isNotEmpty ?? false) ? VT.mintTint : VT.line,
                   borderRadius: BorderRadius.circular(12),
@@ -751,12 +763,12 @@ class _ArCard extends StatelessWidget {
                 ),
               ),
             Align(
-              alignment: Alignment.centerRight,
+              alignment: AlignmentDirectional.centerEnd,
               child: TextButton(
                 onPressed: onProduct,
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
-                  children: [Text('Fiche complète'), Icon(Icons.chevron_right, size: 18)],
+                  children: [Text(tr('Fiche complète')), const Icon(Icons.chevron_right, size: 18)],
                 ),
               ),
             ),
@@ -787,27 +799,28 @@ class _ArBadge extends StatelessWidget {
           height: 40,
           child: Padding(padding: EdgeInsets.all(9), child: CircularProgressIndicator(strokeWidth: 3, color: VT.green)),
         );
-        title = 'Analyse…';
-        subtitle = 'EAN ${formatEan(tracked.ean)}';
+        title = tr('Analyse…');
+        subtitle = tr('EAN {code}', {'code': formatEan(tracked.ean)});
       case _Lookup.found:
         leading = GradeBadge(grade: p!.globalGrade, size: 40, round: true);
-        title = p.name;
+        title = db(p.name);
         // coût environnemental affiché avec la note dès qu'il est connu
         subtitle = p.ecoCost != null
-            ? '${formatPoints(p.ecoCost!)} pts · note VeriTrace ${p.globalGrade.name}'
-            : 'Carbone ${p.carbonGrade.name} · Social ${p.socialGrade?.name ?? 'non évaluée'}';
+            ? tr('{n} pts · note VeriTrace {grade}', {'n': formatPoints(p.ecoCost!), 'grade': p.globalGrade.name})
+            : tr('Carbone {carbon} · Social {social}',
+                {'carbon': p.carbonGrade.name, 'social': p.socialGrade?.name ?? tr('non évaluée')});
       case _Lookup.missing:
         leading = const GradeBadge(grade: null, size: 40, round: true);
-        title = 'Non référencé';
-        subtitle = 'Touchez pour le signaler';
+        title = tr('Non référencé');
+        subtitle = tr('Touchez pour le signaler');
       case _Lookup.error:
         leading = const Icon(Icons.wifi_off, color: VT.danger, size: 28);
-        title = 'Hors connexion';
-        subtitle = 'Touchez pour réessayer';
+        title = tr('Hors connexion');
+        subtitle = tr('Touchez pour réessayer');
     }
     final badge = Semantics(
       button: true,
-      label: '$title. $subtitle${best ? '. Le meilleur des articles scannés' : ''}',
+      label: '$title. $subtitle${best ? '. ${tr('Le meilleur des articles scannés')}' : ''}',
       excludeSemantics: true,
       child: Material(
         color: Colors.white,
@@ -860,7 +873,7 @@ class _ArBadge extends StatelessWidget {
           ),
         ),
         Positioned.fill(child: badge),
-        const Positioned(left: -9, top: -13, child: IgnorePointer(child: _Crown())),
+        const PositionedDirectional(start: -9, top: -13, child: IgnorePointer(child: _Crown())),
       ],
     );
   }
@@ -905,20 +918,20 @@ class _ArPill extends StatelessWidget {
     switch (tracked.lookup) {
       case _Lookup.loading:
         child = const SizedBox(width: 26, height: 26, child: CircularProgressIndicator(strokeWidth: 3, color: VT.green));
-        label = 'Analyse en cours';
+        label = tr('Analyse en cours');
       case _Lookup.found:
         child = GradeBadge(grade: p!.globalGrade, size: 40, round: true);
-        label = '${p.name}, note ${p.globalGrade.name}. Touchez pour voir la fiche';
+        label = tr('{name}, note {grade}. Touchez pour voir la fiche', {'name': p.name, 'grade': p.globalGrade.name});
       case _Lookup.missing:
         child = const GradeBadge(grade: null, size: 40, round: true);
-        label = 'Article non référencé. Touchez pour le signaler';
+        label = tr('Article non référencé. Touchez pour le signaler');
       case _Lookup.error:
         child = const Icon(Icons.wifi_off, color: VT.danger, size: 24);
-        label = 'Hors connexion. Touchez pour réessayer';
+        label = tr('Hors connexion. Touchez pour réessayer');
     }
     final pill = Semantics(
       button: true,
-      label: best ? '$label. Le meilleur des articles scannés' : label,
+      label: best ? '$label. ${tr('Le meilleur des articles scannés')}' : label,
       excludeSemantics: true,
       child: Material(
         color: Colors.white,
@@ -937,7 +950,7 @@ class _ArPill extends StatelessWidget {
       clipBehavior: Clip.none,
       children: [
         Positioned.fill(child: pill),
-        const Positioned(left: -12, top: -12, child: IgnorePointer(child: _Crown(size: 24))),
+        const PositionedDirectional(start: -12, top: -12, child: IgnorePointer(child: _Crown(size: 24))),
       ],
     );
   }
@@ -952,7 +965,7 @@ class _Ar3dButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Tooltip(
-      message: 'Réalité augmentée 3D : la note reste posée sur le vêtement',
+      message: tr('Réalité augmentée 3D : la note reste posée sur le vêtement'),
       child: Material(
         color: const Color(0x66000000),
         shape: const StadiumBorder(),
@@ -1005,9 +1018,9 @@ class _CameraError extends StatelessWidget {
   Widget build(BuildContext context) {
     final message = switch (error.errorCode) {
       MobileScannerErrorCode.permissionDenied =>
-        "L'accès à la caméra est refusé. Autorisez-le dans les réglages du téléphone, ou saisissez le code à la main.",
-      MobileScannerErrorCode.unsupported => "Aucune caméra disponible sur cet appareil. Saisissez le code à la main.",
-      _ => 'Impossible de démarrer la caméra. Réessayez ou saisissez le code à la main.',
+        tr("L'accès à la caméra est refusé. Autorisez-le dans les réglages du téléphone, ou saisissez le code à la main."),
+      MobileScannerErrorCode.unsupported => tr('Aucune caméra disponible sur cet appareil. Saisissez le code à la main.'),
+      _ => tr('Impossible de démarrer la caméra. Réessayez ou saisissez le code à la main.'),
     };
     return ColoredBox(
       color: VT.ink,
@@ -1024,7 +1037,7 @@ class _CameraError extends StatelessWidget {
               OutlinedButton(
                 onPressed: () => Navigator.of(context).maybePop(),
                 style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: const BorderSide(color: Colors.white)),
-                child: const Text('Retour'),
+                child: Text(tr('Retour')),
               ),
             ],
           ),

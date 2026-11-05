@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'config.dart';
+import 'l10n.dart';
 import 'models.dart';
 import 'reliability.dart';
 import 'theme.dart';
@@ -23,7 +24,7 @@ class ConfidencePill extends StatelessWidget {
     final c = product.isRegistry ? 'haute' : product.confidence;
     final demo = product.isDemo || c == null;
     final style = demo ? (VT.muted, VT.line) : _confidenceStyle[c]!;
-    final label = demo ? 'Démo' : (product.isRegistry ? 'Coût officiel' : (confidenceLabel[c] ?? c));
+    final label = demo ? tr('Démo') : (product.isRegistry ? tr('Coût officiel') : (confidenceLabel[c] ?? c));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(color: style.$2, borderRadius: BorderRadius.circular(999)),
@@ -41,7 +42,7 @@ class SourcesCard extends StatelessWidget {
   Future<void> _open(BuildContext context, String url) async {
     final ok = await launchUrl(Uri.parse(url.trim()), mode: LaunchMode.externalApplication);
     if (!ok && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Impossible d'ouvrir le lien")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr("Impossible d'ouvrir le lien"))));
     }
   }
 
@@ -51,22 +52,20 @@ class SourcesCard extends StatelessWidget {
           children: [
             Text(label, style: const TextStyle(color: VT.muted, fontSize: 15)),
             const SizedBox(width: 12),
-            Expanded(child: Align(alignment: Alignment.centerRight, child: value)),
+            Expanded(child: Align(alignment: AlignmentDirectional.centerEnd, child: value)),
           ],
         ),
       );
 
   Widget _value(String text) =>
-      Text(text, textAlign: TextAlign.right, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500));
+      Text(text, textAlign: TextAlign.end, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500));
 
   @override
   Widget build(BuildContext context) {
     final p = product;
     if (p.isDemo) {
-      return const MethodNote(
-        text: 'Produit fictif de démonstration : ses notes illustrent l\'application et ne décrivent aucun vêtement réel. '
-            'Les produits réels sont calculés avec Ecobalyse, la méthode officielle française d\'affichage '
-            'environnemental des vêtements.',
+      return MethodNote(
+        text: tr("Produit fictif de démonstration : ses notes illustrent l'application et ne décrivent aucun vêtement réel. Les produits réels sont calculés avec Ecobalyse, la méthode officielle française d'affichage environnemental des vêtements."),
       );
     }
 
@@ -76,22 +75,22 @@ class SourcesCard extends StatelessWidget {
     final cost = formatNumberFr(p.ecoCost, digits: 0);
     final climate = formatNumberFr(p.climateKg);
     final rows = <Widget>[
-      _row('Méthode', _value(registry ? 'Ecobalyse, déclarée par la marque' : 'Ecobalyse (officielle, France)')),
+      _row(tr('Méthode'), _value(registry ? tr('Ecobalyse, déclarée par la marque') : tr('Ecobalyse (officielle, France)'))),
       if (cost != null)
         _row(
-          'Coût environnemental',
+          tr('Coût environnemental'),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _value('$cost points'),
+              _value(tr('{n} points', {'n': cost})),
               if (p.envGrade != null) ...[const SizedBox(width: 8), GradeBadge(grade: p.envGrade!, size: 24)],
             ],
           ),
         ),
-      if (climate != null) _row('Impact climat', _value('$climate kg CO₂e')),
-      _row('Données', _value(sourceLabel[p.dataSource] ?? p.dataSource)),
-      _row('Fiabilité', ConfidencePill(product: p)),
-      if (updated != null) _row(registry ? 'Déclaré le' : 'Calculé le', _value(updated)),
+      if (climate != null) _row(tr('Impact climat'), _value(tr('{n} kg CO₂e', {'n': climate}))),
+      _row(tr('Données'), _value(sourceLabel[p.dataSource] ?? p.dataSource)),
+      _row(tr('Fiabilité'), ConfidencePill(product: p)),
+      if (updated != null) _row(registry ? tr('Déclaré le') : tr('Calculé le'), _value(updated)),
     ];
 
     return Column(
@@ -110,10 +109,9 @@ class SourcesCard extends StatelessWidget {
         ),
         if (registry) ...[
           const SizedBox(height: 10),
-          const Text(
-            "Coût déclaré par la marque sur le portail officiel de l'affichage environnemental (ministère de la "
-            'Transition écologique). Le registre ne publie pas la composition ni les pays de fabrication.',
-            style: TextStyle(fontSize: 13, color: VT.muted2, height: 1.35),
+          Text(
+            tr("Coût déclaré par la marque sur le portail officiel de l'affichage environnemental (ministère de la Transition écologique). Le registre ne publie pas la composition ni les pays de fabrication."),
+            style: const TextStyle(fontSize: 13, color: VT.muted2, height: 1.35),
           ),
         ] else if (p.confidence != null) ...[
           const SizedBox(height: 10),
@@ -121,27 +119,25 @@ class SourcesCard extends StatelessWidget {
         ],
         if (p.assumptions.isNotEmpty) ...[
           const SizedBox(height: 14),
-          MethodNote(text: 'Hypothèses du calcul :\n${p.assumptions.map((a) => '• ${capitalize(a)}').join('\n')}'),
+          MethodNote(text: '${tr('Hypothèses du calcul :')}\n${p.assumptions.map((a) => '• ${db(capitalize(a))}').join('\n')}'),
         ],
         const SizedBox(height: 14),
-        const Text(
-          'Note environnement : coût Ecobalyse à poids égal, comparé à deux références du même type de vêtement. '
-          'A, proche d\'un vêtement en coton bio fabriqué en France ; E, proche du « majorant par défaut » '
-          'd\'Ecobalyse (fabrication inconnue).',
-          style: TextStyle(fontSize: 13, color: VT.muted2, height: 1.35),
+        Text(
+          tr("Note environnement : coût Ecobalyse à poids égal, comparé aux vêtements du même type déclarés au registre officiel. A : parmi les 10 % les mieux placés ; E : parmi les 20 % les moins bien placés."),
+          style: const TextStyle(fontSize: 13, color: VT.muted2, height: 1.35),
         ),
         if (p.passportId != null) ...[
           const SizedBox(height: 14),
           OutlinedButton(
             onPressed: () => _open(context, '${AppConfig.siteUrl}/passeport/${p.passportId}'),
-            child: const Text('Voir le passeport numérique'),
+            child: Text(tr('Voir le passeport numérique')),
           ),
         ],
         if (p.ecoWebUrl != null) ...[
           const SizedBox(height: 14),
           OutlinedButton(
             onPressed: () => _open(context, p.ecoWebUrl!),
-            child: Text(registry ? 'Voir la fiche officielle' : 'Voir le calcul sur Ecobalyse'),
+            child: Text(registry ? tr('Voir la fiche officielle') : tr('Voir le calcul sur Ecobalyse')),
           ),
         ],
         if (registry) ...[
@@ -150,11 +146,16 @@ class SourcesCard extends StatelessWidget {
           const SizedBox(height: 10),
           OutlinedButton(
             onPressed: () => _open(context, p.sourceRef!),
-            child: Text('Voir la source des données${sourceDate != null ? ' ($sourceDate)' : ''}'),
+            child: Text(sourceDate != null
+                ? tr('Voir la source des données ({date})', {'date': sourceDate})
+                : tr('Voir la source des données')),
           ),
         ] else if (p.sourceRef != null) ...[
           const SizedBox(height: 10),
-          Text('Source : ${p.sourceRef}${sourceDate != null ? ', $sourceDate' : ''}',
+          Text(
+              sourceDate != null
+                  ? tr('Source : {source}, {date}', {'source': p.sourceRef, 'date': sourceDate})
+                  : tr('Source : {source}', {'source': p.sourceRef}),
               style: const TextStyle(fontSize: 13, color: VT.muted2)),
         ],
       ],

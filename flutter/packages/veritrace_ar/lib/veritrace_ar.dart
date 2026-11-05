@@ -83,12 +83,19 @@ class VeritraceAr {
   }
 
   /// Ouvre la réalité augmentée en plein écran ; [lookup] fournit la fiche de chaque code-barres lu.
-  static Future<ArResult> open({required ArLookup lookup, ArEvent? onEvent}) async {
+  /// [strings] : textes de l'écran dans la langue de l'app ({clé: texte}, français par défaut si une clé
+  /// manque) ; [rtl] : interface de droite à gauche (arabe), panneaux en miroir.
+  static Future<ArResult> open({
+    required ArLookup lookup,
+    ArEvent? onEvent,
+    Map<String, String> strings = const {},
+    bool rtl = false,
+  }) async {
     _lookup = lookup;
     _event = onEvent;
     _channel.setMethodCallHandler(_handle);
     try {
-      final r = await _channel.invokeMapMethod<String, Object?>('open');
+      final r = await _channel.invokeMapMethod<String, Object?>('open', {'strings': strings, 'rtl': rtl});
       if (r == null) return const ArResult('closed');
       return ArResult(
         (r['action'] as String?) ?? 'closed',
@@ -99,7 +106,8 @@ class VeritraceAr {
     } on PlatformException catch (e) {
       return ArResult('error', message: e.message);
     } on MissingPluginException {
-      return const ArResult('unsupported', message: "La réalité augmentée 3D n'est pas disponible sur cet appareil.");
+      return ArResult('unsupported',
+          message: strings['unavailable'] ?? "La réalité augmentée 3D n'est pas disponible sur cet appareil.");
     }
   }
 

@@ -46,6 +46,8 @@ jobs:
           plutil -replace CFBundleDisplayName -string "VeriTrace" "$PLIST"
           plutil -replace NSCameraUsageDescription -string "VeriTrace utilise la caméra pour lire le code-barres des vêtements et leur étiquette." "$PLIST"
           plutil -replace NSPhotoLibraryUsageDescription -string "VeriTrace peut utiliser une photo d'étiquette de vêtement que vous choisissez." "$PLIST"
+          # langues de l'interface : français et arabe (de droite à gauche)
+          plutil -replace CFBundleLocalizations -json '["fr","ar"]' "$PLIST"
           plutil -lint "$PLIST"
 
       - name: Installer les dépendances

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect } from "react";
 import { parseScannedCode } from "./lib/outils";
+import { t, type Key } from "./lib/i18n";
 import { parseRoute, useRoute } from "./lib/router";
 import { AlternativesScreen } from "./screens/AlternativesScreen";
 import { ContributeScreen } from "./screens/ContributeScreen";
@@ -27,19 +28,19 @@ if (/^\/01\/\d{8,14}/.test(window.location.pathname)) {
   window.history.replaceState(null, "", `/#${target}`);
 }
 
-const SCREEN_TITLES: Record<ReturnType<typeof parseRoute>["name"], string> = {
-  scan: "Scanner un vêtement",
-  ar: "Scanner",
-  product: "Fiche du vêtement",
-  details: "Comprendre la note",
-  alternatives: "Alternatives",
-  notFound: "Vêtement introuvable",
-  contribute: "Ajouter un vêtement",
-  label: "Lire l'étiquette",
-  labelLive: "Étiquette en direct",
-  makers: "Espace fabricants",
-  passport: "Passeport numérique",
-  legal: "Informations légales",
+const SCREEN_TITLES: Record<ReturnType<typeof parseRoute>["name"], Key> = {
+  scan: "title.scan",
+  ar: "title.ar",
+  product: "title.product",
+  details: "title.details",
+  alternatives: "title.alternatives",
+  notFound: "title.notFound",
+  contribute: "title.contribute",
+  label: "title.label",
+  labelLive: "title.labelLive",
+  makers: "title.makers",
+  passport: "title.passport",
+  legal: "title.legal",
 };
 
 export default function App() {
@@ -52,7 +53,7 @@ export default function App() {
 
   // Titre de l'onglet par écran (lecteurs d'écran, historique, favoris)
   useEffect(() => {
-    document.title = `${SCREEN_TITLES[route.name]} · VeriTrace`;
+    document.title = `${t(SCREEN_TITLES[route.name])} · VeriTrace`;
   }, [route.name]);
 
   switch (route.name) {
@@ -70,7 +71,7 @@ export default function App() {
       return <LabelScreen key={route.ean ?? "sans-code"} ean={route.ean} />;
     case "labelLive":
       return (
-        <Suspense fallback={<div className="ar"><p className="ar-status">Ouverture de la caméra…</p></div>}>
+        <Suspense fallback={<div className="ar"><p className="ar-status">{t("common.openingCamera")}</p></div>}>
           <LabelLiveScreen key={route.ean ?? "sans-code"} ean={route.ean} />
         </Suspense>
       );
@@ -82,7 +83,7 @@ export default function App() {
       return <LegalScreen key={route.page} page={route.page} />;
     case "ar":
       return (
-        <Suspense fallback={<div className="ar"><p className="ar-status">Ouverture de la caméra…</p></div>}>
+        <Suspense fallback={<div className="ar"><p className="ar-status">{t("common.openingCamera")}</p></div>}>
           <ArScanScreen />
         </Suspense>
       );

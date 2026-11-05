@@ -1,30 +1,39 @@
 // Libellés et mises en forme de la provenance des données (mêmes textes que la web app).
 
-const sourceLabel = {
-  'demo': 'Données fictives (démo)',
-  'marque': 'Transmises par la marque',
-  'etiquette': "Relevées sur l'étiquette",
-  'estimation': 'Estimation (valeurs par défaut)',
-  'registre': 'Déclarées par la marque (registre officiel)',
-};
+import 'l10n.dart';
 
-const confidenceLabel = {'haute': 'Haute', 'moyenne': 'Moyenne', 'faible': 'Faible'};
+// Libellés traduits : relus à chaque accès, dans la langue choisie.
+Map<String, String> get sourceLabel => {
+      'demo': tr('Données fictives (démo)'),
+      'marque': tr('Transmises par la marque'),
+      'etiquette': tr("Relevées sur l'étiquette"),
+      'estimation': tr('Estimation (valeurs par défaut)'),
+      'registre': tr('Déclarées par la marque (registre officiel)'),
+    };
 
-const confidenceHelp = {
-  'haute': 'Composition, poids et pays de fabrication fournis par la marque.',
-  'moyenne': "Composition et pays de confection connus ; le reste suit les valeurs par défaut d'Ecobalyse.",
-  'faible': "Peu d'informations connues : le calcul utilise surtout les valeurs par défaut d'Ecobalyse, "
-      'volontairement pénalisantes.',
-};
+// « Faible|fiabilité » : même mot français que le niveau d'impact, accord différent en arabe (voir tr()).
+Map<String, String> get confidenceLabel =>
+    {'haute': tr('Haute'), 'moyenne': tr('Moyenne'), 'faible': tr('Faible|fiabilité')};
+
+Map<String, String> get confidenceHelp => {
+      'haute': tr('Composition, poids et pays de fabrication fournis par la marque.'),
+      'moyenne': tr("Composition et pays de confection connus ; le reste suit les valeurs par défaut d'Ecobalyse."),
+      'faible': tr(
+          "Peu d'informations connues : le calcul utilise surtout les valeurs par défaut d'Ecobalyse, volontairement pénalisantes."),
+    };
 
 const _months = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
 
-/// « 27 oct. 2026 » ; null si la date est absente ou illisible.
+/// Mois en arabe, appellations en usage au Maroc (comme le site) ; chiffres occidentaux.
+const monthsAr = ['يناير', 'فبراير', 'مارس', 'أبريل', 'ماي', 'يونيو', 'يوليوز', 'غشت', 'شتنبر', 'أكتوبر', 'نونبر', 'دجنبر'];
+
+/// « 27 oct. 2026 » (« 27 أكتوبر 2026 » en arabe) ; null si la date est absente ou illisible.
 String? formatDateFr(String? value) {
   if (value == null) return null;
   final d = DateTime.tryParse(value)?.toLocal();
   if (d == null) return null;
-  return '${d.day} ${_months[d.month - 1]} ${d.year}';
+  final months = L10n.isArabic ? monthsAr : _months;
+  return '${d.day} ${months[d.month - 1]} ${d.year}';
 }
 
 /// Nombre à la française : espace fine pour les milliers, virgule décimale.

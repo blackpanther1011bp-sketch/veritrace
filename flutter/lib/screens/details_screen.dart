@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../api.dart';
 import '../config.dart';
+import '../l10n.dart';
 import '../models.dart';
 import '../social.dart';
 import '../sources_card.dart';
@@ -32,14 +33,14 @@ class _DetailsScreenState extends State<DetailsScreen> {
   Widget build(BuildContext context) {
     final p = widget.product;
     return Scaffold(
-      appBar: AppBar(title: const Text('Comprendre la note')),
+      appBar: AppBar(title: Text(tr('Comprendre la note'))),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
         children: [
           SegmentedButton<String>(
             segments: [
-              ButtonSegment(value: 'carbone', label: Text('Carbone · ${p.carbonGrade.name}')),
-              ButtonSegment(value: 'social', label: Text('Social · ${p.socialGrade?.name ?? '–'}')),
+              ButtonSegment(value: 'carbone', label: Text(tr('Carbone · {grade}', {'grade': p.carbonGrade.name}))),
+              ButtonSegment(value: 'social', label: Text(tr('Social · {grade}', {'grade': p.socialGrade?.name ?? '–'}))),
             ],
             selected: {_tab},
             showSelectedIcon: false,
@@ -57,7 +58,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                 child: FilledButton(
                   onPressed: () => Navigator.of(context)
                       .push(MaterialPageRoute(builder: (_) => AlternativesScreen(product: p))),
-                  child: const Text('Voir les alternatives'),
+                  child: Text(tr('Voir les alternatives')),
                 ),
               ),
             ),
@@ -67,8 +68,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
   List<Widget> _carbon(Product p) => [
         Text(
             p.isRegistry
-                ? "D'où vient le coût environnemental de ce vêtement (registre officiel) :"
-                : "D'où vient l'impact climat de ce vêtement${p.isDemo ? '' : ' (calcul Ecobalyse)'} :",
+                ? tr("D'où vient le coût environnemental de ce vêtement (registre officiel) :")
+                : (p.isDemo
+                    ? tr("D'où vient l'impact climat de ce vêtement :")
+                    : tr("D'où vient l'impact climat de ce vêtement (calcul Ecobalyse) :")),
             style: const TextStyle(fontSize: 15, color: VT.muted)),
         const SizedBox(height: 14),
         CardBox(
@@ -83,7 +86,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     children: [
                       Row(
                         children: [
-                          Text(item.label, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                          Text(db(item.label), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                           const Spacer(),
                           Text(levelLabel[item.level] ?? item.level,
                               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: levelText[item.level])),
@@ -100,7 +103,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(item.detail, style: const TextStyle(fontSize: 13, color: VT.muted2)),
+                      Text(db(item.detail), style: const TextStyle(fontSize: 13, color: VT.muted2)),
                     ],
                   ),
                 ),
@@ -115,26 +118,28 @@ class _DetailsScreenState extends State<DetailsScreen> {
     final checks = p.brand.socialChecks;
     if (p.socialGrade == null) {
       if (isSourcedChecks(checks)) {
-        return "Évaluation incomplète : tous les critères n'ont pas encore été vérifiés, la note sociale n'est donc "
-            "pas attribuée. La note globale reflète uniquement l'environnement.";
+        return tr(
+            "Évaluation incomplète : tous les critères n'ont pas encore été vérifiés, la note sociale n'est donc pas attribuée. La note globale reflète uniquement l'environnement.");
       }
-      return 'Note sociale non évaluée : aucune source publique vérifiable pour cette marque. '
-          "La note globale reflète donc uniquement l'environnement.";
+      return tr(
+          "Note sociale non évaluée : aucune source publique vérifiable pour cette marque. La note globale reflète donc uniquement l'environnement.");
     }
     if (!isSourcedChecks(checks)) {
-      return "Données d'exemple, fictives et sans source : elles ne suivent pas la méthode de la note sociale sourcée.";
+      return tr("Données d'exemple, fictives et sans source : elles ne suivent pas la méthode de la note sociale sourcée.");
     }
     final score = socialScore(checks);
-    final total = score == null ? 'barème' : '${score.points} points sur $socialMaxPoints';
-    return "Note sociale VeriTrace : $total d'après les preuves publiques ci-dessus. Elle mesure ce que la marque "
-        'rend public et vérifiable (usines, contrôles, certification), pas les conditions de travail dans chaque '
-        'usine. « Non démontré » : aucune preuve trouvée par VeriTrace.';
+    final total = score == null
+        ? tr('barème')
+        : tr('{points} points sur {max}', {'points': score.points, 'max': socialMaxPoints});
+    return tr(
+        "Note sociale VeriTrace : {total} d'après les preuves publiques ci-dessus. Elle mesure ce que la marque rend public et vérifiable (usines, contrôles, certification), pas les conditions de travail dans chaque usine. « Non démontré » : aucune preuve trouvée par VeriTrace.",
+        {'total': total});
   }
 
   Future<void> _open(String url) async {
     final ok = await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     if (!ok && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Impossible d'ouvrir le lien")));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr("Impossible d'ouvrir le lien"))));
     }
   }
 
@@ -155,7 +160,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
   Widget _sourcedCheck(SocialCheck c) {
     final period = formatPeriod(c.sourcePeriod);
     final checked = formatPeriod(c.checkedAt);
-    final dates = [if (period != null) period, if (checked != null) 'vérifié le $checked'].join(' · ');
+    final dates = [if (period != null) period, if (checked != null) tr('vérifié le {date}', {'date': checked})].join(' · ');
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 13),
       child: Column(
@@ -163,14 +168,14 @@ class _DetailsScreenState extends State<DetailsScreen> {
         children: [
           Row(
             children: [
-              Expanded(child: Text(c.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
+              Expanded(child: Text(db(c.label), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
               const SizedBox(width: 8),
               _pill(c),
             ],
           ),
           if (c.detail != null) ...[
             const SizedBox(height: 6),
-            Text(c.detail!, style: const TextStyle(fontSize: 13, color: VT.muted2, height: 1.35)),
+            Text(db(c.detail), style: const TextStyle(fontSize: 13, color: VT.muted2, height: 1.35)),
           ],
           const SizedBox(height: 4),
           Semantics(
@@ -181,9 +186,9 @@ class _DetailsScreenState extends State<DetailsScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 6),
                 child: Text.rich(
                   TextSpan(children: [
-                    const TextSpan(text: 'Source : '),
+                    TextSpan(text: '${tr('Source :')} '),
                     TextSpan(
-                      text: c.sourceTitle ?? 'voir la source',
+                      text: c.sourceTitle != null ? db(c.sourceTitle) : tr('voir la source'),
                       style: const TextStyle(color: VT.green, fontWeight: FontWeight.w500, decoration: TextDecoration.underline),
                     ),
                     if (dates.isNotEmpty) TextSpan(text: ' ($dates)'),
@@ -202,7 +207,8 @@ class _DetailsScreenState extends State<DetailsScreen> {
     final checks = p.brand.socialChecks;
     final sourced = isSourcedChecks(checks);
     return [
-      Text('Engagements sociaux de la marque ${p.brand.name} :', style: const TextStyle(fontSize: 15, color: VT.muted)),
+      Text(tr('Engagements sociaux de la marque {brand} :', {'brand': p.brand.name}),
+          style: const TextStyle(fontSize: 15, color: VT.muted)),
       const SizedBox(height: 14),
       if (checks.isNotEmpty) ...[
         CardBox(
@@ -217,7 +223,7 @@ class _DetailsScreenState extends State<DetailsScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 13),
                     child: Row(
                       children: [
-                        Expanded(child: Text(c.label, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
+                        Expanded(child: Text(db(c.label), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500))),
                         _pill(c),
                       ],
                     ),
@@ -230,10 +236,10 @@ class _DetailsScreenState extends State<DetailsScreen> {
       MethodNote(text: _socialNote(p)),
       if (!p.isDemo)
         Align(
-          alignment: Alignment.centerLeft,
+          alignment: AlignmentDirectional.centerStart,
           child: TextButton(
             onPressed: () => _open('${AppConfig.siteUrl}/#/confidentialite?contact=1'),
-            child: const Text('Une preuve manque ? Écrivez-nous'),
+            child: Text(tr('Une preuve manque ? Écrivez-nous')),
           ),
         ),
     ];

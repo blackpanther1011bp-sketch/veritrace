@@ -130,12 +130,15 @@ final class PanelData {
         double cw = worst.cost();
         boolean muchLess = !Double.isInfinite(cb) && !Double.isInfinite(cw) && cw > cb * 1.15;
         String summary;
+        // textes dans la langue de l'app (Texts), français par défaut
         if (sameType && muchLess) {
-            summary = fr(cw / cb) + " fois moins d'impact que le moins bon (" + worst.grade + ")";
+            summary = Texts.format("ratio", "{ratio} fois moins d'impact que le moins bon ({grade})",
+                    "ratio", fr(cw / cb), "grade", worst.grade);
         } else if (best.grade.equals(worst.grade)) {
-            summary = "Notes proches : tous notés " + best.grade;
+            summary = Texts.format("same", "Notes proches : tous notés {grade}", "grade", best.grade);
         } else {
-            summary = "Note " + best.grade + ", contre " + worst.grade + " pour le moins bon";
+            summary = Texts.format("diff", "Note {best}, contre {worst} pour le moins bon",
+                    "best", best.grade, "worst", worst.grade);
         }
         return new Ranking(best.code, summary);
     }
@@ -147,7 +150,7 @@ final class PanelData {
         return String.format(Locale.ROOT, "%.1f", rounded).replace('.', ',');
     }
 
-    /** 1 266 pts (espace fine insécable entre les milliers) */
+    /** 1 266 pts (espace fine insécable entre les milliers ; unité dans la langue de l'app) */
     static String points(double v) {
         long n = Math.round(v);
         String digits = String.valueOf(Math.abs(n));
@@ -156,13 +159,13 @@ final class PanelData {
             if (i > 0 && (digits.length() - i) % 3 == 0) out.append(' ');
             out.append(digits.charAt(i));
         }
-        return (n < 0 ? "-" : "") + out + " pts";
+        return (n < 0 ? "-" : "") + out + " " + Texts.get("pts", "pts");
     }
 
     /** 7,3 kg CO₂e */
     static String climate(double kg) {
         String value = kg >= 10 ? String.valueOf(Math.round(kg)) : String.format(Locale.ROOT, "%.1f", kg).replace('.', ',');
-        return value + " kg CO₂e";
+        return value + " " + Texts.get("kg", "kg CO₂e");
     }
 
     /** 2 001000 000012 */
