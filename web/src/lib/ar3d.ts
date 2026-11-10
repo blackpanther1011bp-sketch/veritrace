@@ -22,6 +22,8 @@ const W = 1024;
 const H = Math.round((W * PANEL_HEIGHT) / PANEL_WIDTH); // 1408
 const INK = "#0F1A14";
 const GLASS = "#0A1511";
+/** Fond de la plaque : même teinte, opaque à 80 %. */
+const GLASS_FILL = "rgba(10, 21, 17, 0.8)";
 const SOFT = "#C9D4CD";
 const LINE = "#26342D";
 const MINT = "#3DDC97";
@@ -104,7 +106,9 @@ export function drawFront(canvas: HTMLCanvasElement, d: PanelData): PanelLayout 
   const box = (x: number, y: number, w: number, h: number, r: number) => roundRect(ctx, left(x, w), y, w, h, r);
   ctx.direction = rtl ? "rtl" : "ltr";
 
-  ctx.fillStyle = GLASS;
+  // verre : fond sombre translucide (on devine la pièce derrière), texte et chiffres opaques
+  ctx.clearRect(0, 0, W, H);
+  ctx.fillStyle = GLASS_FILL;
   ctx.fillRect(0, 0, W, H);
 
   // Pastille de la note : halo à la couleur de la note, la pastille elle-même est en relief
@@ -247,7 +251,8 @@ export function drawBack(canvas: HTMLCanvasElement): void {
   canvas.width = 512;
   canvas.height = Math.round(H / 2);
   const ctx = canvas.getContext("2d")!;
-  ctx.fillStyle = GLASS;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = GLASS_FILL;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.fillStyle = MINT;
   ctx.beginPath();
@@ -308,8 +313,7 @@ const isAppleMobile = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (nav
  * La pastille de la note, son anneau, les barres d'impact et les coins lumineux sont en relief devant la
  * plaque : en tournant autour, ils se décalent comme de vrais objets.
  *
- * Matériaux « standard » (PBR) opaques uniquement : seuls compris par l'export USDZ d'AR Quick Look
- * (pas de transparence ni d'animation sur iPhone).
+ * Matériaux « standard » (PBR) uniquement : seuls compris par l'export USDZ d'AR Quick Look.
  */
 export async function buildPanelModels(p: Product): Promise<PanelModels> {
   await fontsReady();
@@ -323,9 +327,10 @@ export async function buildPanelModels(p: Product): Promise<PanelModels> {
     return t;
   };
   // face imprimée : émission forte, le texte clair reste lisible dans un magasin peu éclairé
-  const face = (canvas: HTMLCanvasElement) => {
+  // glass : le fond translucide du dessin laisse voir à travers (transparence portée par l'image)
+  const face = (canvas: HTMLCanvasElement, glass = false) => {
     const map = texture(canvas);
-    return new THREE.MeshStandardMaterial({ map, emissiveMap: map, emissive: 0xffffff, emissiveIntensity: 0.85, roughness: 0.95, metalness: 0 });
+    return new THREE.MeshStandardMaterial({ map, emissiveMap: map, emissive: 0xffffff, emissiveIntensity: 0.85, roughness: 0.95, metalness: 0, transparent: glass });
   };
   // matière lumineuse unie (néon)
   const glow = (color: string, intensity = 1) => new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: intensity, roughness: 0.35, metalness: 0 });
@@ -345,13 +350,12 @@ export async function buildPanelModels(p: Product): Promise<PanelModels> {
 
   const panel = new THREE.Group();
   panel.name = "vt_panel";
-  const slab = new THREE.Mesh(new THREE.BoxGeometry(PANEL_WIDTH, PANEL_HEIGHT, SLAB).translate(0, PANEL_HEIGHT / 2, 0), dark);
-  slab.name = "plaque";
-  const recto = new THREE.Mesh(new THREE.PlaneGeometry(PANEL_WIDTH, PANEL_HEIGHT).translate(0, PANEL_HEIGHT / 2, SLAB / 2 + 0.0004), face(front));
+  // la plaque : deux faces de verre dos à dos, sans cœur opaque
+  const recto = new THREE.Mesh(new THREE.PlaneGeometry(PANEL_WIDTH, PANEL_HEIGHT).translate(0, PANEL_HEIGHT / 2, SLAB / 2), face(front, true));
   recto.name = "recto";
-  const verso = new THREE.Mesh(new THREE.PlaneGeometry(PANEL_WIDTH, PANEL_HEIGHT).rotateY(Math.PI).translate(0, PANEL_HEIGHT / 2, -SLAB / 2 - 0.0004), face(back));
+  const verso = new THREE.Mesh(new THREE.PlaneGeometry(PANEL_WIDTH, PANEL_HEIGHT).rotateY(Math.PI).translate(0, PANEL_HEIGHT / 2, -SLAB / 2), face(back, true));
   verso.name = "verso";
-  panel.add(slab, recto, verso);
+  panel.add(recto, verso);
 
   // coins lumineux, comme le viseur du scan
   const neon = glow(hue, 0.75);
