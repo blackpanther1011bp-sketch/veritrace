@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { buildPanelGlb } from "../lib/ar3d";
+import { GRADE_COLOR } from "../lib/grades";
 import { t } from "../lib/i18n";
 import { track } from "../lib/track";
 import type { Product } from "../lib/types";
@@ -38,10 +39,12 @@ export default function ArPanel({ product, onClose }: { product: Product; onClos
           "ar-placement": "floor",
           "camera-controls": "",
           "touch-action": "pan-y",
-          "camera-orbit": "-18deg 78deg auto",
-          "shadow-intensity": "0.8",
+          "camera-orbit": "-28deg 76deg auto",
+          "shadow-intensity": "1",
           "interaction-prompt": "none",
-          exposure: "0.95",
+          exposure: "1",
+          // le panneau tourne doucement : on voit le relief ; il s'arrête dès qu'on le touche
+          ...(window.matchMedia("(prefers-reduced-motion: reduce)").matches ? {} : { "auto-rotate": "", "rotation-per-second": "14deg", "auto-rotate-delay": "900" }),
         };
         for (const [k, v] of Object.entries(attrs)) mv.setAttribute(k, v);
         mv.className = "ar3d-viewer";
@@ -101,7 +104,7 @@ export default function ArPanel({ product, onClose }: { product: Product; onClos
         <h2 id="ar3d-title" className="dialog-title">
           {t("ar3d.title")}
         </h2>
-        <div ref={stage} className="ar3d-stage">
+        <div ref={stage} className="ar3d-stage" style={{ "--hue": GRADE_COLOR[product.global_grade] } as React.CSSProperties}>
           {status === "loading" && <p className="ar3d-msg">{t("ar3d.preparing")}</p>}
           {status === "error" && <p className="ar3d-msg">{t("ar3d.failed")}</p>}
         </div>
