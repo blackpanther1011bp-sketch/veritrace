@@ -250,3 +250,7 @@
 .ar-card-alt { border: none; border-radius: 12px; padding: 9px 10px; background: rgba(61, 220, 151, 0.18); color: #8cf0c4; font-size: var(--text-xs); font-weight: 700; text-align: start; cursor: pointer; }
 .ar-card-alt:disabled { background: rgba(255, 255, 255, 0.08); color: #b9c6be; font-weight: 500; cursor: default; }
 .ar-card-more { align-self: flex-end; display: inline-flex; align-items: center; gap: 2px; border: none; background: none; color: var(--mint); font-size: var(--text-xs); font-weight: 700; cursor: pointer; padding: 2px 0; }
+
+/* L'aperçu de l'accueil reste sur fond blanc : texte sombre */
+.ar-preview-badge .ar-badge-title { color: var(--ink); font-family: inherit; font-size: var(--text-sm); }
+.ar-preview-badge .ar-badge-sub { color: var(--muted); }
