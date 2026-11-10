@@ -14,8 +14,10 @@ export function warmUpDecoder(): void {
   prepareZXingModule({ overrides: zxingOverrides, fireImmediately: true }).catch(() => undefined);
 }
 
-// QR code : passeports numériques (GS1 Digital Link) et passeports VeriTrace
-const FORMATS = ["ean_13", "ean_8", "upc_a", "qr_code"] as const;
+// QR code : passeports numériques (GS1 Digital Link) et passeports VeriTrace.
+// Code 128 et Code 39 : codes internes des enseignes, fréquents sur les étiquettes de vêtements. Ils ne désignent pas
+// un produit de façon universelle, mais les reconnaître permet de l'expliquer au lieu de ne rien afficher.
+const FORMATS = ["ean_13", "ean_8", "upc_a", "qr_code", "code_128", "code_39"] as const;
 
 export interface DetectedCode {
   rawValue: string;
@@ -45,8 +47,11 @@ export async function createDetector(): Promise<Detector> {
 
 export class InsecureContextError extends Error {}
 
-/** Ouvre la caméra arrière (définition plus haute pour lire le texte des étiquettes). */
-export async function openBackCamera(size: { width: number; height: number } = { width: 1280, height: 720 }): Promise<MediaStream> {
+/**
+ * Ouvre la caméra arrière en 1920 × 1080. En 1280 × 720, le code-barres d'une vraie étiquette (2 à 3 cm de large,
+ * tenu à 15-20 cm) n'occupe que 1 à 2 pixels par barre : illisible dès que l'image est un peu floue.
+ */
+export async function openBackCamera(size: { width: number; height: number } = { width: 1920, height: 1080 }): Promise<MediaStream> {
   if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
     throw new InsecureContextError("La caméra nécessite une connexion sécurisée (https).");
   }
@@ -72,6 +77,28 @@ export function cameraErrorMessage(error: unknown): string {
       return t("camera.busy");
     default:
       return t("camera.failed");
+  }
+}
+
+type ZoomCapabilities = MediaTrackCapabilities & { zoom?: { min: number; max: number }; focusMode?: string[] };
+
+/**
+ * Règle la caméra pour les petits codes-barres : mise au point continue et zoom ×2 quand le téléphone le permet
+ * (on tient alors le téléphone plus loin, là où l'objectif fait le point). Sans effet si ce n'est pas pris en charge.
+ */
+export async function tuneForBarcodes(stream: MediaStream): Promise<void> {
+  const track = stream.getVideoTracks()[0];
+  if (!track || typeof track.getCapabilities !== "function") return;
+  const caps = track.getCapabilities() as ZoomCapabilities;
+  const advanced: Record<string, unknown>[] = [];
+  if (caps.focusMode?.includes("continuous")) advanced.push({ focusMode: "continuous" });
+  if (caps.zoom && caps.zoom.max >= 1.5) advanced.push({ zoom: Math.min(2, caps.zoom.max) });
+  for (const constraint of advanced) {
+    try {
+      await track.applyConstraints({ advanced: [constraint as MediaTrackConstraintSet] });
+    } catch {
+      // réglage refusé par ce téléphone : on garde l'image telle quelle
+    }
   }
 }
 

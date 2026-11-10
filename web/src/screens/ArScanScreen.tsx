@@ -4,7 +4,7 @@ import { IconBack, IconChevron } from "../components/Icons";
 import { fetchAlternatives, fetchProduct } from "../lib/api";
 import { badgeOrigin, boundsOf, expandThinBox, mapToView, pickCentral, type Box, type Pt, type Size } from "../lib/arGeometry";
 import { formatEan } from "../lib/barcode";
-import { cameraErrorMessage, createDetector, openBackCamera, setTorch, torchAvailable } from "../lib/camera";
+import { cameraErrorMessage, createDetector, openBackCamera, setTorch, torchAvailable, tuneForBarcodes } from "../lib/camera";
 import { compareProducts } from "../lib/compare";
 import { LEVEL_COLOR, VERDICT } from "../lib/grades";
 // « t » désigne ici l'article suivi par la caméra : la traduction s'appelle tr
@@ -59,6 +59,8 @@ export default function ArScanScreen() {
   // fiche enrichie ouverte dans la caméra (code-barres concerné) et comparateur
   const [cardEan, setCardEan] = useState<string | null>(null);
   const [compareOpen, setCompareOpen] = useState(false);
+  // aide quand rien n'est reconnu : conseils après quelques secondes, ou code interne d'une enseigne
+  const [help, setHelp] = useState<"none" | "tips" | "storeCode">("none");
 
   function lookup(t: Tracked) {
     t.lookup = "loading";
@@ -109,9 +111,12 @@ export default function ArScanScreen() {
       } catch {
         // la lecture démarre au prochain geste sur certains navigateurs
       }
+      await tuneForBarcodes(stream);
       const detector = await createDetector();
       if (cancelled) return;
       setStatus("running");
+      const startedAt = Date.now();
+      let storeCodeHits = 0;
       setTorchState({ available: torchAvailable(stream), on: false });
 
       const tick = async () => {
@@ -123,7 +128,11 @@ export default function ArScanScreen() {
             const source = { width: video.videoWidth, height: video.videoHeight };
             for (const code of codes) {
               const scanned = parseScannedCode(code.rawValue);
-              if (!scanned) continue;
+              if (!scanned) {
+                // code lu mais qui n'est pas un code-barres universel : code interne de l'enseigne
+                if (code.rawValue.trim().length >= 6 && ++storeCodeHits === 3) setHelp("storeCode");
+                continue;
+              }
               if (scanned.kind === "passport") {
                 // QR code d'un passeport numérique : on ouvre directement sa page
                 cancelled = true;
@@ -146,6 +155,8 @@ export default function ArScanScreen() {
                 t.points = mapToView(code.cornerPoints, source, viewRef.current);
               }
             }
+            if (trackedRef.current.size > 0) setHelp("none");
+            else if (storeCodeHits < 3 && now - startedAt > 8000) setHelp((h) => (h === "none" ? "tips" : h));
             rerender();
           } catch {
             // image illisible : on passe à la suivante
@@ -330,8 +341,21 @@ export default function ArScanScreen() {
           )}
           {focused ? (
             <FocusCard tracked={focused} onOpen={() => open(focused)} />
-          ) : (
+          ) : help === "none" ? (
             <p className="ar-hint">{tr("ar.hint")}</p>
+          ) : (
+            <div className="ar-help" role="status">
+              <p className="ar-help-title">{tr(help === "storeCode" ? "ar.helpStoreTitle" : "ar.helpTipsTitle")}</p>
+              <p className="ar-help-text">{tr(help === "storeCode" ? "ar.helpStoreText" : "ar.helpTipsText")}</p>
+              <div className="ar-help-actions">
+                <button type="button" className="btn btn-primary" onClick={() => navigate("/etiquette-direct", { replace: true })}>
+                  {tr("ar.helpReadLabel")}
+                </button>
+                <button type="button" className="btn btn-ghost-light" onClick={() => navigate("/?saisie=1", { replace: true })}>
+                  {tr("common.enterCodeByHand")}
+                </button>
+              </div>
+            </div>
           )}
         </div>
       )}
