@@ -6,7 +6,7 @@ import { badgeOrigin, boundsOf, expandThinBox, mapToView, pickCentral, type Box,
 import { formatEan } from "../lib/barcode";
 import { cameraErrorMessage, createDetector, openBackCamera, setTorch, torchAvailable, tuneForBarcodes } from "../lib/camera";
 import { compareProducts } from "../lib/compare";
-import { LEVEL_COLOR, VERDICT } from "../lib/grades";
+import { GRADE_COLOR, LEVEL_COLOR, VERDICT } from "../lib/grades";
 // « t » désigne ici l'article suivi par la caméra : la traduction s'appelle tr
 import { t as tr } from "../lib/i18n";
 import { formatNumber } from "../lib/reliability";
@@ -14,15 +14,21 @@ import { parseScannedCode } from "../lib/outils";
 import { goBack, navigate } from "../lib/router";
 import { addToHistory } from "../lib/storage";
 import { track } from "../lib/track";
-import type { Product } from "../lib/types";
+import type { Grade, Product } from "../lib/types";
 
 /**
- * Réalité augmentée légère : la note du vêtement s'affiche sur l'image de la
- * caméra, accrochée au code-barres, et le suit quand on bouge le téléphone.
+ * Réalité augmentée légère : un viseur flotte au centre de l'image ; dès qu'un code-barres est vu, il se
+ * verrouille dessus et le suit à chaque image, puis la note du vêtement se déploie à côté, reliée au code
+ * par un trait. Le bord de l'image prend la couleur de la note.
  */
 
 const LOST_AFTER_MS = 900;
-const BADGE: Size = { width: 240, height: 68 };
+const BADGE: Size = { width: 264, height: 76 };
+const MINT = "#3ddc97";
+/** Viseur au repos, centré dans la zone caméra. */
+const IDLE: Size = { width: 250, height: 150 };
+/** Distance entre le code-barres et son badge (place du trait de liaison). */
+const LEADER = 26;
 const PILL: Size = { width: 48, height: 48 };
 const CARD: Size = { width: 300, height: 286 };
 const BOTTOM_RESERVED = 180;
@@ -42,6 +48,30 @@ interface Tracked {
   alternatives?: Product[] | null;
 }
 
+const mix = (a: number, b: number, k: number) => a + (b - a) * k;
+const mixBox = (a: Box, b: Box, k: number): Box => ({
+  left: mix(a.left, b.left, k),
+  top: mix(a.top, b.top, k),
+  right: mix(a.right, b.right, k),
+  bottom: mix(a.bottom, b.bottom, k),
+});
+const boxGap = (a: Box, b: Box) =>
+  Math.max(Math.abs(a.left - b.left), Math.abs(a.top - b.top), Math.abs(a.right - b.right), Math.abs(a.bottom - b.bottom));
+const pad = (b: Box, by: number): Box => ({ left: b.left - by, top: b.top - by, right: b.right + by, bottom: b.bottom + by });
+const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** Les quatre coins du viseur, tracés autour d'un cadre. */
+function corners(b: Box): string {
+  const c = Math.min(26, (b.right - b.left) / 3, (b.bottom - b.top) / 3);
+  const { left: l, top: t, right: r, bottom: m } = b;
+  return [
+    `M${l} ${t + c}V${t}H${l + c}`,
+    `M${r - c} ${t}H${r}V${t + c}`,
+    `M${r} ${m - c}V${m}H${r - c}`,
+    `M${l + c} ${m}H${l}V${m - c}`,
+  ].join("");
+}
+
 const isVisible = (t: Tracked) => t.points.length >= 4 && Date.now() - t.lastSeen < LOST_AFTER_MS;
 
 export default function ArScanScreen() {
@@ -53,6 +83,10 @@ export default function ArScanScreen() {
   const [, rerender] = useReducer((n: number) => n + 1, 0);
   // code visé : grand badge, cadre vert et panneau du bas
   const primaryRef = useRef<string | null>(null);
+  // positions lissées à chaque image : le viseur et les badges glissent avec le code-barres au lieu de sauter
+  const smoothRef = useRef(new Map<string, Box>());
+  const reticleRef = useRef<Box | null>(null);
+  const reticleTargetRef = useRef<Box | null>(null);
   const [status, setStatus] = useState<"starting" | "running" | "error">("starting");
   const [errorMessage, setErrorMessage] = useState("");
   const [torch, setTorchState] = useState({ available: false, on: false });
@@ -181,6 +215,45 @@ export default function ArScanScreen() {
     };
   }, []);
 
+  useEffect(() => {
+    const still = reducedMotion();
+    let raf = 0;
+    let last = performance.now();
+    const frame = (now: number) => {
+      const dt = Math.min(64, now - last);
+      last = now;
+      const k = still ? 1 : 1 - Math.exp(-dt / 55);
+      const kReticle = still ? 1 : 1 - Math.exp(-dt / 85);
+      let moved = false;
+      for (const t of trackedRef.current.values()) {
+        if (!isVisible(t)) {
+          smoothRef.current.delete(t.ean);
+          continue;
+        }
+        const target = expandThinBox(boundsOf(t.points));
+        const prev = smoothRef.current.get(t.ean);
+        const next = prev ? mixBox(prev, target, k) : target;
+        if (!prev || boxGap(prev, next) > 0.25) {
+          smoothRef.current.set(t.ean, next);
+          moved = true;
+        }
+      }
+      const target = reticleTargetRef.current;
+      if (target) {
+        const prev = reticleRef.current;
+        const next = prev ? mixBox(prev, target, kReticle) : target;
+        if (!prev || boxGap(prev, next) > 0.25) {
+          reticleRef.current = next;
+          moved = true;
+        }
+      }
+      if (moved) rerender();
+      raf = requestAnimationFrame(frame);
+    };
+    raf = requestAnimationFrame(frame);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   function open(t: Tracked) {
     switch (t.lookup) {
       case "loading":
@@ -229,7 +302,7 @@ export default function ArScanScreen() {
   const view = viewRef.current;
   const visible = [...trackedRef.current.values()]
     .filter(isVisible)
-    .map((t) => ({ key: t.ean, tracked: t, box: expandThinBox(boundsOf(t.points)) }));
+    .map((t) => ({ key: t.ean, tracked: t, box: smoothRef.current.get(t.ean) ?? expandThinBox(boundsOf(t.points)) }));
   for (const v of visible) v.tracked.lastBox = v.box;
   // comparateur : tous les articles reconnus pendant la visite, du mieux au moins bien noté
   const comparison = compareProducts(
@@ -245,19 +318,73 @@ export default function ArScanScreen() {
   const place = (box: Box, size: Size, margin?: number) =>
     badgeOrigin({ box, view, badge: size, topLimit: TOP_RESERVED, bottomReserved: BOTTOM_RESERVED, margin });
 
+  // viseur : au repos au centre, verrouillé autour du code visé
+  const idle: Box = {
+    left: center.x - IDLE.width / 2,
+    top: center.y - IDLE.height / 2,
+    right: center.x + IDLE.width / 2,
+    bottom: center.y + IDLE.height / 2,
+  };
+  reticleTargetRef.current = view.width > 0 ? (primary ? pad(primary.box, 10) : idle) : null;
+  const reticle = reticleRef.current ?? reticleTargetRef.current;
+  const grade: Grade | null = primary?.tracked.lookup === "found" ? primary.tracked.product!.global_grade : null;
+  const hue = grade ? GRADE_COLOR[grade] : MINT;
+  const badgeAt = primary && primary.key !== cardEan ? place(primary.box, BADGE, LEADER) : null;
+  // trait de liaison entre le code-barres et son badge
+  let leader: { from: Pt; to: Pt } | null = null;
+  if (primary && badgeAt && reticle) {
+    const cx = (reticle.left + reticle.right) / 2;
+    const x = Math.min(Math.max(cx, badgeAt.x + 24), badgeAt.x + BADGE.width - 24);
+    if (badgeAt.y + BADGE.height <= reticle.top - 6) leader = { from: { x: cx, y: reticle.top }, to: { x, y: badgeAt.y + BADGE.height } };
+    else if (badgeAt.y >= reticle.bottom + 6) leader = { from: { x: cx, y: reticle.bottom }, to: { x, y: badgeAt.y } };
+  }
+
   return (
     <div className="ar" ref={rootRef}>
       <video ref={videoRef} className="ar-video" playsInline muted autoPlay aria-label={tr("common.cameraImage")} />
 
-      <svg className="ar-overlay" width={view.width} height={view.height} aria-hidden="true">
-        {primary && (
-          <rect
-            x={primary.box.left}
-            y={primary.box.top}
-            width={primary.box.right - primary.box.left}
-            height={primary.box.bottom - primary.box.top}
-            rx="10"
-          />
+      <div className="ar-aura" style={{ color: grade ? GRADE_COLOR[grade] : "transparent", opacity: grade ? 0.6 : 0 }} aria-hidden="true" />
+
+      <svg className={primary ? "ar-overlay ar-locked" : "ar-overlay"} width={view.width} height={view.height} style={{ color: hue }} aria-hidden="true">
+        {reticle && status === "running" && (
+          <>
+            {primary && (
+              <rect
+                className="ar-lock-fill"
+                x={reticle.left}
+                y={reticle.top}
+                width={reticle.right - reticle.left}
+                height={reticle.bottom - reticle.top}
+                rx="6"
+              />
+            )}
+            {primary?.tracked.lookup === "loading" && (
+              <rect
+                className="ar-beam"
+                x={reticle.left + 4}
+                y={reticle.top}
+                width={Math.max(0, reticle.right - reticle.left - 8)}
+                height="2"
+                style={{ "--travel": `${reticle.bottom - reticle.top - 2}px` } as React.CSSProperties}
+              />
+            )}
+            {primary && (
+              <circle
+                key={`pulse-${primary.key}`}
+                className="ar-pulse"
+                cx={(reticle.left + reticle.right) / 2}
+                cy={(reticle.top + reticle.bottom) / 2}
+                r={Math.max(reticle.right - reticle.left, reticle.bottom - reticle.top) / 2}
+              />
+            )}
+            <path className="ar-reticle" d={corners(reticle)} />
+            {leader && (
+              <>
+                <line className="ar-leader" x1={leader.from.x} y1={leader.from.y} x2={leader.to.x} y2={leader.to.y} />
+                <circle className="ar-anchor" cx={leader.from.x} cy={leader.from.y} r="4" />
+              </>
+            )}
+          </>
         )}
       </svg>
 
@@ -266,12 +393,12 @@ export default function ArScanScreen() {
         .map((v) => (
           <ArPill key={`pill-${v.key}`} tracked={v.tracked} best={v.key === bestEan} origin={place(v.box, PILL, 6)} onOpen={() => open(v.tracked)} />
         ))}
-      {primary && primary.key !== cardEan && (
+      {primary && badgeAt && (
         <ArBadge
-          key={`badge-${primary.key}`}
+          key={`badge-${primary.key}-${primary.tracked.lookup}`}
           tracked={primary.tracked}
           best={primary.key === bestEan}
-          origin={place(primary.box, BADGE)}
+          origin={badgeAt}
           onOpen={() => open(primary.tracked)}
         />
       )}
@@ -390,6 +517,7 @@ export default function ArScanScreen() {
               className="btn btn-text"
               onClick={() => {
                 trackedRef.current.clear();
+                smoothRef.current.clear();
                 primaryRef.current = null;
                 setCardEan(null);
                 setCompareOpen(false);
@@ -428,12 +556,12 @@ function ArCard({ tracked, best, origin, onClose }: { tracked: Tracked; best: bo
   return (
     <section
       className="ar-card"
-      style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)` }}
+      style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)`, "--hue": GRADE_COLOR[p.global_grade] } as React.CSSProperties}
       aria-label={tr("ar.cardAria", { name: p.name, grade: p.global_grade })}
     >
       <div className="ar-card-head">
         <span className="ar-card-grade">
-          <GradeBadge grade={p.global_grade} size={44} round />
+          <GradeRing tracked={tracked} size={52} />
           {best && (
             <span className="ar-crown" title={tr("ar.bestScanned")}>
               <Crown size={18} />
@@ -449,8 +577,8 @@ function ArCard({ tracked, best, origin, onClose }: { tracked: Tracked; best: bo
         </button>
       </div>
       <div className="ar-card-bars">
-        {bars.map((b) => (
-          <div key={b.label} className="ar-card-bar">
+        {bars.map((b, i) => (
+          <div key={b.label} className="ar-card-bar" style={{ "--i": i } as React.CSSProperties}>
             <span className="ar-card-bar-label">{b.label}</span>
             <span className="ar-card-track">
               <span style={{ width: `${Math.max(4, b.share)}%`, background: LEVEL_COLOR[b.level] }} />
@@ -503,13 +631,58 @@ function describe(t: Tracked): { title: string; subtitle: string } {
   }
 }
 
+/** Compteur qui monte jusqu'à la valeur (coût environnemental), à l'apparition du badge. */
+function useCountUp(target: number | null, ms = 700): number | null {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    if (target === null) return;
+    const duration = reducedMotion() ? 0 : ms;
+    const t0 = performance.now();
+    let raf = 0;
+    const step = (now: number) => {
+      const p = duration === 0 ? 1 : Math.min(1, (now - t0) / duration);
+      setValue(target * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, ms]);
+  return target === null ? null : value;
+}
+
+/** Note entourée d'un anneau qui se trace à l'apparition ; anneau tournant pendant la recherche. */
+function GradeRing({ tracked, size = 52 }: { tracked: Tracked; size?: number }) {
+  const r = size / 2 - 2;
+  const length = 2 * Math.PI * r;
+  const state = tracked.lookup === "loading" ? " ar-ring-loading" : tracked.lookup === "error" ? " ar-ring-error" : "";
+  return (
+    <span className={`ar-ring${state}`} style={{ width: size, height: size }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+        <circle cx={size / 2} cy={size / 2} r={r} style={{ "--len": length } as React.CSSProperties} strokeDasharray={length} />
+      </svg>
+      {tracked.lookup === "loading" ? null : tracked.lookup === "error" ? (
+        <span className="ar-offline" aria-hidden="true">!</span>
+      ) : (
+        <GradeBadge grade={tracked.product?.global_grade ?? null} size={size - 14} round />
+      )}
+    </span>
+  );
+}
+
+const hueOf = (t: Tracked) => (t.lookup === "found" && t.product ? GRADE_COLOR[t.product.global_grade] : t.lookup === "error" || t.lookup === "missing" ? "#c9d4cd" : MINT);
+
 function ArBadge({ tracked, origin, onOpen, best = false }: { tracked: Tracked; origin: Pt; onOpen: () => void; best?: boolean }) {
   const { title, subtitle } = describe(tracked);
+  const p = tracked.lookup === "found" ? tracked.product : null;
+  const cost = useCountUp(p?.eco_cost ?? null);
+  // à l'écran : le verdict et le coût qui monte ; le nom du vêtement reste dans le panneau du bas
+  const shownTitle = p ? VERDICT[p.global_grade].title : title;
+  const shownSub = p && cost !== null ? `${tr("common.pts", { n: formatNumber(cost, 0)! })} · ${tr("common.noteGrade", { grade: p.global_grade })}` : subtitle;
   return (
     <button
       type="button"
       className={best ? "ar-badge ar-best" : "ar-badge"}
-      style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)` }}
+      style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)`, "--hue": hueOf(tracked) } as React.CSSProperties}
       onClick={onOpen}
       aria-label={`${title}. ${subtitle}${best ? `. ${tr("ar.bestScanned")}` : ""}`}
     >
@@ -518,16 +691,10 @@ function ArBadge({ tracked, origin, onOpen, best = false }: { tracked: Tracked; 
           <Crown size={20} />
         </span>
       )}
-      {tracked.lookup === "loading" ? (
-        <span className="ar-spinner" aria-hidden="true" />
-      ) : tracked.lookup === "error" ? (
-        <span className="ar-offline" aria-hidden="true">!</span>
-      ) : (
-        <GradeBadge grade={tracked.product?.global_grade ?? null} size={40} round />
-      )}
+      <GradeRing tracked={tracked} />
       <span className="ar-badge-text">
-        <span className="ar-badge-title">{title}</span>
-        <span className="ar-badge-sub">{subtitle}</span>
+        <span className="ar-badge-title">{shownTitle}</span>
+        <span className="ar-badge-sub">{shownSub}</span>
       </span>
       {tracked.lookup === "found" && <IconChevron size={20} className="row-chevron" />}
     </button>
@@ -541,7 +708,7 @@ function ArPill({ tracked, origin, onOpen, best = false }: { tracked: Tracked; o
     <button
       type="button"
       className={best ? "ar-pill ar-best" : "ar-pill"}
-      style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)` }}
+      style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)`, "--hue": hueOf(tracked) } as React.CSSProperties}
       onClick={onOpen}
       aria-label={`${title}. ${subtitle}${best ? `. ${tr("ar.bestScanned")}` : ""}`}
     >
@@ -550,13 +717,7 @@ function ArPill({ tracked, origin, onOpen, best = false }: { tracked: Tracked; o
           <Crown size={18} />
         </span>
       )}
-      {tracked.lookup === "loading" ? (
-        <span className="ar-spinner" aria-hidden="true" />
-      ) : tracked.lookup === "error" ? (
-        <span className="ar-offline" aria-hidden="true">!</span>
-      ) : (
-        <GradeBadge grade={tracked.product?.global_grade ?? null} size={40} round />
-      )}
+      <GradeRing tracked={tracked} size={48} />
     </button>
   );
 }
@@ -571,7 +732,7 @@ function FocusCard({ tracked, onOpen }: { tracked: Tracked; onOpen: () => void }
   };
   const { title, subtitle } = lines[tracked.lookup];
   return (
-    <button type="button" className="row-card ar-focus" onClick={onOpen}>
+    <button type="button" className="row-card ar-focus" style={{ "--hue": hueOf(tracked) } as React.CSSProperties} onClick={onOpen}>
       <GradeBadge grade={p?.global_grade ?? null} />
       <span className="row-text">
         <span className="row-title">{title}</span>
