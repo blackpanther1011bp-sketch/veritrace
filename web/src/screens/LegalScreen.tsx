@@ -1,7 +1,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import { Header } from "../components/Header";
 import { navigate } from "../lib/router";
-import { isRtl, t, tv, type Key } from "../lib/i18n";
+import { getLang, isRtl, t, tv, type Key } from "../lib/i18n";
 import { supabase } from "../lib/supabase";
 import { sessionId } from "../lib/track";
 
@@ -38,8 +38,8 @@ export function LegalScreen({ page }: { page: LegalPage }) {
       <Header title={t(TITLES[page])} backTo="/" backLabel={t("common.backHome")} />
       <main className="content legal">
         {/* Texte juridique en français (version qui fait foi) ; en arabe, un paragraphe l'explique en tête */}
-        {rtl && <p className="lead">{t("legal.arNotice")}</p>}
-        <div className="legal-body" lang={rtl ? "fr" : undefined} dir={rtl ? "ltr" : undefined}>
+        {getLang() !== "fr" && <p className="lead">{t("legal.arNotice")}</p>}
+        <div className="legal-body" lang={getLang() !== "fr" ? "fr" : undefined} dir={rtl ? "ltr" : undefined}>
           {page === "confidentialite" && <Privacy />}
           {page === "mentions-legales" && <Notice />}
           {page === "conditions" && <Terms />}

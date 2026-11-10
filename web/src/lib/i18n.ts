@@ -1,15 +1,25 @@
-// Langue de l'interface : français (par défaut) ou arabe standard (lecture de droite à gauche).
+// Langue de l'interface : français (par défaut), arabe standard (lecture de droite à gauche), anglais, espagnol.
 //
-// - Le dictionnaire français (i18n-fr.ts) fait partie du site ; l'arabe (i18n-ar.ts) et sa police ne sont chargés
-//   qu'à la demande, pour ne pas alourdir le premier chargement en français.
-// - TypeScript vérifie que chaque clé existe dans les deux langues (type Dict).
+// - Le dictionnaire français (i18n-fr.ts) fait partie du site ; les autres langues (i18n-xx.ts) et la police arabe ne
+//   sont chargées qu'à la demande, pour ne pas alourdir le premier chargement en français.
+// - TypeScript vérifie que chaque clé existe dans toutes les langues (type Dict).
+// - Ajouter une langue : un fichier i18n-xx.ts, une ligne dans LANGS et une dans LOADERS.
 // - t() est une simple fonction : l'application est redessinée entièrement quand la langue change (main.tsx).
 // - Les données venues de la base (matières, pays, étapes du calcul) restent en français.
 
 import { useSyncExternalStore } from "react";
 import { fr } from "./i18n-fr";
 
-export type Lang = "fr" | "ar";
+export type Lang = "fr" | "ar" | "en" | "es";
+
+/** Langues proposées, dans l'ordre du menu, avec leur nom dans la langue elle-même. */
+export const LANGS: readonly { code: Lang; name: string; locale: string }[] = [
+  { code: "fr", name: "Français", locale: "fr-FR" },
+  { code: "ar", name: "العربية", locale: "ar-MA-u-nu-latn" },
+  { code: "en", name: "English", locale: "en-GB" },
+  { code: "es", name: "Español", locale: "es-ES" },
+];
+const isLang = (v: unknown): v is Lang => LANGS.some((l) => l.code === v);
 export type Key = keyof typeof fr;
 export type Dict = { readonly [K in Key]: string };
 /** Clés au pluriel : « base_one » (1) et « base_other » (0, 2 et plus). */
@@ -57,9 +67,9 @@ export function isRtl(): boolean {
   return current === "ar";
 }
 
-/** Locale des dates : chiffres occidentaux (0-9) dans les deux langues, comme d'usage au Maroc. */
+/** Locale des dates : chiffres occidentaux (0-9) dans toutes les langues, comme d'usage au Maroc. */
 export function dateLocale(): string {
-  return current === "ar" ? "ar-MA-u-nu-latn" : "fr-FR";
+  return LANGS.find((l) => l.code === current)?.locale ?? "fr-FR";
 }
 
 /** Noms des mois (janvier… / يناير…, appellations en usage au Maroc), pour formatPeriod (lib/social.ts). */
@@ -73,16 +83,43 @@ function applyToDocument(lang: Lang): void {
   root.dir = lang === "ar" ? "rtl" : "ltr";
 }
 
-async function loadArabic(): Promise<void> {
-  const [mod] = await Promise.all([
-    import("./i18n-ar"),
-    // police arabe auto-hébergée, chargée seulement en arabe
-    import("@fontsource/noto-sans-arabic/arabic-400.css"),
-    import("@fontsource/noto-sans-arabic/arabic-700.css"),
-  ]);
-  dict = mod.ar;
-  values = mod.arValues;
-  serverMessages = mod.arServer;
+interface Loaded {
+  dict: Dict;
+  values: Readonly<Record<string, string>>;
+  server: Readonly<Record<string, string>>;
+}
+
+const LOADERS: Record<Exclude<Lang, "fr">, () => Promise<Loaded>> = {
+  ar: async () => {
+    const [mod] = await Promise.all([
+      import("./i18n-ar"),
+      // police arabe auto-hébergée, chargée seulement en arabe
+      import("@fontsource/noto-sans-arabic/arabic-400.css"),
+      import("@fontsource/noto-sans-arabic/arabic-700.css"),
+    ]);
+    return { dict: mod.ar, values: mod.arValues, server: mod.arServer };
+  },
+  en: async () => {
+    const mod = await import("./i18n-en");
+    return { dict: mod.en, values: mod.enValues, server: mod.enServer };
+  },
+  es: async () => {
+    const mod = await import("./i18n-es");
+    return { dict: mod.es, values: mod.esValues, server: mod.esServer };
+  },
+};
+
+async function load(lang: Lang): Promise<void> {
+  if (lang === "fr") {
+    dict = fr;
+    values = {};
+    serverMessages = {};
+    return;
+  }
+  const loaded = await LOADERS[lang]();
+  dict = loaded.dict;
+  values = loaded.values;
+  serverMessages = loaded.server;
 }
 
 function save(lang: Lang): void {
@@ -97,40 +134,38 @@ function save(lang: Lang): void {
 export function initialLang(): Lang {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved === "fr" || saved === "ar") return saved;
+    if (isLang(saved)) return saved;
   } catch {
     // stockage indisponible
   }
   const langs = typeof navigator !== "undefined" ? (navigator.languages?.length ? navigator.languages : [navigator.language]) : [];
-  return langs.some((l) => /^ar\b/i.test(l ?? "")) ? "ar" : "fr";
+  // première langue du téléphone que le site propose ; sinon le français
+  for (const l of langs) {
+    const code = (l ?? "").slice(0, 2).toLowerCase();
+    if (isLang(code)) return code;
+  }
+  return "fr";
 }
 
 /** À appeler avant le premier affichage. */
 export async function initLang(): Promise<void> {
   const lang = initialLang();
-  if (lang === "ar") {
-    try {
-      await loadArabic();
-      current = "ar";
-    } catch {
-      current = "fr";
-      dict = fr;
-      values = {};
-      serverMessages = {};
-    }
+  try {
+    await load(lang);
+    current = lang;
+  } catch {
+    // dictionnaire non chargé (hors connexion) : le site reste utilisable en français
+    current = "fr";
+    dict = fr;
+    values = {};
+    serverMessages = {};
   }
   applyToDocument(current);
 }
 
 export async function setLang(lang: Lang): Promise<void> {
   if (lang === current) return;
-  if (lang === "ar") {
-    await loadArabic();
-  } else {
-    dict = fr;
-    values = {};
-    serverMessages = {};
-  }
+  await load(lang);
   current = lang;
   save(lang);
   applyToDocument(lang);

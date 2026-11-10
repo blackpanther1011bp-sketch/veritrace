@@ -27,7 +27,7 @@ test.describe("Bascule de langue", () => {
     await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
     await expect(page.getByText(fr["scan.hint"])).toBeVisible();
 
-    await page.getByRole("button", { name: ar["lang.ar"] }).click();
+    await page.getByRole("combobox", { name: fr["lang.label"] }).selectOption("ar");
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(page.locator("html")).toHaveAttribute("lang", "ar");
     await expect(page.getByText(ar["scan.hint"])).toBeVisible();
@@ -39,7 +39,7 @@ test.describe("Bascule de langue", () => {
     await expect(page.locator("html")).toHaveAttribute("dir", "rtl");
     await expect(page.getByText(ar["scan.hint"])).toBeVisible();
 
-    await page.getByRole("button", { name: "FR", exact: true }).click();
+    await page.getByRole("combobox", { name: ar["lang.label"] }).selectOption("fr");
     await expect(page.locator("html")).toHaveAttribute("dir", "ltr");
     await expect(page.locator("html")).toHaveAttribute("lang", "fr");
     await expect(page.getByText(fr["scan.hint"])).toBeVisible();

@@ -573,6 +573,10 @@ textarea.input { min-height: 120px; resize: vertical; font: inherit; padding-top
 
 /* --- Langue : sélecteur FR | العربية et interface en arabe (lecture de droite à gauche) --- */
 .brandbar-end { display: flex; align-items: center; gap: 8px; }
+.lang-select { display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 10px; border: 1px solid #2e4237; border-radius: 999px; color: #a9b8ae; }
+.lang-select select { appearance: none; -webkit-appearance: none; border: none; background: transparent; color: #f4f5f0; font: inherit; font-size: var(--text-xs); font-weight: 700; min-height: 32px; cursor: pointer; padding: 0; max-width: 96px; }
+.lang-select select:focus-visible { outline: 2px solid var(--mint); outline-offset: 4px; border-radius: 4px; }
+.lang-select option { color: #0e1a15; }
 .lang-switch { display: inline-flex; border: 1px solid #2e4237; border-radius: 999px; overflow: hidden; }
 .lang-switch button {
   min-height: 32px;

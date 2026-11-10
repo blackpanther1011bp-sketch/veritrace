@@ -4,7 +4,7 @@ import { GradeBadge } from "../components/Grade";
 import { IconCamera, IconChevron, IconKeyboard, IconScan, Logo } from "../components/Icons";
 import { TagIllustration } from "../components/TagIllustration";
 import { digitsOnly, formatEan, isValidGtin, normalizeGtin } from "../lib/barcode";
-import { getLang, setLang, t, type Lang } from "../lib/i18n";
+import { getLang, LANGS, setLang, t, type Lang } from "../lib/i18n";
 import { navigate } from "../lib/router";
 import { getHistory, resetDemo, timeAgo, type HistoryEntry } from "../lib/storage";
 import { track } from "../lib/track";
@@ -17,7 +17,7 @@ const EXAMPLES: { ean: string; name: string; brand: string; grade: Grade }[] = [
   { ean: "2005000000010", name: "T-shirt col V", brand: "Pulse & Co", grade: "B" },
 ];
 
-/** Choix de la langue (mémorisé) : français ou arabe (lecture de droite à gauche). */
+/** Choix de la langue (mémorisé) : menu avec le nom de chaque langue dans la langue elle-même. */
 function LangSwitch() {
   const current = getLang();
   const [busy, setBusy] = useState(false);
@@ -27,14 +27,25 @@ function LangSwitch() {
     setLang(lang).catch(() => setBusy(false));
   };
   return (
-    <div className="lang-switch" role="group" aria-label={t("lang.label")}>
-      <button type="button" lang="fr" title="Français" aria-pressed={current === "fr"} onClick={() => choose("fr")}>
-        {t("lang.fr")}
-      </button>
-      <button type="button" lang="ar" aria-pressed={current === "ar"} onClick={() => choose("ar")}>
-        {t("lang.ar")}
-      </button>
-    </div>
+    <label className="lang-select">
+      <IconGlobe />
+      <select aria-label={t("lang.label")} value={current} disabled={busy} onChange={(e) => choose(e.target.value as Lang)}>
+        {LANGS.map((l) => (
+          <option key={l.code} value={l.code} lang={l.code}>
+            {l.name}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function IconGlobe() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18" />
+    </svg>
   );
 }
 
