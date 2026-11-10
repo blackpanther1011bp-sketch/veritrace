@@ -10,7 +10,7 @@
 import { useSyncExternalStore } from "react";
 import { fr } from "./i18n-fr";
 
-export type Lang = "fr" | "ar" | "en" | "es";
+export type Lang = "fr" | "ar" | "en" | "es" | "de" | "pt" | "it";
 
 /** Langues proposées, dans l'ordre du menu, avec leur nom dans la langue elle-même. */
 export const LANGS: readonly { code: Lang; name: string; locale: string }[] = [
@@ -18,6 +18,9 @@ export const LANGS: readonly { code: Lang; name: string; locale: string }[] = [
   { code: "ar", name: "العربية", locale: "ar-MA-u-nu-latn" },
   { code: "en", name: "English", locale: "en-GB" },
   { code: "es", name: "Español", locale: "es-ES" },
+  { code: "de", name: "Deutsch", locale: "de-DE" },
+  { code: "pt", name: "Português", locale: "pt-PT" },
+  { code: "it", name: "Italiano", locale: "it-IT" },
 ];
 const isLang = (v: unknown): v is Lang => LANGS.some((l) => l.code === v);
 export type Key = keyof typeof fr;
@@ -106,6 +109,18 @@ const LOADERS: Record<Exclude<Lang, "fr">, () => Promise<Loaded>> = {
   es: async () => {
     const mod = await import("./i18n-es");
     return { dict: mod.es, values: mod.esValues, server: mod.esServer };
+  },
+  de: async () => {
+    const mod = await import("./i18n-de");
+    return { dict: mod.de, values: mod.deValues, server: mod.deServer };
+  },
+  pt: async () => {
+    const mod = await import("./i18n-pt");
+    return { dict: mod.pt, values: mod.ptValues, server: mod.ptServer };
+  },
+  it: async () => {
+    const mod = await import("./i18n-it");
+    return { dict: mod.it, values: mod.itValues, server: mod.itServer };
   },
 };
 

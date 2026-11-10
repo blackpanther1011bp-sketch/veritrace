@@ -1,14 +1,20 @@
 import { expect, test } from "@playwright/test";
+import { de } from "../src/lib/i18n-de";
 import { en } from "../src/lib/i18n-en";
 import { es } from "../src/lib/i18n-es";
 import { fr } from "../src/lib/i18n-fr";
+import { it } from "../src/lib/i18n-it";
+import { pt } from "../src/lib/i18n-pt";
 import { EAN, simulerSupabase } from "./supabase";
 
-// Anglais et espagnol : choix dans le menu, mémorisation, fiche produit traduite, aucun débordement à 390 px.
+// Anglais, espagnol, allemand, portugais et italien : choix dans le menu, mémorisation, fiche produit traduite, aucun débordement à 390 px.
 
 const LANGUES = [
   { code: "en", dict: en },
   { code: "es", dict: es },
+  { code: "de", dict: de },
+  { code: "pt", dict: pt },
+  { code: "it", dict: it },
 ] as const;
 
 for (const { code, dict } of LANGUES) {
