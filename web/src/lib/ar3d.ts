@@ -280,8 +280,29 @@ async function fontsReady(): Promise<void> {
   }
 }
 
+/** Durée d'une boucle d'animation, en secondes, et cadence d'échantillonnage. */
+const LOOP_SECONDS = 6;
+const FPS = 24;
+const FRAMES = LOOP_SECONDS * FPS;
+/** Un échantillon toutes les 2 images : assez fin pour la rotation de l'anneau. */
+const STEP = 2;
+
+/** Adresses locales (blob:) des fichiers du panneau : GLB pour l'aperçu et Android, USDZ animé pour l'iPhone. */
+export interface PanelModels {
+  glb: string;
+  usdz: string | null;
+}
+
+/** iPhone ou iPad : la réalité augmentée y passe par AR Quick Look, qui lit un fichier USDZ. */
+const isAppleMobile = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
 /**
- * Construit le panneau 3D et renvoie l'adresse locale (blob:) du fichier GLB.
+ * Construit le panneau 3D et renvoie les adresses locales de ses fichiers.
+ *
+ * Trois mouvements en boucle : la plaque flotte de haut en bas, l'anneau de la note tourne sur lui-même,
+ * le cercle de lumière du socle respire. Ils sont écrits dans le GLB (aperçu, Android) et dans le fichier
+ * USDZ de l'iPhone : la conversion automatique de l'afficheur 3D ne garde pas les animations, on écrit donc
+ * ce fichier nous-mêmes.
  *
  * Un socle « projecteur » cerclé de lumière, deux rayons, et au-dessus une plaque de verre sombre qui flotte.
  * La pastille de la note, son anneau, les barres d'impact et les coins lumineux sont en relief devant la
@@ -290,7 +311,7 @@ async function fontsReady(): Promise<void> {
  * Matériaux « standard » (PBR) opaques uniquement : seuls compris par l'export USDZ d'AR Quick Look
  * (pas de transparence ni d'animation sur iPhone).
  */
-export async function buildPanelGlb(p: Product): Promise<string> {
+export async function buildPanelModels(p: Product): Promise<PanelModels> {
   await fontsReady();
   const [THREE, { GLTFExporter }] = await Promise.all([import("three"), import("three/examples/jsm/exporters/GLTFExporter.js")]);
   const hue = GRADE_COLOR[p.global_grade];
@@ -323,7 +344,7 @@ export async function buildPanelGlb(p: Product): Promise<string> {
   const my = (y: number) => (H - y) * px;
 
   const panel = new THREE.Group();
-  panel.name = "panneau";
+  panel.name = "vt_panel";
   const slab = new THREE.Mesh(new THREE.BoxGeometry(PANEL_WIDTH, PANEL_HEIGHT, SLAB).translate(0, PANEL_HEIGHT / 2, 0), dark);
   slab.name = "plaque";
   const recto = new THREE.Mesh(new THREE.PlaneGeometry(PANEL_WIDTH, PANEL_HEIGHT).translate(0, PANEL_HEIGHT / 2, SLAB / 2 + 0.0004), face(front));
@@ -353,10 +374,12 @@ export async function buildPanelGlb(p: Product): Promise<string> {
   const r = layout.coin.r * px;
   const coin = new THREE.Group();
   coin.name = "note";
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(r + 0.007, 0.0018, 12, 64), neon);
+  ring.name = "vt_ring";
   coin.add(
     new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.006, 48).rotateX(Math.PI / 2), glow(hue, 0.4)),
     new THREE.Mesh(new THREE.CircleGeometry(r, 48).translate(0, 0, 0.0034), face(coinFace)),
-    new THREE.Mesh(new THREE.TorusGeometry(r + 0.007, 0.0018, 12, 64), neon),
+    ring,
   );
   coin.position.set(mx(layout.coin.x), my(layout.coin.y), SLAB / 2 + lift);
   panel.add(coin);
@@ -375,10 +398,9 @@ export async function buildPanelGlb(p: Product): Promise<string> {
   // socle projecteur : disque sombre, cercle de lumière, deux rayons jusqu'à la plaque
   const socle = new THREE.Group();
   socle.name = "socle";
-  socle.add(
-    new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.115, BASE_HEIGHT, 64).translate(0, BASE_HEIGHT / 2, 0), dark),
-    new THREE.Mesh(new THREE.TorusGeometry(0.092, 0.0025, 12, 96).rotateX(Math.PI / 2).translate(0, BASE_HEIGHT, 0), neon),
-  );
+  const halo = new THREE.Mesh(new THREE.TorusGeometry(0.092, 0.0025, 12, 96).rotateX(Math.PI / 2).translate(0, BASE_HEIGHT, 0), neon);
+  halo.name = "vt_halo";
+  socle.add(new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.115, BASE_HEIGHT, 64).translate(0, BASE_HEIGHT / 2, 0), dark), halo);
   for (const sx of [-1, 1]) {
     const ray = new THREE.Mesh(new THREE.CylinderGeometry(0.0012, 0.0012, HOVER, 8).translate(sx * 0.07, BASE_HEIGHT + HOVER / 2, 0), glow(hue, 0.75));
     ray.name = "rayon";
@@ -389,6 +411,91 @@ export async function buildPanelGlb(p: Product): Promise<string> {
   root.name = `VeriTrace ${p.global_grade}`;
   root.add(socle, panel);
 
-  const glb = (await new GLTFExporter().parseAsync(root, { binary: true, maxTextureSize: 2048 })) as ArrayBuffer;
-  return URL.createObjectURL(new Blob([glb], { type: "model/gltf-binary" }));
+  // Les trois mouvements, en fonction de l'avancement u (0 → 1) dans la boucle
+  const restY = panel.position.y;
+  const pose = (u: number) => {
+    panel.position.y = restY + 0.006 * Math.sin(2 * Math.PI * u);
+    ring.rotation.y = 4 * Math.PI * u;
+    const breath = 1 + 0.05 * Math.sin(4 * Math.PI * u);
+    halo.scale.set(breath, 1, breath);
+  };
+  const times: number[] = [];
+  const samples: Record<"vt_panel" | "vt_ring" | "vt_halo", string[]> = { vt_panel: [], vt_ring: [], vt_halo: [] };
+  const positions: number[] = [];
+  const turns: number[] = [];
+  const scales: number[] = [];
+  const row = (e: ArrayLike<number>, o: number) => `(${e[o]}, ${e[o + 1]}, ${e[o + 2]}, ${e[o + 3]})`;
+  for (let f = 0; f <= FRAMES; f += STEP) {
+    pose(f / FRAMES);
+    times.push(f / FPS);
+    positions.push(...panel.position.toArray());
+    turns.push(...ring.quaternion.toArray());
+    scales.push(...halo.scale.toArray());
+    for (const [name, object] of [["vt_panel", panel], ["vt_ring", ring], ["vt_halo", halo]] as const) {
+      object.updateMatrix();
+      const e = object.matrix.elements;
+      samples[name].push(`${f}: ( ${row(e, 0)}, ${row(e, 4)}, ${row(e, 8)}, ${row(e, 12)} )`);
+    }
+  }
+  pose(0);
+  for (const object of [panel, ring, halo]) object.updateMatrix();
+  const clip = new THREE.AnimationClip("flottement", LOOP_SECONDS, [
+    new THREE.VectorKeyframeTrack("vt_panel.position", times, positions),
+    new THREE.QuaternionKeyframeTrack("vt_ring.quaternion", times, turns),
+    new THREE.VectorKeyframeTrack("vt_halo.scale", times, scales),
+  ]);
+
+  const glb = (await new GLTFExporter().parseAsync(root, { binary: true, maxTextureSize: 2048, animations: [clip] })) as ArrayBuffer;
+  const models: PanelModels = { glb: URL.createObjectURL(new Blob([glb], { type: "model/gltf-binary" })), usdz: null };
+
+  if (isAppleMobile()) {
+    try {
+      models.usdz = URL.createObjectURL(new Blob([await animatedUsdz(root, samples)], { type: "model/vnd.usdz+zip" }));
+    } catch (err) {
+      // en cas d'échec, l'afficheur 3D convertit lui-même le GLB (panneau fixe)
+      console.warn("Fichier USDZ animé indisponible", err);
+    }
+  }
+  return models;
+}
+
+/**
+ * Fichier USDZ du panneau pour AR Quick Look, avec ses animations.
+ * L'export de three.js écrit une scène fixe : on rouvre l'archive, on remplace la position fixe des objets
+ * animés par leurs positions au fil du temps, puis on la referme comme l'exige le format
+ * (sans compression, données alignées sur 64 octets).
+ */
+async function animatedUsdz(root: import("three").Object3D, samples: Record<string, string[]>): Promise<Uint8Array<ArrayBuffer>> {
+  const [{ USDZExporter }, { strFromU8, strToU8, unzipSync, zipSync }] = await Promise.all([
+    import("three/examples/jsm/exporters/USDZExporter.js"),
+    import("three/examples/jsm/libs/fflate.module.js"),
+  ]);
+  const fixed = await new USDZExporter().parseAsync(root, { quickLookCompatible: true, maxTextureSize: 2048 });
+  const entries = unzipSync(new Uint8Array(fixed));
+  const modelName = Object.keys(entries).find((n) => n.endsWith("model.usda"));
+  if (!modelName) throw new Error("model.usda absent");
+
+  let usda = strFromU8(entries[modelName]);
+  usda = usda.replace("defaultPrim = ", `startTimeCode = 0\n\tendTimeCode = ${FRAMES}\n\ttimeCodesPerSecond = ${FPS}\n\tframesPerSecond = ${FPS}\n\tdefaultPrim = `);
+  for (const [name, frames] of Object.entries(samples)) {
+    const at = usda.indexOf(`def Xform "${name}"`);
+    if (at < 0) throw new Error(`objet ${name} absent`);
+    const start = usda.indexOf("matrix4d xformOp:transform = ", at);
+    const end = usda.indexOf("\n", start);
+    if (start < 0 || end < 0) throw new Error(`position de ${name} absente`);
+    usda = `${usda.slice(0, start)}matrix4d xformOp:transform.timeSamples = { ${frames.join(", ")} }${usda.slice(end)}`;
+  }
+  entries[modelName] = strToU8(usda);
+
+  // le modèle en premier, puis alignement de chaque fichier sur 64 octets (comme l'export d'origine)
+  const files: Record<string, Uint8Array | [Uint8Array, { extra: Record<number, Uint8Array> }]> = {};
+  let offset = 0;
+  for (const name of [modelName, ...Object.keys(entries).filter((n) => n !== modelName)]) {
+    const file = entries[name];
+    offset += 34 + name.length;
+    const mod = offset & 63;
+    files[name] = mod !== 4 ? [file, { extra: { 12345: new Uint8Array(64 - mod) } }] : file;
+    offset = file.length;
+  }
+  return zipSync(files, { level: 0 }) as Uint8Array<ArrayBuffer>;
 }

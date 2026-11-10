@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { buildPanelGlb } from "../lib/ar3d";
+import { buildPanelModels, type PanelModels } from "../lib/ar3d";
 import { GRADE_COLOR } from "../lib/grades";
 import { t } from "../lib/i18n";
 import { track } from "../lib/track";
@@ -22,17 +22,20 @@ export default function ArPanel({ product, onClose }: { product: Product; onClos
 
   useEffect(() => {
     let alive = true;
-    let url: string | null = null;
+    let models: PanelModels | null = null;
     let mv: ModelViewer | null = null;
     track("ar3d_view", { ean: product.ean, grade: product.global_grade });
     (async () => {
       try {
         await import("@google/model-viewer");
-        url = await buildPanelGlb(product);
+        models = await buildPanelModels(product);
+        const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
         if (!alive || !stage.current) return;
         mv = document.createElement("model-viewer") as ModelViewer;
         const attrs: Record<string, string> = {
-          src: url,
+          src: models.glb,
+          // iPhone : notre fichier animé remplace la conversion automatique (qui donne un panneau fixe)
+          ...(models.usdz ? { "ios-src": models.usdz } : {}),
           alt: t("ar3d.alt", { grade: product.global_grade, name: product.name }),
           ar: "",
           "ar-modes": "webxr quick-look",
@@ -44,7 +47,7 @@ export default function ArPanel({ product, onClose }: { product: Product; onClos
           "interaction-prompt": "none",
           exposure: "1",
           // le panneau tourne doucement : on voit le relief ; il s'arrête dès qu'on le touche
-          ...(window.matchMedia("(prefers-reduced-motion: reduce)").matches ? {} : { "auto-rotate": "", "rotation-per-second": "14deg", "auto-rotate-delay": "900" }),
+          ...(still ? {} : { autoplay: "", "auto-rotate": "", "rotation-per-second": "14deg", "auto-rotate-delay": "900" }),
         };
         for (const [k, v] of Object.entries(attrs)) mv.setAttribute(k, v);
         mv.className = "ar3d-viewer";
@@ -74,7 +77,10 @@ export default function ArPanel({ product, onClose }: { product: Product; onClos
     return () => {
       alive = false;
       mv?.remove();
-      if (url) URL.revokeObjectURL(url);
+      if (models) {
+        URL.revokeObjectURL(models.glb);
+        if (models.usdz) URL.revokeObjectURL(models.usdz);
+      }
     };
   }, [product]);
 
