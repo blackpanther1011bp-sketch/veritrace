@@ -23,6 +23,16 @@ function shardOf(code: string): number {
   return r;
 }
 
+/**
+ * Dans la source, certaines marques sont coupées à trois lettres (« JOM » pour Joma, « ETA » pour Etam).
+ * Une marque de trois lettres ou moins n'est gardée que si elle figure telle quelle dans le nom (« Lee », « Sol »).
+ */
+function reliableBrand(brand: string, name: string): string {
+  if (brand.length > 3) return brand;
+  const words = name.toLowerCase().split(/[^\p{L}\p{N}&]+/u);
+  return words.includes(brand.toLowerCase()) ? brand : "";
+}
+
 async function lookup(ean: string): Promise<Identified | null> {
   const code = ean.replace(/^0+/, "").padStart(13, "0");
   if (!/^\d{13}$/.test(code)) return null;
@@ -34,7 +44,7 @@ async function lookup(ean: string): Promise<Identified | null> {
     const entry = ((await res.json()) as Record<string, unknown>)[code];
     if (!Array.isArray(entry) || typeof entry[0] !== "string" || typeof entry[1] !== "string") return null;
     const category = (CATEGORIES as readonly string[]).includes(entry[2] as string) ? (entry[2] as string) : null;
-    return { brand: entry[0], name: entry[1], category };
+    return { brand: reliableBrand(entry[0], entry[1]), name: entry[1], category };
   } catch {
     // hors ligne, fichier absent ou illisible : le vêtement reste simplement « non répertorié »
     return null;

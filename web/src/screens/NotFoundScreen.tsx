@@ -49,7 +49,7 @@ export function NotFoundScreen({ ean }: { ean: string }) {
           <h2 className="state-title">{known ? t("notFound.knownTitle") : t("notFound.title")}</h2>
           {known && (
             <p className="known-product">
-              <span className="known-brand">{known.brand}</span>
+              {known.brand && <span className="known-brand">{known.brand}</span>}
               <span className="known-name">{known.name}</span>
             </p>
           )}

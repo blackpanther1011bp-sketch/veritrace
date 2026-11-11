@@ -23,6 +23,15 @@ test("code-barres inconnu du registre mais reconnu : nom affiché, étiquette pr
   await expect(page.locator("#l-category")).toHaveValue("Veste");
 });
 
+test("marque coupée à trois lettres dans la source : elle n'est ni affichée ni préremplie", async ({ page }) => {
+  await simulerSupabase(page);
+  await page.route("**/identification/*.json", (route) => route.fulfill({ json: { [EAN_INCONNU]: ["JOM", "Maillot manches longues Joma Combi", "T-shirt"] } }));
+  await page.goto(`/#/inconnu/${EAN_INCONNU}`);
+  await expect(page.getByText("Maillot manches longues Joma Combi")).toBeVisible();
+  await expect(page.getByText("JOM", { exact: true })).toHaveCount(0);
+  await expect(page.locator("#brand")).toHaveValue("");
+});
+
 test("code-barres inconnu partout : écran « pas encore référencé » inchangé", async ({ page }) => {
   await simulerSupabase(page);
   await page.route("**/identification/*.json", (route) => route.fulfill({ json: {} }));
