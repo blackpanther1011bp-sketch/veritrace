@@ -82,17 +82,14 @@ export function cameraErrorMessage(error: unknown): string {
 
 type ZoomCapabilities = MediaTrackCapabilities & { zoom?: { min: number; max: number }; focusMode?: string[] };
 
-/**
- * Règle la caméra pour les petits codes-barres : mise au point continue et zoom ×2 quand le téléphone le permet
- * (on tient alors le téléphone plus loin, là où l'objectif fait le point). Sans effet si ce n'est pas pris en charge.
- */
-export async function tuneForBarcodes(stream: MediaStream): Promise<void> {
+/** Mise au point continue et zoom (jusqu'à la valeur demandée) quand le téléphone le permet. Sans effet sinon. */
+async function tune(stream: MediaStream, zoom: number): Promise<void> {
   const track = stream.getVideoTracks()[0];
   if (!track || typeof track.getCapabilities !== "function") return;
   const caps = track.getCapabilities() as ZoomCapabilities;
   const advanced: Record<string, unknown>[] = [];
   if (caps.focusMode?.includes("continuous")) advanced.push({ focusMode: "continuous" });
-  if (caps.zoom && caps.zoom.max >= 1.5) advanced.push({ zoom: Math.min(2, caps.zoom.max) });
+  if (caps.zoom && caps.zoom.max >= 1.5) advanced.push({ zoom: Math.min(zoom, caps.zoom.max) });
   for (const constraint of advanced) {
     try {
       await track.applyConstraints({ advanced: [constraint as MediaTrackConstraintSet] });
@@ -100,6 +97,22 @@ export async function tuneForBarcodes(stream: MediaStream): Promise<void> {
       // réglage refusé par ce téléphone : on garde l'image telle quelle
     }
   }
+}
+
+/**
+ * Règle la caméra pour les petits codes-barres : mise au point continue et zoom ×2 quand le téléphone le permet
+ * (on tient alors le téléphone plus loin, là où l'objectif fait le point).
+ */
+export function tuneForBarcodes(stream: MediaStream): Promise<void> {
+  return tune(stream, 2);
+}
+
+/**
+ * Règle la caméra pour le texte d'une étiquette cousue (lettres de 1 à 2 mm) : zoom ×3. De trop près, l'objectif d'un
+ * téléphone ne fait plus le point ; à 10-15 cm sans zoom, les lettres sont trop petites dans l'image pour être lues.
+ */
+export function tuneForSmallText(stream: MediaStream): Promise<void> {
+  return tune(stream, 3);
 }
 
 type TorchCapabilities = MediaTrackCapabilities & { torch?: boolean };

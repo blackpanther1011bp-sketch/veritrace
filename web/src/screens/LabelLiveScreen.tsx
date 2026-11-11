@@ -2,7 +2,7 @@ import { useEffect, useReducer, useRef, useState } from "react";
 import { GradeBadge } from "../components/Grade";
 import { IconBack, IconCamera, IconChevron } from "../components/Icons";
 import { badgeOrigin, mapToView, type Box, type Size } from "../lib/arGeometry";
-import { cameraErrorMessage, openBackCamera, setTorch, torchAvailable } from "../lib/camera";
+import { cameraErrorMessage, openBackCamera, setTorch, torchAvailable, tuneForSmallText } from "../lib/camera";
 import { CATEGORIES } from "../lib/contribute";
 import { VERDICT } from "../lib/grades";
 import { identify } from "../lib/identify";
@@ -24,7 +24,9 @@ import type { Product } from "../lib/types";
 const BADGE: Size = { width: 260, height: 72 };
 const TOP_RESERVED = 72;
 const BOTTOM_RESERVED = 230;
-const MAX_SIDE = 1280; // taille de l'image analysée : assez nette pour lire, assez petite pour aller vite
+const MAX_SIDE = 1700; // taille de l'image analysée : assez nette pour lire, assez petite pour aller vite
+/** Sans lecture au bout de ce délai, on propose la photo (plus précise : appareil photo du téléphone, mode macro). */
+const SLOW_AFTER_MS = 12000;
 const RETRY_AFTER_MS = 4000;
 const CATEGORY_KEY = "vt_live_category";
 
@@ -48,7 +50,7 @@ function savedCategory(): string | null {
 }
 
 /** Zone analysée, en fraction de l'écran : autour du cadre de visée (texte plus grand, lecture plus rapide). */
-const ZONE = { x0: 0.04, y0: 0.13, x1: 0.96, y1: 0.7 };
+const ZONE = { x0: 0.06, y0: 0.2, x1: 0.94, y1: 0.6 };
 
 /** Zone de visée de la vidéo (affichage « cover »), réduite si besoin pour la lecture. */
 function grabVisible(video: HTMLVideoElement, view: Size, canvas: HTMLCanvasElement): Frame | null {
@@ -101,6 +103,8 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
   const [box, setBox] = useState<Box | null>(null);
   const [product, setProduct] = useState<Product | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  // la lecture en direct n'aboutit pas : on met la photo en avant
+  const [slow, setSlow] = useState(false);
 
   // valeurs lues par la boucle de lecture (qui tourne hors du rendu React)
   const live = useRef({ category, phase, lastSentAt: 0, lastSent: "" });
@@ -122,6 +126,12 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
       alive = false;
     };
   }, [ean]);
+
+  useEffect(() => {
+    if (!engineReady || phase !== "scanning") return;
+    const id = window.setTimeout(() => setSlow(true), SLOW_AFTER_MS);
+    return () => window.clearTimeout(id);
+  }, [engineReady, phase]);
 
   useEffect(() => {
     let cancelled = false;
@@ -208,7 +218,8 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
     async function start() {
       let stream: MediaStream;
       try {
-        stream = await openBackCamera({ width: 1920, height: 1080 });
+        // la plus haute définition possible : les lettres d'une étiquette cousue font 1 à 2 mm
+        stream = await openBackCamera({ width: 3840, height: 2160 });
       } catch (error) {
         if (!cancelled) {
           setCameraError(cameraErrorMessage(error));
@@ -221,6 +232,7 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
         return;
       }
       streamRef.current = stream;
+      await tuneForSmallText(stream);
       const video = videoRef.current;
       if (!video) return;
       video.srcObject = stream;
@@ -273,6 +285,7 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
     setMessage(null);
     setPreview(null);
     setSeen(false);
+    setSlow(false);
     live.current.lastSent = "";
     setPhase("scanning");
   }
@@ -318,10 +331,10 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
           phase === "scanning" && (
             <rect
               className="live-guide"
-              x={view.width * (ZONE.x0 + 0.04)}
-              y={view.height * (ZONE.y0 + 0.06)}
-              width={view.width * (ZONE.x1 - ZONE.x0 - 0.08)}
-              height={view.height * (ZONE.y1 - ZONE.y0 - 0.12)}
+              x={view.width * (ZONE.x0 + 0.02)}
+              y={view.height * (ZONE.y0 + 0.02)}
+              width={view.width * (ZONE.x1 - ZONE.x0 - 0.04)}
+              height={view.height * (ZONE.y1 - ZONE.y0 - 0.04)}
               rx="18"
             />
           )
@@ -405,7 +418,7 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
           ) : (
             <>
               <p className="ar-hint" aria-live="polite">
-                {hint}
+                {slow && !message && category ? t("live.slow") : hint}
               </p>
               <div className="live-chips" role="radiogroup" aria-label={t("live.typeGroup")}>
                 {CATEGORIES.map((c) => (
@@ -414,7 +427,7 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
                   </button>
                 ))}
               </div>
-              <button type="button" className="btn btn-text live-photo" onClick={() => navigate(ean ? `/etiquette/${ean}` : "/etiquette")}>
+              <button type="button" className={slow ? "btn btn-primary live-photo" : "btn btn-text live-photo"} onClick={() => navigate(ean ? `/etiquette/${ean}` : "/etiquette")}>
                 <IconCamera size={18} /> {t("common.takePhotoInstead")}
               </button>
             </>

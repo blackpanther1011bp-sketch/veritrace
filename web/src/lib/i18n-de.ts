@@ -301,12 +301,13 @@ export const de: Dict = {
 
   // Etikett live
   "live.title": "Eingenähtes Etikett anvisieren",
-  "live.imprecise": "Ungenau gelesen: Geh näher heran und halte das Etikett flach.",
+  "live.imprecise": "Ungenau gelesen: Halte das Etikett flach und scharf, in 10–15 cm Abstand.",
   "live.engineFailed": "Die Texterkennung konnte nicht geladen werden: Prüfe die Internetverbindung.",
   "live.preparing": "Lesen wird vorbereitet (beim ersten Mal etwa 5 MB)…",
   "live.computing": "Zusammensetzung gelesen: Note wird mit Ecobalyse berechnet…",
   "live.chooseType": "Zusammensetzung gelesen: {composition}. Wähle die Art des Kleidungsstücks.",
-  "live.readingProgress": "Wird gelesen… Geh näher heran und halte das Etikett scharf.",
+  "live.readingProgress": "Wird gelesen… Halte das Etikett scharf, in 10–15 cm Abstand: Zu nah wird das Bild unscharf.",
+  "live.slow": "Das Live-Lesen klappt nicht. Mach lieber ein Foto: Es ist genauer.",
   "live.aim": "Richte die Kamera auf das Etikett mit der Zusammensetzung (z. B. „100 % Baumwolle“). Die Note erscheint darauf.",
   "live.badgeAria": "Note {grade}: {title}",
   "live.computingGrade": "Note wird berechnet",

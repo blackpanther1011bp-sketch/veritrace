@@ -301,12 +301,13 @@ export const en: Dict = {
 
   // Live label
   "live.title": "Point at the sewn-in label",
-  "live.imprecise": "Unclear reading: move closer and keep the label flat.",
+  "live.imprecise": "Unclear reading: keep the label flat and sharp, 10–15 cm away.",
   "live.engineFailed": "The reading engine could not load: check the internet connection.",
   "live.preparing": "Preparing to read (about 5 MB the first time)…",
   "live.computing": "Composition read: calculating the rating with Ecobalyse…",
   "live.chooseType": "Composition read: {composition}. Choose the type of garment.",
-  "live.readingProgress": "Reading… Move closer and keep the label sharp.",
+  "live.readingProgress": "Reading… Keep the label sharp, 10–15 cm away: too close and the image blurs.",
+  "live.slow": "Live reading is not getting there. Take a photo instead: it is more accurate.",
   "live.aim": "Point at the composition label (e.g. “100% cotton”). The rating appears on it.",
   "live.badgeAria": "Rating {grade}: {title}",
   "live.computingGrade": "Calculating the rating",

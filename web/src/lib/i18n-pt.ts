@@ -301,12 +301,13 @@ export const pt: Dict = {
 
   // Etiqueta em direto
   "live.title": "Aponta para a etiqueta cosida",
-  "live.imprecise": "Leitura imprecisa: aproxima-te e mantém a etiqueta bem plana.",
+  "live.imprecise": "Leitura imprecisa: mantém a etiqueta plana e nítida, a 10-15 cm.",
   "live.engineFailed": "Não foi possível carregar o motor de leitura: verifica a ligação à internet.",
   "live.preparing": "A preparar a leitura (cerca de 5 MB da primeira vez)…",
   "live.computing": "Composição lida: a calcular a nota com o Ecobalyse…",
   "live.chooseType": "Composição lida: {composition}. Escolhe o tipo de peça.",
-  "live.readingProgress": "A ler… Aproxima-te e mantém a etiqueta nítida.",
+  "live.readingProgress": "A ler… Mantém a etiqueta nítida, a 10-15 cm: demasiado perto, a imagem fica desfocada.",
+  "live.slow": "A leitura em direto não está a conseguir. Tira antes uma fotografia: é mais precisa.",
   "live.aim": "Aponta para a etiqueta de composição (ex. «100 % algodão»). A nota aparece por cima.",
   "live.badgeAria": "Nota {grade}: {title}",
   "live.computingGrade": "A calcular a nota",

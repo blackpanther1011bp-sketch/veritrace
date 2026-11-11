@@ -301,12 +301,13 @@ export const it: Dict = {
 
   // Etichetta in diretta
   "live.title": "Inquadra l'etichetta cucita",
-  "live.imprecise": "Lettura imprecisa: avvicinati e tieni l'etichetta ben distesa.",
+  "live.imprecise": "Lettura imprecisa: tieni l'etichetta distesa e nitida, a 10-15 cm.",
   "live.engineFailed": "Non è stato possibile caricare il motore di lettura: controlla la connessione a internet.",
   "live.preparing": "Preparazione della lettura (circa 5 MB la prima volta)…",
   "live.computing": "Composizione letta: calcolo del voto con Ecobalyse…",
   "live.chooseType": "Composizione letta: {composition}. Scegli il tipo di capo.",
-  "live.readingProgress": "Lettura in corso… Avvicinati e tieni l'etichetta nitida.",
+  "live.readingProgress": "Lettura in corso… Tieni l'etichetta nitida, a 10-15 cm: troppo vicino, l'immagine diventa sfocata.",
+  "live.slow": "La lettura in diretta non ci riesce. Scatta piuttosto una foto: è più precisa.",
   "live.aim": "Inquadra l'etichetta di composizione (es. «100 % cotone»). Il voto compare sopra.",
   "live.badgeAria": "Voto {grade}: {title}",
   "live.computingGrade": "Calcolo del voto",

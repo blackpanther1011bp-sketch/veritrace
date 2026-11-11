@@ -307,12 +307,13 @@ export const fr = {
 
   // Étiquette en direct
   "live.title": "Visez l'étiquette cousue",
-  "live.imprecise": "Lecture imprécise : rapprochez-vous et gardez l'étiquette bien à plat.",
+  "live.imprecise": "Lecture imprécise : gardez l'étiquette bien à plat, nette, à 10-15 cm.",
   "live.engineFailed": "Le moteur de lecture n'a pas pu se charger : vérifiez la connexion Internet.",
   "live.preparing": "Préparation de la lecture (environ 5 Mo la première fois)…",
   "live.computing": "Composition lue : calcul de la note avec Ecobalyse…",
   "live.chooseType": "Composition lue : {composition}. Choisissez le type de vêtement.",
-  "live.readingProgress": "Lecture en cours… Rapprochez-vous et gardez l'étiquette nette.",
+  "live.readingProgress": "Lecture en cours… Gardez l'étiquette nette, à 10-15 cm : de trop près, l'image devient floue.",
+  "live.slow": "La lecture en direct n'y arrive pas. Prenez plutôt une photo : elle est plus précise.",
   "live.aim": "Visez l'étiquette de composition (ex. « 100 % coton »). La note s'affiche dessus.",
   "live.badgeAria": "Note {grade} : {title}",
   "live.computingGrade": "Calcul de la note",
