@@ -22,7 +22,7 @@ Deux résultats sont conservés :
 
 La plupart des vêtements réels de l'application viennent du **registre officiel** publié par l'État sur
 data.gouv.fr (« Affichage environnemental des vêtements », Licence Ouverte 2.0, mis à jour chaque mois) :
-plus de 570 000 codes-barres déclarés par 150 marques (Kiabi, Gémo, Okaïdi, Jules, Celio, Promod, Jacadi…).
+plus de 970 000 codes-barres déclarés par 190 marques (Levi's, Kiabi, La Halle, La Redoute, Jules, Celio, Jacadi… ; chiffres du 11 novembre 2026).
 
 Pour chaque code-barres, la marque y déclare le coût environnemental calculé avec Ecobalyse, le coût pour 100 g,
 la durabilité, l'impact climat et la répartition par étape. VeriTrace reprend ces valeurs telles quelles :

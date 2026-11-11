@@ -3,7 +3,7 @@
 Les notes des produits réels sont calculées automatiquement avec **Ecobalyse**, la méthode officielle française
 d'affichage environnemental des vêtements. Vous saisissez ce que vous savez du vêtement ; la base s'occupe du reste.
 
-> Plus de 570 000 vêtements du **registre officiel** (Kiabi, Gémo, Okaïdi, Jules, Celio, Promod…) sont déjà
+> Plus de 970 000 vêtements du **registre officiel** (Levi's, Kiabi, La Halle, La Redoute, Jules, Celio…) sont déjà
 > chargés et se mettent à jour seuls chaque mois : rien à saisir pour eux (voir `methode-notation.md`).
 > Les étapes ci-dessous servent aux vêtements absents du registre, par exemple ceux des marques marocaines.
 > Un produit saisi ici prime sur le registre pour le même code-barres.
