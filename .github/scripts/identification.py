@@ -28,9 +28,9 @@ csv.field_size_limit(10**9)
 # Types de vêtement de VeriTrace (mêmes libellés que web/src/lib/contribute.ts), du plus précis au plus général.
 TYPES = [
     ("Maillot de bain", r"maillot de bain|\bswim|bikini|short de bain"),
+    ("Sweat", r"sweat|hoodie"),
     ("T-shirt", r"t-?shirt|tee-?shirt|\btee\b|debardeur|tank top|\bmaillots?\b|jersey"),
     ("Polo", r"\bpolos?\b"),
-    ("Sweat", r"sweat|hoodie"),
     ("Blouse", r"blouse|chemisier|tunique"),
     ("Chemise", r"chemise|\bshirts?\b"),
     ("Robe", r"\brobes?\b|\bdress(es)?\b"),
