@@ -58,6 +58,15 @@ const mixBox = (a: Box, b: Box, k: number): Box => ({
 const boxGap = (a: Box, b: Box) =>
   Math.max(Math.abs(a.left - b.left), Math.abs(a.top - b.top), Math.abs(a.right - b.right), Math.abs(a.bottom - b.bottom));
 const pad = (b: Box, by: number): Box => ({ left: b.left - by, top: b.top - by, right: b.right + by, bottom: b.bottom + by });
+const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+/** Inclinaison du code-barres dans l'image, en degrés (0 quand il est droit ; ignorée au-delà de 35°). */
+function rollOf(points: ReadonlyArray<Pt>): number {
+  if (points.length < 2) return 0;
+  let a = (Math.atan2(points[1].y - points[0].y, points[1].x - points[0].x) * 180) / Math.PI;
+  while (a >= 90) a -= 180;
+  while (a < -90) a += 180;
+  return Math.abs(a) > 35 ? 0 : a;
+}
 const reducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /** Les quatre coins du viseur, tracés autour d'un cadre. */
@@ -87,6 +96,8 @@ export default function ArScanScreen() {
   const smoothRef = useRef(new Map<string, Box>());
   const reticleRef = useRef<Box | null>(null);
   const reticleTargetRef = useRef<Box | null>(null);
+  // inclinaison lissée du code visé : le panneau penche avec l'étiquette
+  const rollRef = useRef(0);
   const [status, setStatus] = useState<"starting" | "running" | "error">("starting");
   const [errorMessage, setErrorMessage] = useState("");
   const [torch, setTorchState] = useState({ available: false, on: false });
@@ -247,6 +258,12 @@ export default function ArScanScreen() {
           moved = true;
         }
       }
+      const aimed = primaryRef.current ? trackedRef.current.get(primaryRef.current) : undefined;
+      const roll = !still && aimed && isVisible(aimed) ? rollOf(aimed.points) : 0;
+      if (Math.abs(roll - rollRef.current) > 0.15) {
+        rollRef.current = mix(rollRef.current, roll, kReticle);
+        moved = true;
+      }
       if (moved) rerender();
       raf = requestAnimationFrame(frame);
     };
@@ -330,14 +347,23 @@ export default function ArScanScreen() {
   const grade: Grade | null = primary?.tracked.lookup === "found" ? primary.tracked.product!.global_grade : null;
   const hue = grade ? GRADE_COLOR[grade] : MINT;
   const badgeAt = primary && primary.key !== cardEan ? place(primary.box, BADGE, LEADER) : null;
-  // trait de liaison entre le code-barres et son badge
-  let leader: { from: Pt; to: Pt } | null = null;
+  // faisceau de lumière : le panneau est « projeté » depuis le code-barres
+  let beam: { y0: number; y1: number; points: string; anchor: Pt } | null = null;
   if (primary && badgeAt && reticle) {
     const cx = (reticle.left + reticle.right) / 2;
-    const x = Math.min(Math.max(cx, badgeAt.x + 24), badgeAt.x + BADGE.width - 24);
-    if (badgeAt.y + BADGE.height <= reticle.top - 6) leader = { from: { x: cx, y: reticle.top }, to: { x, y: badgeAt.y + BADGE.height } };
-    else if (badgeAt.y >= reticle.bottom + 6) leader = { from: { x: cx, y: reticle.bottom }, to: { x, y: badgeAt.y } };
+    const half = Math.min(46, (reticle.right - reticle.left) / 4);
+    const [l, r] = [badgeAt.x + 22, badgeAt.x + BADGE.width - 22];
+    const cone = (from: number, to: number) => ({ y0: from, y1: to, points: `${cx - half},${from} ${cx + half},${from} ${r},${to} ${l},${to}`, anchor: { x: cx, y: from } });
+    if (badgeAt.y + BADGE.height <= reticle.top - 6) beam = cone(reticle.top, badgeAt.y + BADGE.height);
+    else if (badgeAt.y >= reticle.bottom + 6) beam = cone(reticle.bottom, badgeAt.y);
   }
+  // relief : le panneau pivote selon la place du code dans l'image et penche avec l'étiquette
+  const tiltOf = (box: Box, strength = 1) => {
+    if (reducedMotion() || view.width === 0) return "";
+    const ry = clamp(((box.left + box.right) / 2 - view.width / 2) / (view.width / 2), -1, 1) * 16 * strength;
+    const rx = -clamp(((box.top + box.bottom) / 2 - center.y) / (view.height / 2), -1, 1) * 12 * strength;
+    return ` perspective(640px) rotateX(${rx.toFixed(1)}deg) rotateY(${ry.toFixed(1)}deg) rotateZ(${(rollRef.current * strength).toFixed(1)}deg)`;
+  };
 
   return (
     <div className="ar" ref={rootRef}>
@@ -378,10 +404,16 @@ export default function ArScanScreen() {
               />
             )}
             <path className="ar-reticle" d={corners(reticle)} />
-            {leader && (
+            {beam && (
               <>
-                <line className="ar-leader" x1={leader.from.x} y1={leader.from.y} x2={leader.to.x} y2={leader.to.y} />
-                <circle className="ar-anchor" cx={leader.from.x} cy={leader.from.y} r="4" />
+                <defs>
+                  <linearGradient id="ar-beam-fill" gradientUnits="userSpaceOnUse" x1="0" y1={beam.y0} x2="0" y2={beam.y1}>
+                    <stop offset="0" stopColor="currentColor" stopOpacity="0.55" />
+                    <stop offset="1" stopColor="currentColor" stopOpacity="0.06" />
+                  </linearGradient>
+                </defs>
+                <polygon className="ar-cone" points={beam.points} fill="url(#ar-beam-fill)" />
+                <circle className="ar-anchor" cx={beam.anchor.x} cy={beam.anchor.y} r="4" />
               </>
             )}
           </>
@@ -399,6 +431,7 @@ export default function ArScanScreen() {
           tracked={primary.tracked}
           best={primary.key === bestEan}
           origin={badgeAt}
+          tilt={tiltOf(primary.box)}
           onOpen={() => open(primary.tracked)}
         />
       )}
@@ -407,6 +440,7 @@ export default function ArScanScreen() {
           tracked={cardTracked}
           best={cardTracked.ean === bestEan && comparison !== null}
           origin={place(cardTracked.lastBox, CARD)}
+          tilt={tiltOf(cardTracked.lastBox, 0.5)}
           onClose={() => setCardEan(null)}
         />
       )}
@@ -548,7 +582,7 @@ function Crown({ size = 20 }: { size?: number }) {
  * Fiche enrichie accrochée au code-barres : verdict, répartition de l'impact, pays, composition et meilleure
  * alternative, sans quitter la caméra.
  */
-function ArCard({ tracked, best, origin, onClose }: { tracked: Tracked; best: boolean; origin: Pt; onClose: () => void }) {
+function ArCard({ tracked, best, origin, tilt, onClose }: { tracked: Tracked; best: boolean; origin: Pt; tilt: string; onClose: () => void }) {
   const p = tracked.product!;
   const bars = [...p.carbon_breakdown].sort((a, b) => b.share - a.share).slice(0, 3);
   const alts = tracked.alternatives;
@@ -556,7 +590,7 @@ function ArCard({ tracked, best, origin, onClose }: { tracked: Tracked; best: bo
   return (
     <section
       className="ar-card"
-      style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)`, "--hue": GRADE_COLOR[p.global_grade] } as React.CSSProperties}
+      style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)${tilt}`, "--hue": GRADE_COLOR[p.global_grade] } as React.CSSProperties}
       aria-label={tr("ar.cardAria", { name: p.name, grade: p.global_grade })}
     >
       <div className="ar-card-head">
@@ -663,7 +697,11 @@ function GradeRing({ tracked, size = 52 }: { tracked: Tracked; size?: number }) 
       {tracked.lookup === "loading" ? null : tracked.lookup === "error" ? (
         <span className="ar-offline" aria-hidden="true">!</span>
       ) : (
-        <GradeBadge grade={tracked.product?.global_grade ?? null} size={size - 14} round />
+        <>
+          <GradeBadge grade={tracked.product?.global_grade ?? null} size={size - 14} round />
+          {/* anneau qui tourne autour de la note, comme sur le panneau 3D */}
+          {tracked.lookup === "found" && <span className="ar-orbit" aria-hidden="true" />}
+        </>
       )}
     </span>
   );
@@ -671,7 +709,7 @@ function GradeRing({ tracked, size = 52 }: { tracked: Tracked; size?: number }) 
 
 const hueOf = (t: Tracked) => (t.lookup === "found" && t.product ? GRADE_COLOR[t.product.global_grade] : t.lookup === "error" || t.lookup === "missing" ? "#c9d4cd" : MINT);
 
-function ArBadge({ tracked, origin, onOpen, best = false }: { tracked: Tracked; origin: Pt; onOpen: () => void; best?: boolean }) {
+function ArBadge({ tracked, origin, tilt, onOpen, best = false }: { tracked: Tracked; origin: Pt; tilt: string; onOpen: () => void; best?: boolean }) {
   const { title, subtitle } = describe(tracked);
   const p = tracked.lookup === "found" ? tracked.product : null;
   const cost = useCountUp(p?.eco_cost ?? null);
@@ -682,7 +720,7 @@ function ArBadge({ tracked, origin, onOpen, best = false }: { tracked: Tracked; 
     <button
       type="button"
       className={best ? "ar-badge ar-best" : "ar-badge"}
-      style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)`, "--hue": hueOf(tracked) } as React.CSSProperties}
+      style={{ transform: `translate(${Math.round(origin.x)}px, ${Math.round(origin.y)}px)${tilt}`, "--hue": hueOf(tracked) } as React.CSSProperties}
       onClick={onOpen}
       aria-label={`${title}. ${subtitle}${best ? `. ${tr("ar.bestScanned")}` : ""}`}
     >

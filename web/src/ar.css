@@ -30,6 +30,12 @@
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
   box-shadow: 0 0 26px color-mix(in srgb, var(--hue) 32%, transparent), 0 10px 30px rgba(0, 0, 0, 0.45);
 }
+/* le panneau flotte doucement (propriété « translate » : indépendante du placement par transform) */
+.ar-badge { animation: ar-unfold 0.38s cubic-bezier(0.2, 0.8, 0.2, 1), ar-float 3.2s ease-in-out 0.4s infinite; }
+@keyframes ar-float { 50% { translate: 0 -5px; } }
+/* anneau en orbite autour de la note, comme sur le panneau 3D */
+.ar-orbit { position: absolute; inset: -3px; border-radius: 50%; border: 2px solid var(--hue); box-shadow: 0 0 8px var(--hue); animation: ar-orbit 2.8s linear infinite; pointer-events: none; }
+@keyframes ar-orbit { from { transform: perspective(160px) rotateY(0deg); } to { transform: perspective(160px) rotateY(360deg); } }
 
 /* Viseur */
 .ar-reticle { fill: none; stroke: currentColor; stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 6px currentColor); transition: stroke 0.3s ease; }
@@ -40,7 +46,6 @@
 @keyframes ar-beam { to { transform: translateY(var(--travel)); } }
 .ar-pulse { fill: none; stroke: currentColor; stroke-width: 2; transform-box: fill-box; transform-origin: center; opacity: 0; animation: ar-pulse 0.7s ease-out; }
 @keyframes ar-pulse { from { transform: scale(0.5); opacity: 0.9; } to { transform: scale(1.7); opacity: 0; } }
-.ar-leader { stroke: currentColor; stroke-width: 1.5; opacity: 0.85; }
 .ar-anchor { fill: currentColor; filter: drop-shadow(0 0 5px currentColor); }
 /* Le bord de l'image prend la couleur de la note */
 .ar-aura { position: absolute; inset: 0; pointer-events: none; box-shadow: inset 0 0 90px 4px currentColor; transition: opacity 0.5s ease, color 0.5s ease; }
@@ -59,7 +64,6 @@
   text-align: start;
   cursor: pointer;
   will-change: transform;
-  animation: ar-unfold 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .ar-badge .row-chevron { color: #c9d4cd; }
 .ar-pill {
@@ -91,7 +95,8 @@
 .ar-ring-loading circle { animation: none; stroke-dashoffset: calc(var(--len) * 0.7); }
 .ar-ring-error circle { stroke: #e0614b; }
 @media (prefers-reduced-motion: reduce) {
-  .ar-badge, .ar-pill, .ar-card, .ar-ring circle, .ar-beam, .ar-pulse, .ar-card-track span { animation: none; }
+  .ar-badge, .ar-pill, .ar-card, .ar-ring circle, .ar-beam, .ar-pulse, .ar-card-track span, .ar-orbit { animation: none; }
+  .ar-orbit { display: none; }
   .ar-overlay:not(.ar-locked) .ar-reticle { animation: none; }
   .ar-ring-loading svg { animation: ar-spin 2s linear infinite; }
 }
