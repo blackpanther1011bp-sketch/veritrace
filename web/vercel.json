@@ -1,5 +1,9 @@
 {
   "rewrites": [
+    {
+      "source": "/identification/:file(\\d{4}\\.json)",
+      "destination": "https://raw.githubusercontent.com/blackpanther1011bp-sketch/veritrace/donnees-identification/data/identification/id/:file"
+    },
     { "source": "/passeport/:id([0-9a-f]{12})", "destination": "/api/passeport" },
     {
       "source": "/01/:path*",

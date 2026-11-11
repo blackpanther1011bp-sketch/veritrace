@@ -234,6 +234,9 @@ export const pt: Dict = {
   // Não encontrada
   "notFound.title": "Artigo ainda não registado",
   "notFound.text": "Este código de barras ainda não está na nossa base. Fotografa a etiqueta cosida da peça: a nota é calculada de imediato.",
+  "notFound.knownTitle": "Peça reconhecida, ainda sem nota",
+  "notFound.knownText": "Conhecemos esta peça, mas ainda não o seu impacto. Lê a etiqueta cosida: a nota é calculada de imediato.",
+  "notFound.knownSource": "Nome fornecido pela Nudger (dados abertos, CC BY 4.0). Pode ser impreciso.",
   "notFound.live": "Apontar para a etiqueta: nota em direto",
   "notFound.photo": "Ou tirar uma fotografia da etiqueta",
   "notFound.manual": "Ou escrever a etiqueta à mão",

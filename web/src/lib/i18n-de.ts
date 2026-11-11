@@ -234,6 +234,9 @@ export const de: Dict = {
   // Nicht gefunden
   "notFound.title": "Artikel noch nicht erfasst",
   "notFound.text": "Dieser Strichcode ist noch nicht in unserer Datenbank. Fotografiere das eingenähte Etikett des Kleidungsstücks: Die Note wird sofort berechnet.",
+  "notFound.knownTitle": "Kleidungsstück erkannt, noch nicht bewertet",
+  "notFound.knownText": "Wir kennen dieses Kleidungsstück, aber noch nicht seine Umweltwirkung. Lies das eingenähte Etikett: Die Note wird sofort berechnet.",
+  "notFound.knownSource": "Name von Nudger (offene Daten, CC BY 4.0). Er kann ungenau sein.",
   "notFound.live": "Etikett anvisieren: Note in Echtzeit",
   "notFound.photo": "Oder ein Foto des Etiketts machen",
   "notFound.manual": "Oder das Etikett von Hand eingeben",

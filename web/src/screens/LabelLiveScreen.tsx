@@ -5,6 +5,7 @@ import { badgeOrigin, mapToView, type Box, type Size } from "../lib/arGeometry";
 import { cameraErrorMessage, openBackCamera, setTorch, torchAvailable } from "../lib/camera";
 import { CATEGORIES } from "../lib/contribute";
 import { VERDICT } from "../lib/grades";
+import { identify } from "../lib/identify";
 import { t, tv } from "../lib/i18n";
 import { compositionInText, labelLines, type Rect } from "../lib/labelLive";
 import { createOcrWorker } from "../lib/ocr";
@@ -108,6 +109,18 @@ export default function LabelLiveScreen({ ean }: { ean: string | null }) {
 
   useEffect(() => {
     track("label_live_start", ean ? { ean } : {});
+  }, [ean]);
+
+  // vêtement reconnu par son code-barres : type prérempli si rien n'est encore choisi
+  useEffect(() => {
+    if (!ean) return;
+    let alive = true;
+    void identify(ean).then((found) => {
+      if (alive && found?.category) setCategory((current) => current ?? found.category);
+    });
+    return () => {
+      alive = false;
+    };
   }, [ean]);
 
   useEffect(() => {

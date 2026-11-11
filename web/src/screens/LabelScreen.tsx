@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Header } from "../components/Header";
 import { IconCamera, IconInfo } from "../components/Icons";
 import { formatEan } from "../lib/barcode";
+import { identify } from "../lib/identify";
 import { t, tv } from "../lib/i18n";
 import { CATEGORIES, compressPhoto } from "../lib/contribute";
 import { readTextFromPhoto } from "../lib/ocr";
@@ -28,6 +29,20 @@ export function LabelScreen({ ean }: { ean: string | null }) {
 
   useEffect(() => {
     track("label_start", ean ? { ean } : {});
+  }, [ean]);
+
+  // vêtement reconnu par son code-barres : marque et type préremplis (modifiables)
+  useEffect(() => {
+    if (!ean) return;
+    let alive = true;
+    void identify(ean).then((found) => {
+      if (!alive || !found) return;
+      setBrand((current) => current || found.brand);
+      if (found.category) setCategory((current) => current || found.category!);
+    });
+    return () => {
+      alive = false;
+    };
   }, [ean]);
 
   useEffect(() => {

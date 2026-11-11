@@ -234,6 +234,9 @@ export const en: Dict = {
   // Not found
   "notFound.title": "Item not listed yet",
   "notFound.text": "This barcode is not in our database yet. Photograph the garment’s sewn-in label: its rating is calculated right away.",
+  "notFound.knownTitle": "Garment recognised, not rated yet",
+  "notFound.knownText": "We know this garment, but not its impact yet. Read its sewn-in label: the rating is calculated right away.",
+  "notFound.knownSource": "Name provided by Nudger (open data, CC BY 4.0). It may be inaccurate.",
   "notFound.live": "Point at the label: live rating",
   "notFound.photo": "Or take a photo of the label",
   "notFound.manual": "Or type the label by hand",

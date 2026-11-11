@@ -234,6 +234,9 @@ export const it: Dict = {
   // Non trovato
   "notFound.title": "Articolo non ancora presente",
   "notFound.text": "Questo codice a barre non è ancora nella nostra base dati. Fotografa l'etichetta cucita del capo: il voto viene calcolato subito.",
+  "notFound.knownTitle": "Capo riconosciuto, non ancora valutato",
+  "notFound.knownText": "Conosciamo questo capo, ma non ancora il suo impatto. Leggi l'etichetta cucita: il voto viene calcolato subito.",
+  "notFound.knownSource": "Nome fornito da Nudger (dati aperti, CC BY 4.0). Può essere impreciso.",
   "notFound.live": "Inquadra l'etichetta: voto in diretta",
   "notFound.photo": "Oppure scatta una foto dell'etichetta",
   "notFound.manual": "Oppure inserisci l'etichetta a mano",

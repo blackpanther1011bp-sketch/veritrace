@@ -237,6 +237,9 @@ export const fr = {
   "notFound.title": "Article pas encore référencé",
   "notFound.text":
     "Ce code-barres n'est pas encore dans notre base. Photographiez l'étiquette cousue du vêtement : sa note est calculée tout de suite.",
+  "notFound.knownTitle": "Vêtement reconnu, pas encore noté",
+  "notFound.knownText": "Nous connaissons ce vêtement, mais pas encore son impact. Lisez son étiquette cousue : la note est calculée tout de suite.",
+  "notFound.knownSource": "Nom fourni par Nudger (données ouvertes, CC BY 4.0). Il peut être imprécis.",
   "notFound.live": "Viser l'étiquette : note en direct",
   "notFound.photo": "Ou prendre une photo de l'étiquette",
   "notFound.manual": "Ou saisir l'étiquette à la main",

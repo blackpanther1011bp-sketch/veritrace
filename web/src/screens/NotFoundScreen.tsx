@@ -1,15 +1,30 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Header } from "../components/Header";
 import { IconCamera, IconCheck, IconUnknownTag } from "../components/Icons";
 import { reportMissingProduct } from "../lib/api";
 import { formatEan } from "../lib/barcode";
 import { t } from "../lib/i18n";
+import { identify, type Identified } from "../lib/identify";
 import { navigate } from "../lib/router";
 import { track } from "../lib/track";
 
 export function NotFoundScreen({ ean }: { ean: string }) {
   const [brand, setBrand] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  // vêtement absent du registre mais reconnu (marque et nom) par la base ouverte de codes-barres
+  const [known, setKnown] = useState<Identified | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    void identify(ean).then((found) => {
+      if (!alive || !found) return;
+      setKnown(found);
+      setBrand((current) => current || found.brand);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [ean]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -31,8 +46,15 @@ export function NotFoundScreen({ ean }: { ean: string }) {
           <div className="empty-icon">
             <IconUnknownTag size={40} />
           </div>
-          <h2 className="state-title">{t("notFound.title")}</h2>
-          <p className="muted">{t("notFound.text")}</p>
+          <h2 className="state-title">{known ? t("notFound.knownTitle") : t("notFound.title")}</h2>
+          {known && (
+            <p className="known-product">
+              <span className="known-brand">{known.brand}</span>
+              <span className="known-name">{known.name}</span>
+            </p>
+          )}
+          <p className="muted">{known ? t("notFound.knownText") : t("notFound.text")}</p>
+          {known && <p className="known-source">{t("notFound.knownSource")}</p>}
           <span className="pill-muted">
             <bdi>{t("common.ean", { code: formatEan(ean) })}</bdi>
           </span>

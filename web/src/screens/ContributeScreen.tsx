@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Header } from "../components/Header";
 import { IconCamera, IconCheck } from "../components/Icons";
 import { formatEan } from "../lib/barcode";
+import { identify } from "../lib/identify";
 import { t, tv } from "../lib/i18n";
 import { CATEGORIES, checkComposition, compressPhoto, COUNTRIES, submitContribution, uploadLabelPhoto } from "../lib/contribute";
 import { navigate } from "../lib/router";
@@ -24,6 +25,20 @@ export function ContributeScreen({ ean }: { ean: string }) {
 
   useEffect(() => {
     track("contribution_start", { ean });
+  }, [ean]);
+
+  // vêtement reconnu par son code-barres : marque, nom et type préremplis (modifiables)
+  useEffect(() => {
+    let alive = true;
+    void identify(ean).then((found) => {
+      if (!alive || !found) return;
+      setBrand((current) => current || found.brand);
+      setName((current) => current || found.name);
+      if (found.category) setCategory((current) => current || found.category!);
+    });
+    return () => {
+      alive = false;
+    };
   }, [ean]);
 
   useEffect(() => {
