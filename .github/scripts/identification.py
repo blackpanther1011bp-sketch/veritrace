@@ -28,11 +28,13 @@ csv.field_size_limit(10**9)
 # Types de vêtement de VeriTrace (mêmes libellés que web/src/lib/contribute.ts), du plus précis au plus général.
 TYPES = [
     ("Maillot de bain", r"maillot de bain|\bswim|bikini|short de bain"),
-    ("Sweat", r"sweat|hoodie"),
+    ("Sweat", r"sweat(?!er)|hoodie"),
     ("T-shirt", r"t-?shirt|tee-?shirt|\btee\b|debardeur|tank top|\bmaillots?\b|jersey"),
     ("Polo", r"\bpolos?\b"),
     ("Blouse", r"blouse|chemisier|tunique"),
     ("Chemise", r"chemise|\bshirts?\b"),
+    ("Manteau", r"manteau|parka|doudoune|\bcoats?\b|anorak"),
+    ("Veste", r"\bvestes?\b|blouson|jackets?|blazer"),
     ("Robe", r"\brobes?\b|\bdress(es)?\b"),
     ("Jupe", r"\bjupes?\b|\bskirts?\b"),
     ("Jean", r"\bjeans?\b|denim"),
@@ -40,8 +42,6 @@ TYPES = [
     ("Pantalon", r"pantalon|trousers|\bpants\b|\bchinos?\b|jogging|leggings?|jogger"),
     ("Pull", r"\bpulls?\b|pullover|sweater|jumper"),
     ("Gilet", r"\bgilets?\b|cardigan"),
-    ("Manteau", r"manteau|parka|doudoune|\bcoats?\b|anorak"),
-    ("Veste", r"\bvestes?\b|blouson|jackets?|blazer"),
     ("Chaussettes", r"chaussettes?|\bsocks?\b"),
     ("Boxer / Slip", r"\bboxers?\b|\bslips?\b|calecon|culotte|\bbriefs\b"),
 ]
