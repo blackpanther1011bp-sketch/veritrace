@@ -9,42 +9,20 @@ permissions:
   contents: read
 
 jobs:
-  open-products-facts:
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: donnees-affichage-env
-          path: donnees
-      - name: Télécharger Open Products Facts
-        run: curl -fsSL --retry 3 -o "$RUNNER_TEMP/opf.jsonl.gz" https://static.openproductsfacts.org/data/openproductsfacts-products.jsonl.gz && ls -lh "$RUNNER_TEMP/opf.jsonl.gz"
-      - name: Mesurer
-        run: python3 .github/scripts/explore_sources.py opf "$RUNNER_TEMP/opf.jsonl.gz" donnees/data/registre "$RUNNER_TEMP/opf-vetements.csv.gz" | tee -a "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: opf-vetements
-          path: ${{ runner.temp }}/opf-vetements.csv.gz
-          retention-days: 7
-
   nudger:
     runs-on: ubuntu-latest
-    timeout-minutes: 330
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: donnees-affichage-env
           path: donnees
-      - name: Taille des fichiers
+      # Le site de Nudger refuse les téléchargements depuis GitHub (erreur 403) : on prend la copie déposée par
+      # Nudger sur Zenodo (novembre 2024, licence CC BY 4.0).
+      - name: Télécharger la base Nudger (copie Zenodo)
         run: |
-          curl -sIL https://www.data.gouv.fr/api/1/datasets/r/cda9fce8-f271-4335-b8a5-bdfcc4d99d1c | grep -iE "^HTTP|^location|^content-length|^last-modified" || true
-          curl -sIL https://static.nudger.fr/opendata/gtin-open-data.zip | grep -iE "^HTTP|^content-length|^last-modified|^accept-ranges" || true
-      - name: Télécharger la base Nudger (4 connexions, débit limité par le site)
-        run: |
-          sudo apt-get install -y -qq aria2 > /dev/null
-          aria2c -q -x4 -s4 -k64M --file-allocation=none --timeout=120 --max-tries=8 -d "$RUNNER_TEMP" -o gtin.zip https://static.nudger.fr/opendata/gtin-open-data.zip
+          curl -fL --retry 5 --retry-delay 20 -C - -o "$RUNNER_TEMP/gtin.zip" "https://zenodo.org/records/14035436/files/gtin-open-data.zip?download=1"
           ls -lh "$RUNNER_TEMP/gtin.zip" && unzip -l "$RUNNER_TEMP/gtin.zip"
       - name: Mesurer
         run: unzip -p "$RUNNER_TEMP/gtin.zip" | python3 .github/scripts/explore_sources.py nudger - donnees/data/registre "$RUNNER_TEMP/nudger-vetements.csv.gz" | tee -a "$GITHUB_STEP_SUMMARY"
