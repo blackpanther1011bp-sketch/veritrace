@@ -126,6 +126,10 @@ begin
     if exists (select 1 from public.registry_jobs where batch_id = v_batch.id and kind = 'bloc' and status = 'erreur') then
       update public.registry_batches set status = 'erreur', finished_at = now() where id = v_batch.id;
       v_log := v_log || 'lot ' || v_batch.batch || ' incomplet ; ';
+    elsif (select count(*) from public.registry_seen) < coalesce((v_batch.manifest->>'rows')::int, 0) * 0.95 then
+      -- garde-fou : la liste des codes du lot est incomplète, on ne retire rien
+      update public.registry_batches set status = 'erreur', finished_at = now() where id = v_batch.id;
+      v_log := v_log || 'lot ' || v_batch.batch || ' : liste des codes incomplète ; ';
     else
       delete from public.registry_products p where not exists (select 1 from public.registry_seen s where s.gtin = p.gtin);
       truncate public.registry_seen;
