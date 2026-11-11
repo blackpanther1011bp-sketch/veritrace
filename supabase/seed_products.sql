@@ -79,3 +79,20 @@ join lv m on m.level = v.ml
 join lv f on f.level = v.fl
 join lv t on t.level = v.tl
 join lv tr on tr.level = v.trl;
+
+-- Les valeurs ci-dessus sont des intensités par poste. L'appli les présente comme la répartition de
+-- l'impact (« D'où vient l'impact climat ») : on les ramène à des parts dont le total fait 100 %
+-- (arrondi au plus fort reste).
+with e as (
+  select p.ean, x.ord, x.elem, (x.elem->>'share')::numeric s,
+         sum((x.elem->>'share')::numeric) over (partition by p.ean) tot
+  from public.products p, jsonb_array_elements(p.carbon_breakdown) with ordinality as x(elem, ord)
+  where p.data_source = 'demo'
+), f as (
+  select *, floor(s * 100 / tot) fl, s * 100 / tot - floor(s * 100 / tot) frac from e where tot > 0 and tot <> 100
+), g as (
+  select *, row_number() over (partition by ean order by frac desc, ord) rn, 100 - sum(fl) over (partition by ean) rest from f
+), h as (
+  select ean, jsonb_agg(jsonb_set(elem, '{share}', to_jsonb((fl + case when rn <= rest then 1 else 0 end)::int)) order by ord) nb from g group by ean
+)
+update public.products p set carbon_breakdown = h.nb, updated_at = now() from h where p.ean = h.ean;
