@@ -374,25 +374,28 @@ export async function buildPanelModels(p: Product): Promise<PanelModels> {
   }
 
   // pastille de la note, en avant de la plaque, cerclée d'un anneau
+  // Les emplacements sont inscrits dans la forme elle-même (translate), pas dans la position de l'objet :
+  // sur iPhone, AR Quick Look ignore la position des objets fixes placés sous un objet animé.
   const lift = 0.012;
   const r = layout.coin.r * px;
-  const coin = new THREE.Group();
-  coin.name = "note";
+  const at = { x: mx(layout.coin.x), y: my(layout.coin.y), z: SLAB / 2 + lift };
+  const coinBody = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.006, 48).rotateX(Math.PI / 2).translate(at.x, at.y, at.z), glow(hue, 0.4));
+  coinBody.name = "note";
+  const coinLetter = new THREE.Mesh(new THREE.CircleGeometry(r, 48).translate(at.x, at.y, at.z + 0.0034), face(coinFace));
+  coinLetter.name = "lettre";
+  // l'anneau tourne autour de son centre : il garde une position, portée par son animation
   const ring = new THREE.Mesh(new THREE.TorusGeometry(r + 0.007, 0.0018, 12, 64), neon);
   ring.name = "vt_ring";
-  coin.add(
-    new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.006, 48).rotateX(Math.PI / 2), glow(hue, 0.4)),
-    new THREE.Mesh(new THREE.CircleGeometry(r, 48).translate(0, 0, 0.0034), face(coinFace)),
-    ring,
-  );
-  coin.position.set(mx(layout.coin.x), my(layout.coin.y), SLAB / 2 + lift);
-  panel.add(coin);
+  ring.position.set(at.x, at.y, at.z);
+  panel.add(coinBody, coinLetter, ring);
 
   // barres d'impact en relief, devant leur rail
   layout.bars.forEach((b, i) => {
-    const bar = new THREE.Mesh(new THREE.BoxGeometry(b.w * px, b.h * px, 0.004), glow(b.color, 0.6));
+    const bar = new THREE.Mesh(
+      new THREE.BoxGeometry(b.w * px, b.h * px, 0.004).translate(mx(b.x + b.w / 2), my(b.y + b.h / 2), SLAB / 2 + 0.0045),
+      glow(b.color, 0.6),
+    );
     bar.name = `barre ${i + 1}`;
-    bar.position.set(mx(b.x + b.w / 2), my(b.y + b.h / 2), SLAB / 2 + 0.0045);
     panel.add(bar);
   });
 
