@@ -1,0 +1,39 @@
+name: Identification des vêtements (Nudger)
+
+# Fabrique les fichiers qui permettent de reconnaître (marque, nom, type) un vêtement absent du registre officiel,
+# à partir de la base ouverte de codes-barres de Nudger. Publie le résultat dans la branche donnees-identification,
+# que le site consulte seulement quand un code-barres est inconnu. Rien n'est écrit dans la base de données.
+# Lancement à la main : la copie utilisée (Zenodo, novembre 2024) ne change pas.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  identification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: donnees-affichage-env
+          path: donnees
+      # Le site de Nudger refuse les téléchargements depuis GitHub : on prend la copie déposée par Nudger sur Zenodo.
+      - name: Télécharger la base Nudger (copie Zenodo, CC BY 4.0)
+        run: curl -fL --retry 5 --retry-delay 20 -C - -o "$RUNNER_TEMP/gtin.zip" "https://zenodo.org/records/14035436/files/gtin-open-data.zip?download=1"
+      - name: Trier les vêtements
+        run: unzip -p "$RUNNER_TEMP/gtin.zip" | python3 .github/scripts/identification.py donnees/data/registre "$RUNNER_TEMP/identification" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Publier dans la branche donnees-identification
+        run: |
+          cd "$RUNNER_TEMP"
+          rm -rf publi && mkdir publi && cd publi
+          git init -q -b donnees-identification
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p data && cp -r "$RUNNER_TEMP/identification" data/identification
+          printf '# Données VeriTrace : identification\n\nMarque, nom et type de vêtements absents du registre officiel, tirés de la base ouverte de codes-barres de Nudger / open4goods (copie Zenodo 10.5281/zenodo.14035436, licence CC BY 4.0). Branche régénérée automatiquement : ne pas modifier à la main.\n' > README.md
+          git add -A
+          git commit -qm "Identification des vêtements du $(date -u +%F)"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" donnees-identification
