@@ -96,3 +96,23 @@ La colonne `status` de `product_drafts` passe de `a_calculer` à `publie` en que
 - Les hypothèses retenues (pays inconnu, poids type…) sont dans `notes` et affichées dans l'app.
 
 Le détail de la méthode de notation est dans [methode-notation.md](methode-notation.md).
+
+## Vêtements reconnus mais pas encore notés (base ouverte de codes-barres)
+
+Depuis le 11 novembre 2026, quand un code-barres est absent du registre officiel, le site consulte une seconde
+source : la base ouverte de codes-barres de **Nudger / open4goods** (copie Zenodo `10.5281/zenodo.14035436`,
+novembre 2024, licence CC BY 4.0). Elle donne la **marque, le nom et le type** de 427 285 vêtements, mais **aucune
+donnée d'impact** : l'écran affiche « Vêtement reconnu, pas encore noté », cite la source, et préremplit la lecture
+d'étiquette.
+
+- Fabrication : action GitHub « Identification des vêtements (Nudger) » (`.github/workflows/identification.yml`,
+  lancement à la main), script `.github/scripts/identification.py`. Tri strict : catégorie de vêtement, nom contenant
+  un type de vêtement de VeriTrace, marque renseignée, code-barres valide, hors codes internes aux magasins, absent du
+  registre officiel.
+- Stockage : 4 096 petits fichiers JSON dans la branche `donnees-identification`, servis par le site sous
+  `/identification/NNNN.json` (réécriture dans `web/vercel.json`). **Rien dans la base de données.**
+- Côté site : `web/src/lib/identify.ts`.
+- Limites connues : la copie date de novembre 2024 ; les noms viennent de flux de marchands (parfois en anglais,
+  avec la taille ou la couleur) ; le type proposé peut être faux (« chemise oxford Tee Jays » classée T-shirt), il
+  reste modifiable ; les marques coupées à trois lettres dans la source ne sont pas reprises. Le site de Nudger
+  refuse les téléchargements depuis GitHub : pour une version plus récente, il faut déposer le fichier à la main.
