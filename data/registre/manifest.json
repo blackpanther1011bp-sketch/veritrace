@@ -1,0 +1,458 @@
+{
+ "batch": "202611110104",
+ "generated_at": "2026-11-11T01:04:27+00:00",
+ "source": "https://www.data.gouv.fr/datasets/affichage-environnemental-des-vetements",
+ "rows_in_source": 974581,
+ "rows": 970519,
+ "skipped": 4061,
+ "stages": [
+  "Cycle de vie - Accessoires",
+  "Cycle de vie - Matières premières",
+  "Cycle de vie - Filature",
+  "Cycle de vie - Tissage & Tricotage",
+  "Cycle de vie - Ennoblissement",
+  "Cycle de vie - Confection",
+  "Cycle de vie - Transport",
+  "Cycle de vie - Utilisation",
+  "Cycle de vie - Fin de vie"
+ ],
+ "brands": [
+  ".OBJECT",
+  "1083",
+  "ADIDAS FRANCE",
+  "AIRNESS",
+  "AMI PARIS",
+  "AN'GE PARIS",
+  "ARENA S.P.A",
+  "ARMEDANGELS",
+  "AS Colour B.V",
+  "ATELIER DE PRODUCTION ET DE CREATION",
+  "AZALA",
+  "American Vintage",
+  "Another Tomorrow",
+  "Atelier Tuffery",
+  "Au Printemps Paris",
+  "Avery Tailors",
+  "BA&SH",
+  "BAIE DES CAPS",
+  "BALENCIAGA",
+  "BELHARRA",
+  "BERLUTI SA",
+  "BEXLEY",
+  "BILLABONG",
+  "BIRKENSTOCK FRANCE",
+  "BLACK DIAMOND EQUIPMENT EUROPE GMBH",
+  "BONNETERIE CEVENOLE",
+  "BONOBO",
+  "BOTTEGA VENETA FRANCE",
+  "BREAL",
+  "BROUSSAUD TEXTILES",
+  "BUNSHA",
+  "BZB",
+  "Basic Treasure",
+  "Bobo Choses",
+  "CACHE-CACHE",
+  "CALIDA FRANCE",
+  "CAROLL",
+  "CELINE",
+  "CELIO FRANCE",
+  "CHRISTIAN DIOR COUTURE",
+  "CINQ-HUITIEMES",
+  "CLAUDIE PIERLOT",
+  "CMC",
+  "COCACOLA",
+  "COURREGES",
+  "CYRILLUS",
+  "Coyote Denim",
+  "DC SHOES",
+  "DDP",
+  "DES PETITS HAUTS",
+  "DIM",
+  "DPAM",
+  "DUTEXDOR",
+  "Desigual",
+  "E 2M",
+  "ELEMENT",
+  "EPHIGEA",
+  "ERGOS",
+  "ETABLISSEMENTS MARCEL",
+  "FAGUO",
+  "FENDI FRANCE",
+  "FURSAC",
+  "Faherty Apparel, LLC",
+  "Fruit of the Loom International Ltd.",
+  "Fusion ApS",
+  "G-HEAT GROUP",
+  "GEMO",
+  "GEORGIA ROSE",
+  "GILDAN ACTIVEWEAR",
+  "GIVENCHY",
+  "Gayaskin",
+  "Gerard Darel",
+  "H. LEMAHIEU",
+  "HELLY HANSEN - WORK WEAR",
+  "HELLY HANSEN AS",
+  "HILMA",
+  "INEXTENSO",
+  "INTERSPORT FRANCE",
+  "INTS FRANCE",
+  "IRO",
+  "Icepeak",
+  "JEAN PATOU",
+  "JENNYFER",
+  "JW Anderson Limited",
+  "Jules",
+  "KARL LAGERFELD",
+  "KENZO",
+  "KIABI",
+  "L'IMPERTINENTE",
+  "LA COUCHE DURABLE",
+  "LA HALLE",
+  "LA PETITE ETOILE",
+  "LA REDOUTE",
+  "LAFRANCAISE",
+  "LAGOPED",
+  "LE BEAU JEAN",
+  "LE BON MARCHE  MAISON ARISTIDE BOUCICAUT",
+  "LE BOURGET",
+  "LE SLIP FRANCAIS",
+  "LOEWE FRANCE",
+  "Levi",
+  "Loom",
+  "Luhta",
+  "MADE BY",
+  "MAGELAN",
+  "MAISON BALZAC",
+  "MAJE",
+  "MARIE FELD",
+  "MILLET MOUNTAIN GROUP SAS",
+  "MONOPRIX HOLDING",
+  "MORGAN",
+  "MSFR",
+  "MUSTO",
+  "NOBODY'S CHILD LIMITED",
+  "NOPUBLIK",
+  "Nénés",
+  "ODLO FRANCE",
+  "ON AG",
+  "ORAIJE",
+  "PASSENGER",
+  "PAUL SMITH EUROPE",
+  "PETIT-BATEAU",
+  "PHALAENOPSIS",
+  "PICTURE ORGANIC CLOTHING",
+  "PIMKIE",
+  "PLAYTEX",
+  "PROMOD",
+  "Pablo",
+  "PangoLin",
+  "Pavenrod",
+  "Pink",
+  "Prix Mini",
+  "QUIKSILVER",
+  "RICALEWIS",
+  "RIOULT & HUREAUX",
+  "ROUGEGORGE LINGERIE",
+  "ROXY",
+  "RVCA",
+  "Rifo Srl",
+  "Rukka",
+  "S&S Wholesale APS",
+  "SANDRO ANDY",
+  "SAPIOLOGIE",
+  "SARENZA WEAR",
+  "SIX ET SEPT",
+  "SKFK",
+  "SKIS ROSSIGNOL - CLUB ROSSIGNOL",
+  "SMOON",
+  "SOC D'IMPORTATION LECLERC",
+  "SOL MILLENNIUM FRANCE",
+  "SPORTMINEDOR",
+  "STELLA & SUZIE",
+  "SUNCOO",
+  "SUPERDRY FRANCE",
+  "Saison 1865",
+  "Sessùn",
+  "Soeur",
+  "TAPE A L'OEIL",
+  "TBS",
+  "TECNIFIBRE",
+  "TEDDYSMITH",
+  "TEX",
+  "TWINDAY",
+  "TWINSET FRANCE",
+  "Ternua",
+  "U Collection",
+  "U Essentiel",
+  "U Oxygn",
+  "U Tout Petits",
+  "UNIQLO EUROPE LTD",
+  "V2D CREATION",
+  "VEJA FAIR TRADE S.A.R.L.",
+  "VIVIENNE WESTWOOD FRANCE",
+  "Vanessa Bruno",
+  "Victoria's Secret",
+  "Volcom",
+  "W.O.P World of Pop",
+  "WELL",
+  "WISE",
+  "WONDAY",
+  "WOP",
+  "Y-A-S",
+  "YVES SAINT LAURENT",
+  "ZV FRANCE",
+  "[ND]",
+  "iXS ag",
+  "jacadi",
+  "l'Atelier Visconti",
+  "new balance",
+  "okaidi"
+ ],
+ "categories": [
+  {
+   "label": "Boxer / Slip (tricoté)",
+   "eco_product": "slip"
+  },
+  {
+   "label": "Caleçon (tissé)",
+   "eco_product": "calecon"
+  },
+  {
+   "label": "Chaussettes",
+   "eco_product": "chaussettes"
+  },
+  {
+   "label": "Chemise",
+   "eco_product": "chemise"
+  },
+  {
+   "label": "Jean",
+   "eco_product": "jean"
+  },
+  {
+   "label": "Jupe / Robe",
+   "eco_product": "jupe"
+  },
+  {
+   "label": "Lot de produits",
+   "eco_product": null
+  },
+  {
+   "label": "Maillot de bain",
+   "eco_product": "maillot-de-bain"
+  },
+  {
+   "label": "Manteau / Veste",
+   "eco_product": "manteau"
+  },
+  {
+   "label": "Pantalon / Short",
+   "eco_product": "pantalon"
+  },
+  {
+   "label": "Pull",
+   "eco_product": "pull"
+  },
+  {
+   "label": "T-shirt / Polo",
+   "eco_product": "tshirt"
+  }
+ ],
+ "chunks": [
+  {
+   "file": "bloc-000.json",
+   "rows": 25000,
+   "sha256": "1a84f0476b0be30b09f2dad96348beca7d8ec4d1fee01991c5f1b30ca0d6e232"
+  },
+  {
+   "file": "bloc-001.json",
+   "rows": 25000,
+   "sha256": "9bdb7a82fa26a2e2188afc21e8c06b1e421f66590abe51c208b533dafddef57a"
+  },
+  {
+   "file": "bloc-002.json",
+   "rows": 25000,
+   "sha256": "f192577b9bd975688a3da497dca36c089382a8c00a324fd991fa85235a889c0a"
+  },
+  {
+   "file": "bloc-003.json",
+   "rows": 25000,
+   "sha256": "fdd9a3b3d734dd62d09fa5149de0249b1431174c3b839c388d4f69bbbb237b51"
+  },
+  {
+   "file": "bloc-004.json",
+   "rows": 25000,
+   "sha256": "c77500f5fde597e5a903329f7d3321d045a10fa84ea1cbd00f4ae7243f5904cf"
+  },
+  {
+   "file": "bloc-005.json",
+   "rows": 25000,
+   "sha256": "71f3c4bac626a557d7e7a6ee05c621058d076723c9e19252db783269fe3d399a"
+  },
+  {
+   "file": "bloc-006.json",
+   "rows": 25000,
+   "sha256": "f55e349ee0252d9838cbed351537f3917831e914760002cc28f051cbfbfce406"
+  },
+  {
+   "file": "bloc-007.json",
+   "rows": 25000,
+   "sha256": "f85a15550bd15cf75d8d9a103992b322d67fde94403c2de0459214766f71dbd4"
+  },
+  {
+   "file": "bloc-008.json",
+   "rows": 25000,
+   "sha256": "6c2aed1fbd6ab67f5b6df318bd141ebbb2ef247532e28b25a4dcea260082e24c"
+  },
+  {
+   "file": "bloc-009.json",
+   "rows": 25000,
+   "sha256": "c971ff31d26860141ab30f52d8b76e73bf185494cf2759e90b01291edd9daf35"
+  },
+  {
+   "file": "bloc-010.json",
+   "rows": 25000,
+   "sha256": "d9e2db9cf50a8b9ebda95e38f0787f6e74d3ac15ddc9509e2cac55a9f7bf189d"
+  },
+  {
+   "file": "bloc-011.json",
+   "rows": 25000,
+   "sha256": "4f30caf5c71e7e0567c01a71e654faf1bb3b1f4ea6d0812e472c8ac779378800"
+  },
+  {
+   "file": "bloc-012.json",
+   "rows": 25000,
+   "sha256": "8a3d932e557acf9f38c45cc235f328d012bb6773f000c829efc40604ef343c1b"
+  },
+  {
+   "file": "bloc-013.json",
+   "rows": 25000,
+   "sha256": "a2a4ba62487faf67faeb1ee71fb7e50caec8db435a744312e6312935999ba951"
+  },
+  {
+   "file": "bloc-014.json",
+   "rows": 25000,
+   "sha256": "7aeaf7a25c5b34fcffca8fa7553c37715ad7208c32549174b9623dc3de72a5c4"
+  },
+  {
+   "file": "bloc-015.json",
+   "rows": 25000,
+   "sha256": "6641d932bc1155d5f477a227a4605b4e581b3527da86f57c8dc06ffa058cdab7"
+  },
+  {
+   "file": "bloc-016.json",
+   "rows": 25000,
+   "sha256": "c5d25d7c5e15556b836053d77b34dec159afca63652d6fd4b0c1d2fa2162cf7c"
+  },
+  {
+   "file": "bloc-017.json",
+   "rows": 25000,
+   "sha256": "d270c3007b43b562f48ecd3de56a944b8610d919e095a8139608df5a6653606c"
+  },
+  {
+   "file": "bloc-018.json",
+   "rows": 25000,
+   "sha256": "2a7dc21452d6519662506edb0c32849ee887f4024463ea944fd9bdfddf475a99"
+  },
+  {
+   "file": "bloc-019.json",
+   "rows": 25000,
+   "sha256": "52b3f2e409ae6cdb84e2892397728e4edf7175c5bcb7b62c66d1541802a9af07"
+  },
+  {
+   "file": "bloc-020.json",
+   "rows": 25000,
+   "sha256": "89fe9cfeee2a6e794fed326316a997cf3777c6499254125f03780fb0b7624949"
+  },
+  {
+   "file": "bloc-021.json",
+   "rows": 25000,
+   "sha256": "1d8a23b52efd6a277618b435000519373452547d79284910f91dce93e55bb587"
+  },
+  {
+   "file": "bloc-022.json",
+   "rows": 25000,
+   "sha256": "e81751d4a059c378a99efe39726c9de3c5bb9d7e0b8b303d811a499222c547d6"
+  },
+  {
+   "file": "bloc-023.json",
+   "rows": 25000,
+   "sha256": "9ebaf38f803e06074fe0f8014a61d403e1705ef71b0e682de1716b08abb411a3"
+  },
+  {
+   "file": "bloc-024.json",
+   "rows": 25000,
+   "sha256": "a81f3b4c3a9c624f2e88ab60a3fd2b2d57a3f7a220c8be15b538fe229e5e4c9d"
+  },
+  {
+   "file": "bloc-025.json",
+   "rows": 25000,
+   "sha256": "30220e3ceea0ec51fc1f60599497ac4c52ae57984589e414b0417d20fd8caceb"
+  },
+  {
+   "file": "bloc-026.json",
+   "rows": 25000,
+   "sha256": "91d6ae9af60cd17eb854cf290c6c76d81bbf7f4aabbc0cc3f0aad9333d8bbc30"
+  },
+  {
+   "file": "bloc-027.json",
+   "rows": 25000,
+   "sha256": "66cf849e785f91ce4c78f0e9e6ab7003bcc0fcb4e5d3dbd12dca685dc0f7ed9f"
+  },
+  {
+   "file": "bloc-028.json",
+   "rows": 25000,
+   "sha256": "b52bf86edbb086dcc45f9580fea22e7f8b92d8434dd7907b67c8e9a35144e2b7"
+  },
+  {
+   "file": "bloc-029.json",
+   "rows": 25000,
+   "sha256": "c25ccc168403ce86c789d3191da362137179a2df981fcc84406eae84984d59ef"
+  },
+  {
+   "file": "bloc-030.json",
+   "rows": 25000,
+   "sha256": "63b9610e51092bfff16bb0b9a7bc93b46070a24b85d78b95cc615b906e3600ce"
+  },
+  {
+   "file": "bloc-031.json",
+   "rows": 25000,
+   "sha256": "c2a919dcc82adb52ee3e3a6d3f8847ed40d5bcca1ee4fa11e0644b00ff717f30"
+  },
+  {
+   "file": "bloc-032.json",
+   "rows": 25000,
+   "sha256": "fd47fb1e4fb1e8a40dcda7d1fb7fe322bd0b1175c1eb445155768cc3d87f6da9"
+  },
+  {
+   "file": "bloc-033.json",
+   "rows": 25000,
+   "sha256": "06d735980c7ffae122e630642454cab7e6c68685e2b7753fbb17d793516ac15f"
+  },
+  {
+   "file": "bloc-034.json",
+   "rows": 25000,
+   "sha256": "9a17fd9f51fa7ad5ae9d0d94f72a43135ec0e69ee55d45ae6ab20d04422ea22b"
+  },
+  {
+   "file": "bloc-035.json",
+   "rows": 25000,
+   "sha256": "96a4120caf056039adb0a89a49cb708f6e53c2195f108e1724ba9b16f395a8a4"
+  },
+  {
+   "file": "bloc-036.json",
+   "rows": 25000,
+   "sha256": "ef773ea0d3f104d83c4996051bcfa03cb8099ba8556ca5d8a99fa020f8aa2e59"
+  },
+  {
+   "file": "bloc-037.json",
+   "rows": 25000,
+   "sha256": "c9801504f2e36c966b0daa53240b31d699c7b8561eacf699f4888e05d9692432"
+  },
+  {
+   "file": "bloc-038.json",
+   "rows": 20519,
+   "sha256": "7e47456e51680de74836059e29e125b0b10bf6e9cd80b7defc8a45e482d628df"
+  }
+ ]
+}
