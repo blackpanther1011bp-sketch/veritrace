@@ -29,10 +29,6 @@ const arStrings = <String, String>{
   'Note {best}, contre {worst} pour le moins bon':
       'التقييم {best}، مقابل {worst} للأسوأ',
 
-  // config.dart
-  'Tarif à définir':
-      'السعر قيد التحديد',
-
   // contribute.dart
   "Recopiez la composition écrite sur l'étiquette.":
       'انسخ التركيب المكتوب على الملصق.',
@@ -304,28 +300,6 @@ const arStrings = <String, String>{
       'السجل الرسمي',
   'Fabriqué : {country}':
       'بلد الصنع: {country}',
-  'Premium activé (simulation de démo)':
-      'تمّ تفعيل Premium (محاكاة للعرض التوضيحي)',
-  'Comparez toutes les options mieux notées, en ligne et près de chez vous.':
-      'قارن كل الخيارات الأفضل تقييمًا، عبر الإنترنت وبالقرب منك.',
-  'Débloquer avec Premium':
-      'فتح البدائل مع Premium',
-  'Toutes les alternatives pour chaque article':
-      'كل البدائل لكل قطعة',
-  'Historique complet de vos scans':
-      'السجل الكامل لعمليات المسح',
-  'Alertes sur vos marques préférées':
-      'تنبيهات حول علاماتك التجارية المفضّلة',
-  "Commencer l'essai gratuit":
-      'بدء التجربة المجانية',
-  'Plus tard':
-      'لاحقًا',
-  "Démo : aucun paiement n'est demandé.":
-      'عرض توضيحي: لا يُطلب أي أداء.',
-  '{n} autre alternative':
-      'بدائل أخرى: {n}',
-  '{n} autres alternatives':
-      'بدائل أخرى: {n}',
 
   // screens/ar_scan_screen.dart
   'Comparaison du rayon':
