@@ -1,5 +1,3 @@
-import 'l10n.dart';
-
 /// Configuration du projet Supabase « veritrace ».
 ///
 /// La clé publishable est publique par conception : la sécurité repose sur
@@ -24,10 +22,4 @@ class AppConfig {
 
   /// Adresse de la version web (passeports numériques, espace fabricants).
   static const siteUrl = 'https://veritrace-wine.vercel.app';
-
-  /// Nombre d'alternatives visibles sans Premium.
-  static const freeAlternatives = 1;
-
-  /// Libellé du tarif Premium, à remplacer par le vrai prix.
-  static String get premiumPriceLabel => tr('Tarif à définir');
 }

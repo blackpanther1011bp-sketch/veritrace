@@ -67,7 +67,7 @@ La planche `../test-barcodes/codes-barres-test.pdf` contient des codes de démon
 ## À faire avant un lancement public
 
 1. Réalité augmentée native sur iPhone (ARKit).
-2. Vrai abonnement (achats intégrés vérifiés côté serveur) ; Premium est aujourd'hui un interrupteur local.
+2. Abonnement VeriTrace+ (bons plans, dressing et revente, entretien) avec achats intégrés vérifiés côté serveur. Les alternatives mieux notées restent gratuites pour tous.
 3. Clé de publication Android, comptes Play Console et Apple Developer.
 4. Déclaration CNDP (loi 09-08) déposée : voir `../docs/dossier-cndp.md`.
 

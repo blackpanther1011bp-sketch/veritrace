@@ -1,19 +1,17 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { GradeBadge } from "../components/Grade";
 import { Header } from "../components/Header";
-import { IconCheck, IconChevron, IconLock } from "../components/Icons";
+import { IconChevron } from "../components/Icons";
 import { fetchAlternatives } from "../lib/api";
-import { t, tn } from "../lib/i18n";
+import { t } from "../lib/i18n";
 import { navigate } from "../lib/router";
-import { isPremium, setPremium } from "../lib/storage";
 import { track } from "../lib/track";
 import type { Product } from "../lib/types";
 import { useProduct } from "./ProductScreen";
 import { ErrorState } from "./States";
 
-// Affiché sur l'offre Premium : à remplacer par le vrai tarif.
-const premiumPrice = () => t("alt.priceTbd");
-const FREE_ALTERNATIVES = 1;
+// Toutes les alternatives mieux notées sont gratuites : ce qui informe n'est jamais payant.
+// L'abonnement VeriTrace+ (à venir) portera sur ce qui fait économiser : bons plans, revente, entretien.
 
 function tags(p: Product): string[] {
   const out: string[] = [];
@@ -54,10 +52,6 @@ export function AlternativesScreen({ ean }: { ean: string }) {
   const [list, setList] = useState<Product[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
-  const [premium, setPremiumState] = useState(isPremium);
-  const [sheetOpen, setSheetOpen] = useState(false);
-  const [justUnlocked, setJustUnlocked] = useState(false);
-  const sheetButton = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let alive = true;
@@ -74,29 +68,6 @@ export function AlternativesScreen({ ean }: { ean: string }) {
     if (product) track("alternatives_view", { ean, grade: product.global_grade });
   }, [product, ean]);
 
-  useEffect(() => {
-    if (!sheetOpen) return;
-    sheetButton.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSheetOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [sheetOpen]);
-
-  function openSheet() {
-    track("premium_view", { ean });
-    setSheetOpen(true);
-  }
-
-  function unlock() {
-    setPremium(true);
-    setPremiumState(true);
-    setSheetOpen(false);
-    setJustUnlocked(true);
-    track("premium_start", { ean });
-  }
-
   const header = <Header title={t("alt.title")} backTo={`/p/${ean}`} backLabel={t("common.backProduct")} />;
 
   if (failed && !list) {
@@ -108,12 +79,8 @@ export function AlternativesScreen({ ean }: { ean: string }) {
     );
   }
 
-  const free = list ? (premium ? list : list.slice(0, FREE_ALTERNATIVES)) : [];
-  const lockedCount = list && !premium ? Math.max(0, list.length - FREE_ALTERNATIVES) : 0;
-
   return (
-    <>
-    <div className="screen" aria-hidden={sheetOpen ? true : undefined}>
+    <div className="screen">
       {header}
       <main className="content">
         {product && (
@@ -138,41 +105,9 @@ export function AlternativesScreen({ ean }: { ean: string }) {
         ) : (
           <>
             <p className="lead">{t("alt.lead")}</p>
-            {free.map((p) => (
+            {list.map((p) => (
               <AlternativeCard key={p.ean} p={p} />
             ))}
-
-            {justUnlocked && (
-              <div className="banner-success" role="status">
-                <IconCheck size={20} />
-                {t("alt.premiumOn")}
-              </div>
-            )}
-
-            {lockedCount > 0 && (
-              <>
-                {Array.from({ length: lockedCount }).map((_, i) => (
-                  <div key={i} className="card alt-card alt-locked" aria-hidden="true">
-                    <span className="skel-badge" />
-                    <span className="row-text">
-                      <span className="skel-line" style={{ width: "70%" }} />
-                      <span className="skel-line skel-line-sm" style={{ width: "45%" }} />
-                    </span>
-                    <IconLock size={20} />
-                  </div>
-                ))}
-                <section className="upsell">
-                  <div className="upsell-head">
-                    <IconLock size={22} />
-                    <span>{tn("alt.locked", lockedCount)}</span>
-                  </div>
-                  <p>{t("alt.upsell")}</p>
-                  <button type="button" className="btn btn-accent" onClick={openSheet}>
-                    {t("alt.unlock")}
-                  </button>
-                </section>
-              </>
-            )}
           </>
         )}
       </main>
@@ -183,36 +118,5 @@ export function AlternativesScreen({ ean }: { ean: string }) {
         </button>
       </footer>
     </div>
-
-      {sheetOpen && (
-        <div className="scrim" onClick={() => setSheetOpen(false)}>
-          <div className="sheet-dialog" role="dialog" aria-modal="true" aria-labelledby="premium-title" onClick={(e) => e.stopPropagation()}>
-            <span className="handle" aria-hidden="true" />
-            <h2 id="premium-title" className="dialog-title">
-              VeriTrace Premium
-            </h2>
-            <ul className="benefits">
-              <li>
-                <IconCheck size={20} /> {t("alt.benefitAll")}
-              </li>
-              <li>
-                <IconCheck size={20} /> {t("alt.benefitHistory")}
-              </li>
-              <li>
-                <IconCheck size={20} /> {t("alt.benefitAlerts")}
-              </li>
-            </ul>
-            <p className="price">{premiumPrice()}</p>
-            <button ref={sheetButton} type="button" className="btn btn-primary" onClick={unlock}>
-              {t("alt.trial")}
-            </button>
-            <button type="button" className="btn btn-text" onClick={() => setSheetOpen(false)}>
-              {t("alt.later")}
-            </button>
-            <p className="muted-xs">{t("alt.noPayment")}</p>
-          </div>
-        </div>
-      )}
-    </>
   );
 }

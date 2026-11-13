@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../api.dart';
-import '../config.dart';
 import '../l10n.dart';
 import '../models.dart';
 import '../navigation.dart';
-import '../storage.dart';
 import '../theme.dart';
 import '../widgets.dart';
 
@@ -20,16 +18,11 @@ class AlternativesScreen extends StatefulWidget {
 class _AlternativesScreenState extends State<AlternativesScreen> {
   List<Product>? _list;
   bool _failed = false;
-  bool _premium = false;
-  bool _justUnlocked = false;
 
   @override
   void initState() {
     super.initState();
     Api.instance.track('alternatives_view', ean: widget.product.ean, grade: widget.product.globalGrade);
-    LocalStore.isPremium().then((v) {
-      if (mounted) setState(() => _premium = v);
-    });
     _load();
   }
 
@@ -40,27 +33,6 @@ class _AlternativesScreenState extends State<AlternativesScreen> {
       if (mounted) setState(() => _list = list);
     } catch (_) {
       if (mounted) setState(() => _failed = true);
-    }
-  }
-
-  Future<void> _openPaywall() async {
-    Api.instance.track('premium_view', ean: widget.product.ean);
-    final start = await showModalBottomSheet<bool>(
-      context: context,
-      backgroundColor: Colors.white,
-      showDragHandle: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      builder: (ctx) => const _PaywallSheet(),
-    );
-    if (start == true) {
-      await LocalStore.setPremium(true);
-      Api.instance.track('premium_start', ean: widget.product.ean);
-      if (mounted) {
-        setState(() {
-          _premium = true;
-          _justUnlocked = true;
-        });
-      }
     }
   }
 
@@ -120,12 +92,11 @@ class _AlternativesScreenState extends State<AlternativesScreen> {
   }
 
   List<Widget> _items(List<Product> list) {
-    final visible = _premium ? list : list.take(AppConfig.freeAlternatives).toList();
-    final locked = _premium ? 0 : list.length - visible.length;
+    // Toutes les alternatives mieux notées sont gratuites : ce qui informe n'est jamais payant.
     return [
       Text(tr('Même usage, meilleur impact.'), style: const TextStyle(fontSize: 15, color: VT.muted)),
       const SizedBox(height: 12),
-      for (final p in visible)
+      for (final p in list)
         Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: CardBox(
@@ -165,94 +136,7 @@ class _AlternativesScreenState extends State<AlternativesScreen> {
             ),
           ),
         ),
-      if (_justUnlocked)
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: VT.mintTint, borderRadius: BorderRadius.circular(14)),
-          child: Row(
-            children: [
-              const Icon(Icons.check, color: VT.green),
-              const SizedBox(width: 10),
-              Text(tr('Premium activé (simulation de démo)'),
-                  style: const TextStyle(color: VT.green, fontWeight: FontWeight.w500)),
-            ],
-          ),
-        ),
-      if (locked > 0)
-        Container(
-          margin: const EdgeInsetsDirectional.only(top: 4),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(color: VT.ink, borderRadius: BorderRadius.circular(20)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.lock_outline, color: VT.mint),
-                  const SizedBox(width: 10),
-                  Text(tn(locked, '{n} autre alternative', '{n} autres alternatives'),
-                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(tr('Comparez toutes les options mieux notées, en ligne et près de chez vous.'),
-                  style: const TextStyle(color: Color(0xFFC9D4CD), fontSize: 15, height: 1.45)),
-              const SizedBox(height: 12),
-              FilledButton(
-                onPressed: _openPaywall,
-                style: FilledButton.styleFrom(
-                    backgroundColor: VT.mint, foregroundColor: VT.ink, minimumSize: const Size.fromHeight(48)),
-                child: Text(tr('Débloquer avec Premium')),
-              ),
-            ],
-          ),
-        ),
     ];
   }
 }
 
-class _PaywallSheet extends StatelessWidget {
-  const _PaywallSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    final benefits = [
-      tr('Toutes les alternatives pour chaque article'),
-      tr('Historique complet de vos scans'),
-      tr('Alertes sur vos marques préférées'),
-    ];
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text('VeriTrace Premium', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 14),
-            for (final b in benefits)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  children: [
-                    const Icon(Icons.check, color: VT.green, size: 20),
-                    const SizedBox(width: 10),
-                    Expanded(child: Text(b, style: const TextStyle(fontSize: 15))),
-                  ],
-                ),
-              ),
-            Text(AppConfig.premiumPriceLabel, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 14),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(tr("Commencer l'essai gratuit")),
-            ),
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: Text(tr('Plus tard'))),
-            Text(tr("Démo : aucun paiement n'est demandé."),
-                textAlign: TextAlign.center, style: const TextStyle(fontSize: 13, color: VT.muted2)),
-          ],
-        ),
-      ),
-    );
-  }
-}
